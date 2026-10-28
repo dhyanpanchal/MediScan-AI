@@ -474,13 +474,23 @@ const translations = {
   }
 };
 
+const normalizeLang = (l) => {
+  if (!l) return 'en';
+  const lower = String(l).toLowerCase();
+  if (lower.startsWith('hi')) return 'hi';
+  if (lower.startsWith('gu')) return 'gu';
+  return 'en';
+};
+
 export const AppProvider = ({ children }) => {
-  const [language, setLanguage] = useState(() => localStorage.getItem('mediscan_lang') || 'en');
+  const [language, setLanguageState] = useState(() => normalizeLang(localStorage.getItem('mediscan_lang')));
+  const setLanguage = (l) => setLanguageState(normalizeLang(l));
   const [theme, setTheme] = useState(() => localStorage.getItem('mediscan_theme') || 'dark');
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mediscan_fontsize') || 'standard');
 
   const t = (key, params) => {
-    let text = translations[language]?.[key] || translations['en']?.[key] || key;
+    const langKey = normalizeLang(language);
+    let text = translations[langKey]?.[key] || translations['en']?.[key] || key;
     if (params && typeof text === 'string') {
       Object.keys(params).forEach(p => {
         text = text.replace(`{${p}}`, params[p]);
@@ -490,7 +500,7 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    localStorage.setItem('mediscan_lang', language);
+    localStorage.setItem('mediscan_lang', normalizeLang(language));
   }, [language]);
 
   useEffect(() => {

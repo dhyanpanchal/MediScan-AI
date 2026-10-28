@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User as UserIcon, Phone, Calendar, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, Calendar, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
 
 const RegisterPage = () => {
@@ -12,6 +12,7 @@ const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('');
@@ -48,10 +49,28 @@ const RegisterPage = () => {
     }
   };
 
+  const handleDemoGoogleLogin = async () => {
+    setError('');
+    setOauthSimulating(true);
+    setOauthStatus('Signing in with Google Account (panchaldhyan007@gmail.com)...');
+    try {
+      await loginWithGoogle(
+        'google_demo_token_' + Date.now(),
+        'panchaldhyan007@gmail.com',
+        'Dhyan Panchal'
+      );
+      setOauthSimulating(false);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Google account registration failed.');
+      setOauthSimulating(false);
+    }
+  };
+
   const handleGoogleOAuth = async () => {
     setError('');
     setOauthSimulating(true);
-    setOauthStatus('Loading Google Sign-In...');
+    setOauthStatus('Connecting to Google Identity Services...');
 
     try {
       // Get Google Client ID from backend config
@@ -59,38 +78,13 @@ const RegisterPage = () => {
       
       if (!config || !config.clientId) {
         // Fallback to simulation if Google Client ID is not configured yet
-        setOauthStatus('Google Sign-In config not found. Falling back to simulator...');
-        setTimeout(() => {
-          setOauthStatus('Redirecting to Google secure accounts portal...');
-          
-          setTimeout(() => {
-            setOauthStatus('Google account linked. Setting up clinical profile...');
-            
-            setTimeout(async () => {
-              try {
-                // Send simulated OAuth payloads
-                await loginWithGoogle(
-                  'google_oauth_token_' + Math.random().toString(36).substring(2),
-                  'google.user@gmail.com',
-                  'Google Clinical User'
-                );
-                setOauthSimulating(false);
-                navigate('/dashboard');
-              } catch (err) {
-                setError('Google OAuth registration failed.');
-                setOauthSimulating(false);
-              }
-            }, 1000);
-
-          }, 1200);
-        }, 1000);
-        return;
+        return handleDemoGoogleLogin();
       }
 
       // Real Google Identity Services prompt flow
       /* global google */
       if (typeof google === 'undefined') {
-        throw new Error('Google identity client script failed to load. Please verify index.html integration and internet connectivity.');
+        throw new Error('Google identity client script failed to load. Please verify internet connectivity.');
       }
 
       setOauthStatus('Opening Google Accounts chooser...');
@@ -134,7 +128,8 @@ const RegisterPage = () => {
           }
         },
         error_callback: (err) => {
-          setError('Google Accounts portal encountered an error.');
+          console.warn('Google Accounts error callback:', err);
+          setError(`Google Sign-In blocked (Error 400: origin_mismatch). Please add "${window.location.origin}" to Authorized JavaScript origins in Google Cloud Console, or use 1-Click Login.`);
           setOauthSimulating(false);
         }
       });
@@ -162,12 +157,36 @@ const RegisterPage = () => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          backdropFilter: 'blur(8px)'
+          backdropFilter: 'blur(8px)',
+          padding: '1.5rem'
         }}>
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ maxWidth: '420px', width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
             <Loader2 size={48} className="badge-normal" style={{ animation: 'spin 2s linear infinite', background: 'none' }} />
             <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }} className="gradient-text">Google Accounts</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>{oauthStatus}</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.5 }}>{oauthStatus}</p>
+
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', width: '100%' }}>
+              Current Origin: <code style={{ color: 'var(--primary)' }}>{window.location.origin}</code>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setOauthSimulating(false)}
+                style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.875rem' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleDemoGoogleLogin}
+                style={{ flex: 1.2, padding: '0.65rem 1rem', fontSize: '0.875rem' }}
+              >
+                Instant 1-Click Login
+              </button>
+            </div>
           </div>
           <style>{`
             @keyframes spin {
@@ -194,7 +213,7 @@ const RegisterPage = () => {
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: '800' }}>Create clinical account</h2>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: '800', margin: 0 }}>Create clinical account</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Access OCR medicine scans and document analytics</p>
         </div>
 
@@ -218,55 +237,69 @@ const RegisterPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="name">Full Name *</label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-icon-group">
+                <UserIcon size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 <input
                   type="text"
                   id="name"
-                  className="form-control"
                   placeholder="Dr. Sarah Jenkins"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={loading}
-                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
-                <UserIcon size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }} />
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="email_address">Email Address *</label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-icon-group">
+                <Mail size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 <input
                   type="text"
                   id="email_address"
-                  className="form-control"
                   placeholder="s.jenkins@clinic.org"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
-                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
-                <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }} />
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="password">Password *</label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-icon-group">
+                <Lock size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
-                  className="form-control"
                   placeholder="Create secure password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
-                <Lock size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }} />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px',
+                    cursor: 'pointer',
+                    color: showPassword ? 'var(--secondary)' : 'var(--text-dark)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s ease',
+                    flexShrink: 0
+                  }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
@@ -366,6 +399,28 @@ const RegisterPage = () => {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
             </svg>
             Continue with Google
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleDemoGoogleLogin}
+            style={{ 
+              width: '100%', 
+              marginTop: '0.75rem',
+              gap: '0.5rem',
+              background: 'transparent',
+              border: '1px dashed var(--border-color)',
+              color: 'var(--text-secondary)',
+              fontSize: '0.825rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.5rem 1rem'
+            }}
+            disabled={loading}
+          >
+            ⚡ Instant 1-Click Google Sign In (panchaldhyan007@gmail.com)
           </button>
         </div>
 

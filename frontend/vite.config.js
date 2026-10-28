@@ -6,19 +6,24 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5000,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:5001',
         changeOrigin: true,
+        timeout: 30000,
+        proxyTimeout: 30000,
         configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.error('[Vite Proxy Error]:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('[Vite Proxy Request]:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('[Vite Proxy Response]:', proxyRes.statusCode, req.url);
+          proxy.on('error', (err, req, res) => {
+            console.error('[Vite Proxy Error]:', err.message);
+            if (res && res.writeHead && !res.headersSent) {
+              res.writeHead(502, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: false,
+                error: 'Backend service is restarting or unavailable. Please retry momentarily.',
+                isProxyError: true
+              }));
+            }
           });
         }
       },

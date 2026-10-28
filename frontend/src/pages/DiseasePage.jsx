@@ -94,8 +94,8 @@ const DiseasePage = () => {
               <Globe size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <select className="form-control" style={{ paddingLeft: '44px', height: '56px', appearance: 'none', background: 'var(--bg-input)', cursor: 'pointer', borderRadius: '12px', fontSize: '15px' }} value={outputLanguage} onChange={e => setOutputLanguage(e.target.value)}>
                 <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="gu">Gujarati</option>
+                <option value="hi">हिन्दी</option>
+                <option value="gu">ગુજરાતી</option>
               </select>
               <ChevronDown size={16} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
             </div>

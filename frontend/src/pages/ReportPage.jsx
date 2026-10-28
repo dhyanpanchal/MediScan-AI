@@ -156,8 +156,8 @@ const ReportPage = () => {
             <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Language</span>
             <select className="form-control" style={{ padding: '6px 12px', height: 'auto', background: 'var(--bg-input)', border: 'none', borderRadius: '8px' }} value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)}>
               <option value="English">English</option>
-              <option value="Hindi">Hindi</option>
-              <option value="Gujarati">Gujarati</option>
+              <option value="Hindi">हिन्दी (Hindi)</option>
+              <option value="Gujarati">ગુજરાતી (Gujarati)</option>
             </select>
           </div>
         )}

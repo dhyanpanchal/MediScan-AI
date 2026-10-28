@@ -211,21 +211,24 @@ const SettingsPage = () => {
                 <h4 className="card-heading" style={{ marginBottom: '16px' }}>Display Language</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
                   {[
-                    { key: 'English', label: 'English', flag: '🇺🇸', native: 'English' },
-                    { key: 'Hindi', label: 'Hindi', flag: '🇮🇳', native: 'हिंदी' },
-                    { key: 'Gujarati', label: 'Gujarati', flag: '🇮🇳', native: 'ગુજરાતી' },
-                  ].map(lang => (
-                    <button key={lang.key} onClick={() => setLanguage(lang.key)} style={{
-                      padding: '24px 16px', borderRadius: '12px', border: `2px solid ${language === lang.key ? '#06b6d4' : 'rgba(255,255,255,0.05)'}`,
-                      background: language === lang.key ? 'rgba(6, 182, 212, 0.05)' : 'transparent', cursor: 'pointer',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px'
-                    }}>
-                      <span style={{ fontSize: '28px' }}>{lang.flag}</span>
-                      <span style={{ fontWeight: '800', color: language === lang.key ? '#06b6d4' : 'var(--text-primary)', fontSize: '16px' }}>{lang.native}</span>
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{lang.label}</span>
-                      {language === lang.key && <Check size={16} style={{ color: '#06b6d4', marginTop: '4px' }} />}
-                    </button>
-                  ))}
+                    { key: 'en', aliases: ['en', 'English'], label: 'English', flag: '🇺🇸', native: 'English' },
+                    { key: 'hi', aliases: ['hi', 'Hindi'], label: 'Hindi', flag: '🇮🇳', native: 'हिन्दी' },
+                    { key: 'gu', aliases: ['gu', 'Gujarati'], label: 'Gujarati', flag: '🇮🇳', native: 'ગુજરાતી' },
+                  ].map(lang => {
+                    const isSelected = language === lang.key || lang.aliases.includes(language);
+                    return (
+                      <button key={lang.key} onClick={() => setLanguage(lang.key)} style={{
+                        padding: '24px 16px', borderRadius: '12px', border: `2px solid ${isSelected ? '#06b6d4' : 'rgba(255,255,255,0.05)'}`,
+                        background: isSelected ? 'rgba(6, 182, 212, 0.05)' : 'transparent', cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px'
+                      }}>
+                        <span style={{ fontSize: '28px' }}>{lang.flag}</span>
+                        <span style={{ fontWeight: '800', color: isSelected ? '#06b6d4' : 'var(--text-primary)', fontSize: '16px' }}>{lang.native}</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{lang.label}</span>
+                        {isSelected && <Check size={16} style={{ color: '#06b6d4', marginTop: '4px' }} />}
+                      </button>
+                    );
+                  })}
                 </div>
                 <div className="alert alert-info" style={{ marginTop: '32px' }}>
                   <h4 className="alert-title">Localization Engine</h4>

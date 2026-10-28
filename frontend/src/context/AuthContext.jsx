@@ -32,6 +32,17 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
+  // Listen for unauthorized 401 events from API requests to cleanly reset session
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.removeItem('mediscan_token');
+      setUser(null);
+    };
+
+    window.addEventListener('mediscan:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('mediscan:unauthorized', handleUnauthorized);
+  }, []);
+
   const login = async (email, password) => {
     setError(null);
     setLoading(true);
@@ -127,12 +138,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resendOTP = async (email) => {
+    setError(null);
+    try {
+      const res = await api.resendOTP(email);
+      return res;
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
+      throw err;
+    }
+  };
+
   const value = {
     user,
     loading,
     error,
     login,
     verifyOTP,
+    resendOTP,
     register,
     loginWithGoogle,
     logout,

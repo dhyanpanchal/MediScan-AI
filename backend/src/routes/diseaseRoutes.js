@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { searchDisease, searchMedicineByName } = require('../controllers/diseaseController');
-const { protect } = require('../middleware/authMiddleware');
+const { optionalProtect } = require('../middleware/authMiddleware');
 
 // Disease search with multilingual support
-router.post('/search', protect, searchDisease);
+router.post('/search', optionalProtect, searchDisease);
 
 // Medicine name search
-router.post('/medicine-search', protect, searchMedicineByName);
+router.post('/medicine-search', optionalProtect, searchMedicineByName);
 
 module.exports = router;

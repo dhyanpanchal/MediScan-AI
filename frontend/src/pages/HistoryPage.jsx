@@ -332,8 +332,8 @@ const HistoryPage = () => {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-8px' }}>
                   <select className="form-control" value={modalLanguage} disabled={modalLoading} onChange={(e) => handleModalLanguageChange(e.target.value)} style={{ width: 'auto', padding: '6px 12px', height: 'auto', borderRadius: '8px', fontSize: '13px' }}>
                     <option value="English">English</option>
-                    <option value="Hindi">Hindi</option>
-                    <option value="Gujarati">Gujarati</option>
+                    <option value="Hindi">हिन्दी (Hindi)</option>
+                    <option value="Gujarati">ગુજરાતી (Gujarati)</option>
                   </select>
                 </div>
               )}
