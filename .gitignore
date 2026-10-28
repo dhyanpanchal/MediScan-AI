@@ -61,3 +61,6 @@ Thumbs.db
 # Python-generated files
 __pycache__/
 *.py[cod]
+# Local debugging output
+backend/git_res.txt
+backend/test_out.txt
