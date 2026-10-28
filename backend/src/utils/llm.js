@@ -1,14 +1,69 @@
 const { GoogleGenAI } = require('@google/genai');
+const fs = require('fs');
+const path = require('path');
 
 // Initialize Gemini API if key is present
 let aiInstance = null;
 if (process.env.GEMINI_API_KEY) {
   try {
-    aiInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const safeKey = process.env.GEMINI_API_KEY.trim();
+    aiInstance = new GoogleGenAI({ apiKey: safeKey });
     console.log('Gemini AI Client initialized successfully.');
   } catch (err) {
     console.error('Error initializing GoogleGenAI client:', err);
   }
+}
+
+/**
+ * Helper to call Gemini API with fallback model options and retry logic for high demand spikes (503).
+ */
+async function callGemini(contents, responseMimeType = 'application/json') {
+  if (!aiInstance) return null;
+  const candidateModels = Array.from(new Set([
+    process.env.GEMINI_MODEL,
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash'
+  ].filter(Boolean)));
+
+  let lastError = null;
+
+  for (const model of candidateModels) {
+    const MAX_RETRIES = 3;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`Calling Gemini API using model: ${model} (attempt ${attempt}/${MAX_RETRIES})...`);
+        const response = await aiInstance.models.generateContent({
+          model,
+          contents,
+          config: { responseMimeType }
+        });
+        const responseText = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (responseText) {
+          return responseText.trim();
+        }
+      } catch (err) {
+        lastError = err;
+        const errMsg = err.message || '';
+        console.error(`Gemini ${model} failed (attempt ${attempt}/${MAX_RETRIES}):`, errMsg.substring(0, 120));
+        
+        // If model not found or forbidden, switch to next candidate model immediately
+        if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('400')) {
+          break;
+        }
+
+        const isRetryable = errMsg.includes('503') || errMsg.includes('429') || errMsg.includes('UNAVAILABLE') || errMsg.includes('overloaded');
+        if (isRetryable && attempt < MAX_RETRIES) {
+          const delay = attempt * 2000;
+          console.log(`Retrying in ${delay / 1000}s...`);
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        break;
+      }
+    }
+  }
+  throw lastError || new Error('Gemini API is currently unavailable. Please try again.');
 }
 
 /**
@@ -342,44 +397,89 @@ function validateAndCleanFields(data) {
 }
 
 /**
- * Parses raw OCR text of a medicine label using Gemini (or falls back to mock logic).
+ * Parses image and/or raw OCR text of a medicine label using Gemini Multimodal Vision (or falls back to mock logic).
  * @param {string} rawOcrText - The text parsed from the medicine label.
+ * @param {string} [imagePath] - Optional local file path of the medicine label image for direct Gemini Vision OCR.
  * @returns {Promise<object>} - Structured medicine details.
  */
-const analyzeMedicineLabel = async (rawOcrText) => {
+/**
+ * Parses image and/or raw OCR text of a medicine label using Gemini Multimodal Vision (or falls back to mock logic).
+ * @param {string} rawOcrText - The text parsed from the medicine label.
+ * @param {string} [imagePath] - Optional local file path of the medicine label image for direct Gemini Vision OCR.
+ * @returns {Promise<object>} - Structured medicine details.
+ */
+const analyzeMedicineLabel = async (rawOcrText, imagePath = null) => {
   if (aiInstance) {
     try {
-      console.log('Sending medicine label OCR text to Gemini API...');
+      console.log('Sending medicine label to Gemini Multimodal API...');
+      
+      const contents = [];
+      const validImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
+      
+      // If a valid image file path is provided, attach the base64 inline image data
+      if (imagePath && fs.existsSync(imagePath)) {
+        const ext = path.extname(imagePath).toLowerCase();
+        if (validImageExts.includes(ext)) {
+          try {
+            const buffer = fs.readFileSync(imagePath);
+            let mimeType = 'image/jpeg';
+            if (ext === '.png') mimeType = 'image/png';
+            else if (ext === '.webp') mimeType = 'image/webp';
+            else if (ext === '.gif') mimeType = 'image/gif';
+            else if (ext === '.bmp') mimeType = 'image/bmp';
+            
+            contents.push({
+              inlineData: {
+                data: buffer.toString('base64'),
+                mimeType: mimeType
+              }
+            });
+            console.log(`Attached valid image ${imagePath} (${mimeType}, ${buffer.length} bytes) to Gemini payload.`);
+          } catch (imgErr) {
+            console.error('Could not read image file for Gemini payload:', imgErr.message);
+          }
+        } else {
+          console.log(`File extension ${ext} is not a visual image file, skipping inlineData payload.`);
+        }
+      }
+
       const prompt = `
-        You are a clinical pharmacist AI. Analyze the following OCR text extracted from a medicine label.
-        Extract the structured details in JSON format. Do not include markdown code block formatting in your response (just return the raw JSON).
+        You are an expert clinical pharmacist AI. Your goal is to accurately analyze this image of a medicine bottle, packaging box, prescription label, or pill blister pack, along with any extracted OCR text.
         
-        The JSON must follow this schema:
+        STRICT ACCURACY RULES:
+        1. IDENTIFY THE EXACT MEDICINE: Look closely at the image and extracted text for the ACTUAL trade/brand name or active generic substance printed on the packaging (e.g. Amoxicillin, Metformin, Lisinopril, Ibuprofen, Lipitor, Paracetamol, Aspirin, Omeprazole, Ciprofloxacin, Cetirizine, etc.).
+        2. NO RANDOM DRUG NAMES: Do NOT invent or hallucinate random medicine names that do not match the image or text! If the text or label mentions "Amoxicillin", your response MUST be for Amoxicillin. If it mentions "Metformin", your response MUST be for Metformin.
+        3. CONSISTENT CLINICAL DATA: Ensure that activeIngredients, category, dosage, usageInstructions, purposeAndUses, sideEffects, warnings, precautions, missedDose, and storage correspond EXACTLY to the identified medicine.
+        4. UNREADABLE LABELS: If no medicine name or text can be deciphered from the image, set "medicineName" to "Unidentified Medicine Label" and state in "warnings" that a clearer, well-lit photograph of the medicine bottle or box is required.
+
+        Return ONLY a valid JSON object matching this exact schema (no markdown formatting):
         {
-          "medicineName": "string (brand name, capitalize)",
-          "activeIngredients": "string (generic ingredients and strength)",
-          "dosage": "string (standard dosage directions if found)",
-          "usageInstructions": "string (how to consume, with/without food, etc.)",
-          "sideEffects": "string (common side effects)",
-          "warnings": "string (critical alerts, contraindications)",
-          "precautions": "string (pregnancy warnings, alcohol, driving cautions)"
+          "medicineName": "string (Brand / Trade Name, capitalized)",
+          "activeIngredients": "string (Generic ingredient composition with strength, e.g. Amoxicillin 500mg)",
+          "manufacturer": "string (Manufacturer / Pharma Company Name or 'Not specified')",
+          "category": "string (Drug Category/Class e.g. Antibiotic, Analgesic / Pain Reliever, Antihypertensive, Antidiabetic, NSAID)",
+          "dosageForm": "string (Tablet, Capsule, Syrup, Drops, Injection, Ointment, etc.)",
+          "dosage": "string (Standard recommended dosage and frequency)",
+          "usageInstructions": "string (Administration directions, before/after food, water intake, duration)",
+          "purposeAndUses": "string (Primary medical indications and conditions treated)",
+          "sideEffects": "string (Common and severe side effects to watch for)",
+          "warnings": "string (Critical alerts, contraindications, black-box warnings)",
+          "precautions": "string (Pregnancy/breastfeeding, kidney/liver impairment, alcohol & driving alerts)",
+          "missedDose": "string (Instructions on what to do if a dose is missed)",
+          "storage": "string (Storage condition requirements e.g. Store below 25°C, keep away from moisture)"
         }
 
-        If information is missing, infer standard clinical knowledge for that medicine based on its name.
-        Here is the OCR text:
-        "${rawOcrText}"
+        ${rawOcrText ? `Extracted text from label/OCR:\n"${rawOcrText}"` : ''}
       `;
 
-      const response = await aiInstance.models.generateContent({
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-        }
-      });
+      contents.push(prompt);
 
-      const responseText = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text;
-      return JSON.parse(responseText.trim());
+      const responseText = await callGemini(contents, 'application/json');
+      if (responseText) {
+        const cleanJsonStr = responseText.replace(/```json\s*|```/g, '').trim();
+        const parsed = JSON.parse(cleanJsonStr);
+        return parsed;
+      }
     } catch (error) {
       console.error('Gemini medicine analysis failed, falling back to mock:', error);
     }
@@ -432,16 +532,9 @@ const extractReportDetails = async (rawReportText) => {
     "${rawReportText}"
   `;
 
-  const response = await aiInstance.models.generateContent({
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-    contents: prompt,
-    config: {
-      responseMimeType: 'application/json',
-    }
-  });
-
-  const responseText = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text;
-  return JSON.parse(responseText.trim());
+  const responseText = await callGemini([prompt], 'application/json');
+  const cleanJsonStr = responseText.replace(/```json\s*|```/g, '').trim();
+  return JSON.parse(cleanJsonStr);
 };
 
 /**
@@ -539,16 +632,9 @@ const analyzeReportDetails = async (extractedJson) => {
     Do not include markdown code block formatting in your response.
   `;
 
-  const response = await aiInstance.models.generateContent({
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-    contents: prompt,
-    config: {
-      responseMimeType: 'application/json',
-    }
-  });
-
-  const responseText = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text;
-  return JSON.parse(responseText.trim());
+  const responseText = await callGemini([prompt], 'application/json');
+  const cleanJsonStr = responseText.replace(/```json\s*|```/g, '').trim();
+  return JSON.parse(cleanJsonStr);
 };
 
 /**
@@ -583,74 +669,262 @@ const analyzeMedicalReport = async (rawReportText) => {
 function generateMockMedicineAnalysis(text) {
   const normalizedText = (text || '').toLowerCase();
   
-  // Library of mock medicines
+  // Library of clinical medicines with detailed profiles
   const medicineLibrary = {
+    cetcip: {
+      medicineName: 'Cetcip 10mg (Cetirizine HCl)',
+      activeIngredients: 'Cetirizine Hydrochloride IP 10 mg',
+      manufacturer: 'Cipla Ltd.',
+      category: 'Antihistamine / Antiallergic',
+      dosageForm: 'Film-coated Tablet',
+      dosage: '10 mg once daily orally (evening preferred).',
+      usageInstructions: 'Take with or without food. Swallow whole with water.',
+      purposeAndUses: 'Relief of allergic rhinitis, hay fever, sneezing, runny nose, itchy skin, and chronic urticaria (hives).',
+      sideEffects: 'Mild drowsiness, dry mouth, tiredness, headache.',
+      warnings: 'May cause drowsiness. Exercise caution when driving or operating heavy machinery. Avoid alcohol.',
+      precautions: 'Use lower dose in patients with moderate to severe renal impairment. Safe in pregnancy only if prescribed.',
+      missedDose: 'Take as soon as remembered. Do not take two doses at once.',
+      storage: 'Store below 30°C in a dry place. Protect from moisture and light.'
+    },
+    cetirizine: {
+      medicineName: 'Cetirizine Hydrochloride 10mg',
+      activeIngredients: 'Cetirizine Hydrochloride IP 10 mg',
+      manufacturer: 'Cipla / Generic Pharma',
+      category: 'Antihistamine / Antiallergic',
+      dosageForm: 'Film-coated Tablet',
+      dosage: '10 mg once daily, preferably in the evening.',
+      usageInstructions: 'Can be taken with or without food. Avoid sedatives and alcohol.',
+      purposeAndUses: 'Treats seasonal allergies, itchy watery eyes, sneezing, and skin allergy reactions.',
+      sideEffects: 'Mild sedation, dry mouth, fatigue, headache.',
+      warnings: 'Avoid driving or operating machinery if experiencing drowsiness.',
+      precautions: 'Adjust dose in kidney disease. Consult doctor if pregnant.',
+      missedDose: 'Take as soon as remembered unless close to the next scheduled dose.',
+      storage: 'Store below 30°C away from moisture.'
+    },
+    dolo: {
+      medicineName: 'Dolo-650 (Paracetamol 650mg)',
+      activeIngredients: 'Paracetamol IP 650 mg',
+      manufacturer: 'Micro Labs Limited',
+      category: 'Analgesic & Antipyretic (Pain & Fever Reliever)',
+      dosageForm: 'Uncoated Tablet',
+      dosage: '1 tablet (650 mg) every 4 to 6 hours as needed. Do not exceed 4000 mg in 24 hours.',
+      usageInstructions: 'Take after meals with water to avoid mild stomach irritation.',
+      purposeAndUses: 'Effective relief of fever, mild-to-moderate body aches, headache, toothache, and viral flu symptoms.',
+      sideEffects: 'Rare when used within limits; nausea, allergic skin rash in sensitive individuals.',
+      warnings: 'Overdose may be injurious to liver. Do not consume other paracetamol-containing products concurrently.',
+      precautions: 'Caution in chronic alcoholism, malnutrition, or hepatic impairment. Safe in pregnancy within recommended doses.',
+      missedDose: 'Take when needed for pain/fever. Do not double doses.',
+      storage: 'Store in a dry & dark place at a temperature not exceeding 30°C.'
+    },
+    paracetamol: {
+      medicineName: 'Paracetamol 650mg Tablets',
+      activeIngredients: 'Paracetamol (Acetaminophen) IP 650 mg',
+      manufacturer: 'Micro Labs / Generic Pharma',
+      category: 'Analgesic & Antipyretic',
+      dosageForm: 'Oral Tablet',
+      dosage: '500 mg to 650 mg every 4 to 6 hours as needed for fever or pain.',
+      usageInstructions: 'Take with a glass of water. Maximum 4 grams per day.',
+      purposeAndUses: 'Symptomatic treatment of mild-to-moderate pain and reduction of fever.',
+      sideEffects: 'Generally very well tolerated. Excessive doses cause severe liver damage.',
+      warnings: 'Liver toxicity warning with high doses or concurrent alcohol use.',
+      precautions: 'Reduce dose in chronic liver disease. Safe in pregnancy and lactation at standard doses.',
+      missedDose: 'Take when needed. Do not exceed recommended daily limit.',
+      storage: 'Store below 30°C in a dry place.'
+    },
+    pantoprazole: {
+      medicineName: 'Pantoprazole 40mg Gastro-Resistant',
+      activeIngredients: 'Pantoprazole Sodium IP 40 mg',
+      manufacturer: 'Alkem / Cipla / Sun Pharma',
+      category: 'Proton Pump Inhibitor (PPI / Antacid)',
+      dosageForm: 'Enteric-coated Tablet',
+      dosage: '40 mg once daily in the morning, 30 to 60 minutes before breakfast.',
+      usageInstructions: 'Swallow whole with water; do not crush, chew, or split the enteric tablet.',
+      purposeAndUses: 'Treatment of gastroesophageal reflux disease (GERD), acid peptic disease, and stomach ulcers.',
+      sideEffects: 'Headache, diarrhea, nausea, abdominal pain, flatulence.',
+      warnings: 'Prolonged use may reduce magnesium absorption and vitamin B12 levels.',
+      precautions: 'Inform doctor if history of osteoporosis or severe liver disease.',
+      missedDose: 'Take as soon as remembered before meals. If close to next morning, skip.',
+      storage: 'Store below 25°C protected from moisture and heat.'
+    },
+    pan: {
+      medicineName: 'Pan-40 (Pantoprazole 40mg)',
+      activeIngredients: 'Pantoprazole Sodium 40mg',
+      manufacturer: 'Alkem Laboratories',
+      category: 'Proton Pump Inhibitor (Antacid)',
+      dosageForm: 'Gastro-resistant Tablet',
+      dosage: '40 mg once daily, preferably 30 minutes before breakfast.',
+      usageInstructions: 'Swallow whole with water. Do not crush.',
+      purposeAndUses: 'Acid reflux, heartburn, gastritis, and peptic ulcer relief.',
+      sideEffects: 'Mild headache, nausea, abdominal discomfort.',
+      warnings: 'Do not use for immediate relief of heartburn; takes 1-4 days for full effect.',
+      precautions: 'Monitor magnesium levels during prolonged therapy.',
+      missedDose: 'Take before your next meal if remembered early.',
+      storage: 'Store below 25°C in a dry place.'
+    },
+    amicold: {
+      medicineName: 'Amicold Plus Suspension',
+      activeIngredients: 'Paracetamol 125mg, Phenylephrine HCl 5mg, Cetirizine HCl 2mg per 5ml',
+      manufacturer: 'Aminov Healthcare (P) Ltd',
+      category: 'Decongestant, Anti-allergic & Antipyretic',
+      dosageForm: 'Oral Suspension (Syrup)',
+      dosage: 'As directed by physician according to patient age and weight.',
+      usageInstructions: 'Shake well before use. Use calibrated measuring cup.',
+      purposeAndUses: 'Relief of cold, nasal congestion, runny nose, allergic sneezing, and associated fever.',
+      sideEffects: 'Mild sleepiness, dry mouth, mild nausea.',
+      warnings: 'Do not exceed prescribed dose. Schedule H Prescription Drug.',
+      precautions: 'Caution in patients with high blood pressure, thyroid disorder, or glaucoma.',
+      missedDose: 'Give as soon as remembered unless close to the next dose.',
+      storage: 'Store in a cool and dark place, protect from heat and moisture.'
+    },
+    zithromax: {
+      medicineName: 'Zithromax 500mg (Azithromycin)',
+      activeIngredients: 'Azithromycin Dihydrate 500mg',
+      manufacturer: 'Pfizer Labs',
+      category: 'Macrolide Antibiotic',
+      dosageForm: 'Oral Tablet / Vial for Injection',
+      dosage: '500 mg once daily for 3 to 5 days as prescribed.',
+      usageInstructions: 'Take 1 hour before or 2 hours after meals with a full glass of water.',
+      purposeAndUses: 'Treatment of respiratory tract infections, pneumonia, bronchitis, sinus infections, and skin infections.',
+      sideEffects: 'Diarrhea, nausea, abdominal cramps, mild headache.',
+      warnings: 'Complete the full course. Inform doctor if severe watery diarrhea occurs.',
+      precautions: 'Caution in patients with cardiac rhythm disorders (QT prolongation) or hepatic impairment.',
+      missedDose: 'Take as soon as remembered on the same day. Do not take double doses.',
+      storage: 'Store between 15°C to 30°C away from excessive humidity.'
+    },
+    azithromycin: {
+      medicineName: 'Azithromycin 500mg Tablets',
+      activeIngredients: 'Azithromycin IP 500 mg',
+      manufacturer: 'Cipla / Mankind / Sun Pharma',
+      category: 'Macrolide Antibiotic',
+      dosageForm: 'Film-coated Tablet',
+      dosage: '500 mg once daily for 3 days or as directed by doctor.',
+      usageInstructions: 'Can be taken with or without food. Complete the entire course.',
+      purposeAndUses: 'Bacterial infections of the chest, throat, ears, skin, and reproductive tract.',
+      sideEffects: 'Loose stools, stomach upset, nausea, headache.',
+      warnings: 'Contraindicated in known macrolide hypersensitivity.',
+      precautions: 'Check ECG if history of long QT syndrome or heart arrhythmias.',
+      missedDose: 'Take as soon as possible, then resume daily schedule.',
+      storage: 'Store below 25°C in a dry place.'
+    },
     amoxicillin: {
-      medicineName: 'Amoxicillin',
+      medicineName: 'Amoxicillin 500mg Capsules',
       activeIngredients: 'Amoxicillin Trihydrate 500mg',
-      dosage: '500 mg orally every 8 hours or 250 mg every 8 hours, as prescribed.',
-      usageInstructions: 'Take with or without food. Complete the full course of treatment even if symptoms disappear.',
-      sideEffects: 'Nausea, vomiting, diarrhea, skin rash, or oral thrush.',
+      manufacturer: 'GlaxoSmithKline (GSK)',
+      category: 'Antibiotic (Penicillin class)',
+      dosageForm: 'Oral Capsule',
+      dosage: '500 mg orally every 8 hours (3 times daily) or 250 mg every 8 hours, as prescribed.',
+      usageInstructions: 'Take with a full glass of water. Can be taken with or without food. Complete full course.',
+      purposeAndUses: 'Treatment of bacterial infections of the respiratory tract, ENT, urinary tract, and skin.',
+      sideEffects: 'Nausea, diarrhea, mild skin rash, stomach upset.',
       warnings: 'Do not take if you have a known allergy to penicillin or cephalosporin antibiotics.',
-      precautions: 'Inform your doctor if you have kidney disease, asthma, or mononucleosis. Safe during pregnancy, but consult your physician.'
+      precautions: 'Inform doctor if history of kidney disease or asthma.',
+      missedDose: 'Take as soon as remembered. Never double up doses.',
+      storage: 'Store below 25°C away from excessive heat and moisture.'
     },
     metformin: {
-      medicineName: 'Metformin',
+      medicineName: 'Metformin Hydrochloride 850mg Tablets',
       activeIngredients: 'Metformin Hydrochloride 850mg',
-      dosage: 'Initially 500 mg or 850 mg once daily, adjusted by your doctor up to 2000 mg/day.',
-      usageInstructions: 'Take with meals to minimize gastrointestinal side effects. Swallow whole; do not crush.',
-      sideEffects: 'Diarrhea, nausea, stomach upset, metallic taste in the mouth, or lactic acidosis (rare).',
-      warnings: 'Risk of lactic acidosis, especially in patients with severe kidney or liver impairment. Avoid heavy alcohol intake.',
-      precautions: 'Regularly monitor kidney function. Temporarily discontinue before major surgical procedures or imaging tests involving iodine contrast.'
+      manufacturer: 'Abbott Healthcare',
+      category: 'Antidiabetic (Biguanide class)',
+      dosageForm: 'Oral Tablet',
+      dosage: 'Initially 500 mg or 850 mg once or twice daily with meals.',
+      usageInstructions: 'Take with meals to reduce gastrointestinal side effects. Swallow whole.',
+      purposeAndUses: 'Management of Type 2 Diabetes Mellitus to improve blood sugar control.',
+      sideEffects: 'Diarrhea, nausea, stomach upset, bloating, metallic taste.',
+      warnings: 'Risk of lactic acidosis in severe renal or cardiac impairment. Avoid excessive alcohol.',
+      precautions: 'Monitor kidney function regularly. Discontinue prior to iodinated contrast scans.',
+      missedDose: 'Take with your next meal. Do not take extra medicine.',
+      storage: 'Store between 20°C to 25°C in a dry place.'
     },
     lisinopril: {
-      medicineName: 'Lisinopril',
-      activeIngredients: 'Lisinopril 10mg (ACE Inhibitor)',
-      dosage: '10 mg once daily. May be adjusted up to 40 mg daily depending on blood pressure response.',
-      usageInstructions: 'Take at the same time every day, with or without food.',
-      sideEffects: 'Dry cough, dizziness, headache, fatigue, or elevated potassium levels.',
-      warnings: 'Do not take during pregnancy as it can cause fetal harm. Seek immediate medical care if swelling of the face, lips, or tongue occurs (angioedema).',
-      precautions: 'Monitor kidney function and blood potassium levels. Avoid potassium supplements unless directed by a doctor.'
+      medicineName: 'Lisinopril 10mg Tablets',
+      activeIngredients: 'Lisinopril 10mg',
+      manufacturer: 'AstraZeneca',
+      category: 'Antihypertensive (ACE Inhibitor)',
+      dosageForm: 'Oral Tablet',
+      dosage: '10 mg once daily. Dose adjusted by physician up to 40 mg daily based on BP.',
+      usageInstructions: 'Take at the same time every morning, with or without food.',
+      purposeAndUses: 'Treatment of high blood pressure, heart failure, and post-MI recovery.',
+      sideEffects: 'Dry persistent cough, dizziness, elevated potassium levels.',
+      warnings: 'Contraindicated in pregnancy due to fetal injury risk.',
+      precautions: 'Monitor serum potassium and renal function periodically.',
+      missedDose: 'Take as soon as remembered on the same day.',
+      storage: 'Store at 15°C to 30°C away from moisture.'
     },
     ibuprofen: {
-      medicineName: 'Ibuprofen (Advil / Motrin)',
-      activeIngredients: 'Ibuprofen 400mg (NSAID)',
-      dosage: '200 mg to 400 mg every 4 to 6 hours as needed for pain or fever. Do not exceed 1200 mg/day over-the-counter.',
-      usageInstructions: 'Take with food or milk to reduce stomach irritation.',
-      sideEffects: 'Stomach ache, heartburn, nausea, dizziness, or increased blood pressure.',
-      warnings: 'May increase risk of gastrointestinal bleeding or cardiovascular events. Do not use after recent heart bypass surgery.',
-      precautions: 'Use with caution if you have asthma, kidney disease, heart failure, or history of stomach ulcers. Avoid in late pregnancy.'
+      medicineName: 'Ibuprofen 400mg Tablets (Advil / Motrin)',
+      activeIngredients: 'Ibuprofen 400mg',
+      manufacturer: 'Pfizer Consumer Healthcare',
+      category: 'NSAID (Nonsteroidal Anti-inflammatory Drug)',
+      dosageForm: 'Film-coated Tablet',
+      dosage: '200 mg to 400 mg every 4 to 6 hours as needed for pain or fever. Max 1200 mg/day OTC.',
+      usageInstructions: 'Take with food, milk, or a full glass of water to minimize stomach upset.',
+      purposeAndUses: 'Relief of mild-to-moderate pain, headaches, dental pain, fever, and inflammation.',
+      sideEffects: 'Stomach pain, heartburn, nausea, dizziness.',
+      warnings: 'May increase risk of gastrointestinal bleeding and ulcers.',
+      precautions: 'Avoid in asthma, active stomach ulcers, or third trimester of pregnancy.',
+      missedDose: 'Take when needed for pain. If on schedule, take when remembered.',
+      storage: 'Store at 20°C to 25°C away from heat.'
     },
     lipitor: {
-      medicineName: 'Lipitor (Atorvastatin)',
+      medicineName: 'Lipitor 20mg (Atorvastatin Calcium)',
       activeIngredients: 'Atorvastatin Calcium 20mg',
-      dosage: '10 mg to 80 mg once daily, anytime during the day.',
-      usageInstructions: 'Can be taken with or without food. Avoid drinking large amounts of grapefruit juice.',
-      sideEffects: 'Joint pain, mild muscle pain, diarrhea, or elevated liver enzymes.',
-      warnings: 'Stop taking and contact your doctor immediately if you experience unexplained muscle pain, tenderness, or weakness (rhabdomyolysis).',
-      precautions: 'Check liver function before starting. Do not use during pregnancy or breastfeeding.'
+      manufacturer: 'Viatris / Pfizer',
+      category: 'Antihyperlipidemic (Statin)',
+      dosageForm: 'Film-coated Tablet',
+      dosage: '10 mg to 80 mg once daily, taken anytime with or without food.',
+      usageInstructions: 'Take once daily at the same time. Avoid large amounts of grapefruit juice.',
+      purposeAndUses: 'Lowers LDL ("bad") cholesterol and triglycerides to prevent heart attacks.',
+      sideEffects: 'Joint discomfort, mild muscle soreness, diarrhea.',
+      warnings: 'Contact physician if experiencing unexplained muscle pain or tenderness.',
+      precautions: 'Contraindicated in active liver disease and pregnancy.',
+      missedDose: 'Take as soon as remembered unless over 12 hours late.',
+      storage: 'Store between 20°C to 25°C in dry conditions.'
     }
   };
 
-  // Find a match
-  for (const key of Object.keys(medicineLibrary)) {
+  // 1. Direct dictionary match against normalized OCR text
+  for (const [key, medData] of Object.entries(medicineLibrary)) {
     if (normalizedText.includes(key)) {
-      return medicineLibrary[key];
+      return { ...medData };
     }
   }
 
-  // Fallback to standard generic response if no match
-  let nameMatches = text.match(/[A-Z][a-zA-Z]+/g) || ['GenericMedicine'];
-  let guessedName = nameMatches.find(w => w.length > 4 && !['TABLET', 'CAPSULE', 'DAILY', 'TAKE', 'PHARMA', 'REFILL'].includes(w.toUpperCase())) || 'MediScan Generic';
+  // 2. Strict Stopword Filter for Fallback guessing (eliminates junk words like YOURINFO, TABLETS, PHARMA, etc.)
+  const STOPWORDS = new Set([
+    'TABLET', 'TABLETS', 'CAPSULE', 'CAPSULES', 'PILL', 'PILLS', 'SYRUP', 'SUSPENSION', 'INJECTION',
+    'YOURINFO', 'YOUR', 'INFO', 'INFORMATION', 'STRIP', 'BLISTER', 'PACK', 'CARTON',
+    'MG', 'ML', 'MCG', 'GM', 'IP', 'BP', 'USP', 'PHARMA', 'PHARMACEUTICALS', 'LAB', 'LABS',
+    'LIMITED', 'LTD', 'PVT', 'COMPANY', 'CORP', 'MANUFACTURED', 'MARKETED', 'MFR', 'MFG', 'EXP', 'EXPIRY',
+    'BATCH', 'DATE', 'PRICE', 'MRP', 'RS', 'TAXES', 'INCLUSIVE', 'SCHEDULE', 'PRESCRIPTION', 'DRUG',
+    'WARNING', 'CAUTION', 'STORE', 'COOL', 'DRY', 'PLACE', 'PROTECT', 'LIGHT', 'MOISTURE', 'KEEP',
+    'REACH', 'CHILDREN', 'DAILY', 'TAKE', 'REFILL', 'DOSAGE', 'DIRECTED', 'PHYSICIAN', 'FILM', 'COATED',
+    'UNCOATED', 'COMPOSITION', 'CONTAINS', 'EACH', 'ORAL', 'FOR', 'USE', 'ONLY', 'NOT', 'SOLD', 'RETAIL',
+    'WITHOUT', 'LICENSED', 'MEDICAL', 'PRACTITIONER', 'SHAKE', 'WELL', 'BEFORE', 'INDIA', 'GENERAL', 'CHECK'
+  ]);
+
+  const words = (text || '').match(/[A-Z][a-zA-Z0-9-]+/g) || [];
+  const candidate = words.find(w => {
+    const u = w.toUpperCase();
+    return w.length >= 4 && !STOPWORDS.has(u) && !/^(TABLETS?|CAPSULES?|STRIP|PHARMA)/i.test(u);
+  });
+
+  const guessedName = candidate ? `${candidate} Formulation` : 'Clinical Prescription Medicine';
 
   return {
     medicineName: guessedName,
-    activeIngredients: 'Active substance identified from image label (approx. 250mg)',
-    dosage: 'Take 1 tablet daily or as directed by a healthcare professional.',
-    usageInstructions: 'Take a glass of water, preferably at the same time each day.',
-    sideEffects: 'Mild headache or stomach upset.',
-    warnings: 'Keep out of reach of children.',
-    precautions: 'Consult a physician if you are pregnant or nursing.'
+    activeIngredients: 'Active pharmaceutical ingredients identified from packaging label',
+    manufacturer: 'Licensed Pharmaceutical Manufacturer',
+    category: 'Prescription Medication',
+    dosageForm: 'Oral Formulation',
+    dosage: 'Take as directed by a licensed healthcare professional.',
+    usageInstructions: 'Take with a glass of water as indicated on prescription.',
+    purposeAndUses: 'Clinical therapeutic management as prescribed by physician.',
+    sideEffects: 'Consult physician or medication leaflet for documented side effects.',
+    warnings: 'Keep out of reach of children. Follow prescribed dosage instructions strictly.',
+    precautions: 'Consult a physician if you are pregnant, nursing, or taking other medications.',
+    missedDose: 'Take as soon as remembered unless close to the next scheduled dose.',
+    storage: 'Store in a cool, dry place away from direct sunlight.'
   };
 }
 
@@ -843,7 +1117,7 @@ const translateReport = async (reportData, targetLanguage) => {
       `;
 
       const response = await aiInstance.models.generateContent({
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',

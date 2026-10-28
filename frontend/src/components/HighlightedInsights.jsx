@@ -4,7 +4,7 @@ import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
 const HighlightedInsights = ({ insights = [] }) => {
   if (!insights || insights.length === 0) {
     return (
-      <div style={{ color: 'var(--text-dark)', fontSize: '0.9rem', textAlign: 'center', padding: '1rem' }}>
+      <div className="empty-state">
         No critical insights detected in the document.
       </div>
     );
@@ -22,24 +22,15 @@ const HighlightedInsights = ({ insights = [] }) => {
     }
   };
 
-  const getInsightStyle = (type) => {
+  const getInsightClass = (type) => {
     switch (type) {
       case 'danger':
-        return {
-          borderLeft: '3px solid var(--danger)',
-          background: 'rgba(239, 68, 68, 0.02)',
-        };
+        return 'alert alert-danger';
       case 'warning':
-        return {
-          borderLeft: '3px solid var(--accent)',
-          background: 'rgba(245, 158, 11, 0.02)',
-        };
+        return 'alert alert-warning';
       case 'info':
       default:
-        return {
-          borderLeft: '3px solid var(--secondary)',
-          background: 'rgba(99, 102, 241, 0.02)',
-        };
+        return 'alert alert-info';
     }
   };
 
@@ -48,23 +39,19 @@ const HighlightedInsights = ({ insights = [] }) => {
       {insights.map((insight, idx) => (
         <div
           key={idx}
-          className="glass-panel"
+          className={getInsightClass(insight.type)}
           style={{
-            padding: '1rem',
-            borderRadius: 'var(--radius-sm)',
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '0.75rem',
-            ...getInsightStyle(insight.type)
+            gap: '0.75rem'
           }}
         >
-          <div style={{ marginTop: '2px' }}>{getInsightIcon(insight.type)}</div>
+          <div style={{ marginTop: '2px', flexShrink: 0 }}>{getInsightIcon(insight.type)}</div>
           <div style={{ flex: 1 }}>
             <p style={{ 
               fontSize: '0.875rem', 
               lineHeight: '1.45', 
-              color: 'var(--text-main)',
-              fontWeight: '500'
+              margin: 0
             }}>
               {insight.message}
             </p>

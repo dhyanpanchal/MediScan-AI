@@ -42,6 +42,30 @@ const ScanHistorySchema = new mongoose.Schema({
   precautions: {
     type: String,
     default: '',
+  },
+  manufacturer: {
+    type: String,
+    default: '',
+  },
+  category: {
+    type: String,
+    default: '',
+  },
+  dosageForm: {
+    type: String,
+    default: '',
+  },
+  purposeAndUses: {
+    type: String,
+    default: '',
+  },
+  storage: {
+    type: String,
+    default: '',
+  },
+  missedDose: {
+    type: String,
+    default: '',
   }
 }, {
   timestamps: true

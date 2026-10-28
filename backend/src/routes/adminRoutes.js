@@ -5,7 +5,9 @@ const {
   getAllUsers,
   getUserDetail,
   getAllScans,
-  getAllReports
+  getAllReports,
+  getAllDiseases,
+  getAllMedicineSearches
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
@@ -16,5 +18,7 @@ router.get('/users', protect, adminOnly, getAllUsers);
 router.get('/users/:id', protect, adminOnly, getUserDetail);
 router.get('/scans', protect, adminOnly, getAllScans);
 router.get('/reports', protect, adminOnly, getAllReports);
+router.get('/diseases', protect, adminOnly, getAllDiseases);
+router.get('/medicine-searches', protect, adminOnly, getAllMedicineSearches);
 
 module.exports = router;

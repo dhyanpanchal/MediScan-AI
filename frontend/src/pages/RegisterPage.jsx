@@ -148,16 +148,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: 'var(--bg-main)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem 1.5rem',
-      backgroundImage: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, transparent 70%)',
-      fontFamily: 'Outfit, sans-serif'
-    }}>
+    <div className="auth-wrapper">
       {/* Simulation Overlay */}
       {oauthSimulating && (
         <div style={{
@@ -208,7 +199,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Card */}
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+        <div className="card" style={{ padding: 'clamp(20px, 4vw, 32px)' }}>
           {error && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.1)',
@@ -280,7 +271,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Grid for demographical metadata */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div className="form-row-2col">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }} htmlFor="phone">Phone Number</label>
                 <div style={{ position: 'relative' }}>

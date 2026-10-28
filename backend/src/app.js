@@ -25,6 +25,7 @@ app.use('/api/scan', require('./routes/scanRoutes'));
 app.use('/api/report', require('./routes/reportRoutes'));
 app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/disease', require('./routes/diseaseRoutes'));
 
 // Fallback for unmatched API routes
 app.all('/api/*', (req, res) => {

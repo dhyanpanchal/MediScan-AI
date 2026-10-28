@@ -1,6 +1,21 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { sendOTPEmail } = require('../utils/mailer');
+const { connectDB } = require('../config/db');
+
+// Ensure database connection helper
+const ensureConnected = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (e) {
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('Database service is currently establishing connection. Please try again in a few moments.');
+      }
+    }
+  }
+};
 
 // Generate JWT Helper
 const generateToken = (id) => {
@@ -18,6 +33,7 @@ const generateToken = (id) => {
  */
 const registerUser = async (req, res) => {
   try {
+    await ensureConnected();
     const { name, email, password, phone, dateOfBirth, gender } = req.body;
 
     // Check if user exists (Mongoose syntax)
@@ -54,7 +70,7 @@ const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ success: false, error: 'Server error during registration' });
+    res.status(500).json({ success: false, error: error.message || 'Server error during registration' });
   }
 };
 
@@ -65,6 +81,7 @@ const registerUser = async (req, res) => {
  */
 const loginUser = async (req, res) => {
   try {
+    await ensureConnected();
     const { email, password } = req.body;
 
     // Find user
@@ -92,7 +109,7 @@ const loginUser = async (req, res) => {
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, error: 'Server error during login' });
+    res.status(500).json({ success: false, error: error.message || 'Server error during login' });
   }
 };
 
@@ -103,6 +120,7 @@ const loginUser = async (req, res) => {
  */
 const verifyOTP = async (req, res) => {
   try {
+    await ensureConnected();
     const { email, otp } = req.body;
 
     if (!email || !otp) {
@@ -151,6 +169,7 @@ const verifyOTP = async (req, res) => {
  */
 const googleOAuthLogin = async (req, res) => {
   try {
+    await ensureConnected();
     const { oauthToken, email, name } = req.body;
 
     const userEmail = email || 'google.user@gmail.com';
@@ -188,14 +207,8 @@ const googleOAuthLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Google OAuth error:', error);
-    try {
-      const fs = require('fs');
-      fs.writeFileSync(require('path').join(__dirname, '..', '..', 'oauth_error_log.txt'), error.stack || error.toString());
-    } catch (e) {
-      console.error('Failed to write error log:', e);
-    }
-    res.status(500).json({ success: false, error: 'Server error during Google OAuth authentication' });
+    console.error('Google OAuth error:', error.message || error);
+    res.status(500).json({ success: false, error: error.message || 'Server error during Google OAuth authentication' });
   }
 };
 
@@ -206,6 +219,7 @@ const googleOAuthLogin = async (req, res) => {
  */
 const forgotPassword = async (req, res) => {
   try {
+    await ensureConnected();
     const { email } = req.body;
 
     const user = await User.findOne({ email });

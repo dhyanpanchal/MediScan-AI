@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const ScanHistory = require('../models/ScanHistory');
 const ReportHistory = require('../models/ReportHistory');
+const DiseaseHistory = require('../models/DiseaseHistory');
+const MedicineSearchHistory = require('../models/MedicineSearchHistory');
 
 /**
  * @desc    Get administrative dashboard statistics
@@ -12,6 +14,8 @@ const getAdminStats = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const totalScans = await ScanHistory.countDocuments();
     const totalReports = await ReportHistory.countDocuments();
+    const totalDiseaseSearches = await DiseaseHistory.countDocuments();
+    const totalMedicineSearches = await MedicineSearchHistory.countDocuments();
 
     // Group users by oauthProvider to count Google vs Email signups
     const oauthBreakdown = await User.aggregate([
@@ -61,7 +65,9 @@ const getAdminStats = async (req, res) => {
         stats: {
           totalUsers,
           totalScans,
-          totalReports
+          totalReports,
+          totalDiseaseSearches,
+          totalMedicineSearches
         },
         authStats,
         genderStats,
@@ -206,10 +212,68 @@ const getAllReports = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get all disease searches system-wide with search
+ * @route   GET /api/admin/diseases
+ * @access  Private/Admin
+ */
+const getAllDiseases = async (req, res) => {
+  try {
+    const { search } = req.query;
+    let filter = {};
+
+    if (search) {
+      filter = {
+        $or: [
+          { query: { $regex: search, $options: 'i' } },
+          { diseaseName: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    const diseases = await DiseaseHistory.find(filter)
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: diseases
+    });
+  } catch (error) {
+    console.error('Admin get all diseases error:', error);
+    res.status(500).json({ success: false, error: 'Server error retrieving global disease search logs' });
+  }
+};
+
+const getAllMedicineSearches = async (req, res) => {
+  try {
+    const { search } = req.query;
+    let filter = {};
+    if (search) {
+      filter = {
+        $or: [
+          { searchQuery: { $regex: search, $options: 'i' } },
+          { medicineName: { $regex: search, $options: 'i' } },
+          { genericName: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+    const medicineSearches = await MedicineSearchHistory.find(filter)
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data: medicineSearches });
+  } catch (error) {
+    console.error('Admin get medicine searches error:', error);
+    res.status(500).json({ success: false, error: 'Server error retrieving medicine searches' });
+  }
+};
+
 module.exports = {
+  getAllMedicineSearches,
   getAdminStats,
   getAllUsers,
   getUserDetail,
   getAllScans,
-  getAllReports
+  getAllReports,
+  getAllDiseases
 };

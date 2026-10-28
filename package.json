@@ -9,7 +9,9 @@
   "scripts": {
     "start": "npm run dev",
     "build": "npm run build --workspace=frontend",
-    "dev": "npm run dev --workspace=backend"
+    "dev": "npm run dev --workspace=frontend & npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",

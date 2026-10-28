@@ -31,16 +31,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: 'var(--bg-main)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem 1.5rem',
-      backgroundImage: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, transparent 70%)',
-      fontFamily: 'Outfit, sans-serif'
-    }}>
+    <div className="auth-wrapper">
       <div style={{ maxWidth: '400px', width: '100%' }} className="fade-in">
         
         {/* Header */}
@@ -50,7 +41,7 @@ const ForgotPasswordPage = () => {
         </div>
 
         {/* Card */}
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+        <div className="card" style={{ padding: 'clamp(20px, 4vw, 32px)' }}>
           {errorMessage && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.1)',

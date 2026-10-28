@@ -16,43 +16,45 @@ const scanMedicineLabel = async (req, res) => {
     const fileUrl = `/uploads/${req.file.filename}`;
     const filePath = req.file.path;
 
-    // 1. Run OCR on the image
+    // 1. Run OCR on the image (if OCR fails, Gemini Vision will still analyze image directly)
     let rawText = '';
     try {
       rawText = await extractTextFromImage(filePath);
     } catch (ocrError) {
-      console.error('OCR Error in Controller:', ocrError);
-      return res.status(500).json({ success: false, error: 'Failed to extract text from the uploaded image' });
+      console.warn('Tesseract OCR warning in Controller (will rely on Gemini Vision):', ocrError.message);
     }
 
-    if (!rawText.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'No text could be detected in the image. Please upload a clearer image of the label.'
-      });
-    }
-
-    // 2. Run LLM Medicine Label Analysis
+    // 2. Run Multimodal Gemini Medicine Label Analysis (passes both raw text and local image file path)
     let analysisResult;
     try {
-      analysisResult = await analyzeMedicineLabel(rawText);
+      analysisResult = await analyzeMedicineLabel(rawText, filePath);
     } catch (llmError) {
       console.error('LLM Analysis Error in Controller:', llmError);
       return res.status(500).json({ success: false, error: 'Failed to analyze medicine details using AI' });
+    }
+
+    if (!analysisResult) {
+      return res.status(500).json({ success: false, error: 'No medicine analysis result could be generated.' });
     }
 
     // 3. Save to database history
     const newScan = await ScanHistory.create({
       userId: req.user.id,
       imageUrl: fileUrl,
-      rawOcrText: rawText,
-      medicineName: analysisResult.medicineName || 'Unknown Medicine',
-      activeIngredients: analysisResult.activeIngredients || 'Not detected',
+      rawOcrText: rawText || 'Analyzed via Gemini Vision Direct OCR',
+      medicineName: analysisResult.medicineName || 'Identified Medicine',
+      activeIngredients: analysisResult.activeIngredients || 'Not specified',
+      manufacturer: analysisResult.manufacturer || 'Not specified',
+      category: analysisResult.category || 'Prescription Medication',
+      dosageForm: analysisResult.dosageForm || 'Oral Tablet/Capsule',
       dosage: analysisResult.dosage || 'Consult a healthcare professional',
       usageInstructions: analysisResult.usageInstructions || 'Use as directed',
+      purposeAndUses: analysisResult.purposeAndUses || 'As indicated by physician',
       sideEffects: analysisResult.sideEffects || 'Consult packaging or pharmacist',
       warnings: analysisResult.warnings || 'Keep out of reach of children',
-      precautions: analysisResult.precautions || 'Consult a physician'
+      precautions: analysisResult.precautions || 'Consult a physician',
+      storage: analysisResult.storage || 'Store in a cool dry place',
+      missedDose: analysisResult.missedDose || 'Take as soon as remembered unless near next dose'
     });
 
     res.status(201).json({

@@ -4,8 +4,8 @@
   "description": "MediScan AI - Node.js/Express Backend with Tesseract OCR & Google Gemini AI",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "concurrently \"node src/server.js\" \"npm run dev --prefix ../frontend -- --port 3000\"",
+    "start": "concurrently \"node src/server.js\" \"npm run dev --prefix ../frontend\"",
+    "dev": "concurrently \"node src/server.js\" \"npm run dev --prefix ../frontend\"",
     "build": "echo 'No build required for backend'"
   },
   "keywords": [

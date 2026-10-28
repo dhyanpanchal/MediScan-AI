@@ -3,15 +3,8 @@ import { AlertTriangle, Info } from 'lucide-react';
 
 const MedicalDisclaimer = () => {
   return (
-    <div className="glass-panel" style={{
-      padding: '1.25rem',
-      borderRadius: 'var(--radius-sm)',
-      borderLeft: '4px solid var(--accent)',
-      background: 'rgba(245, 158, 11, 0.02)',
-      marginTop: '2rem'
-    }}>
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <AlertTriangle size={24} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
+    <div className="alert alert-warning" style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+      <AlertTriangle size={24} style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
           <h4 style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: '700', marginBottom: '0.25rem' }}>
             Clinical Information Disclaimer & Terms
@@ -31,7 +24,6 @@ const MedicalDisclaimer = () => {
             <li>Consult a licensed physician, pharmacist, or clinical professional before taking any new medications, altering dosages, or drawing conclusions from clinical tests.</li>
           </ul>
         </div>
-      </div>
     </div>
   );
 };
