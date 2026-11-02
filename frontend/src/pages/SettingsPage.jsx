@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import {
   Sun, Moon, Type, Globe, User, Check, Loader2,
-  Palette, Bell, Lock, Settings as SettingsIcon,
-  Shield, Eye, Smartphone, Mail, EyeOff, LayoutTemplate
+  Palette, Settings as SettingsIcon
 } from 'lucide-react';
 
 const SettingsPage = () => {
@@ -25,18 +24,6 @@ const SettingsPage = () => {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
-  // Toggles for UI mockup in new sections
-  const [toggles, setToggles] = useState({
-    emailNotifs: true,
-    pushNotifs: true,
-    weeklyReport: false,
-    dataSharing: false,
-    twoFactor: false,
-    highContrast: false,
-    screenReader: false
-  });
-
-  const handleToggle = (key) => setToggles(p => ({...p, [key]: !p[key]}));
   const handleFormChange = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
   const handleSave = async () => {
@@ -46,7 +33,6 @@ const SettingsPage = () => {
       if (activeTab === 'account') {
         await updateProfile(form);
       }
-      // other tabs simply mock save
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -59,34 +45,8 @@ const SettingsPage = () => {
   const tabs = [
     { id: 'appearance', label: t('appearance') || 'Appearance', icon: Palette, color: '#a855f7' },
     { id: 'language', label: t('language') || 'Language', icon: Globe, color: '#06b6d4' },
-    { id: 'account', label: t('accountDetails') || 'Account', icon: User, color: '#10b981' },
-    { id: 'privacy', label: 'Privacy & Security', icon: Shield, color: '#f59e0b' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, color: '#ec4899' },
-    { id: 'accessibility', label: 'Accessibility', icon: Eye, color: '#3b82f6' }
+    { id: 'account', label: t('accountDetails') || 'Account', icon: User, color: '#10b981' }
   ];
-
-  const ToggleSwitch = ({ label, description, checked, onChange, color = 'var(--primary)' }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ paddingRight: '24px' }}>
-        <h5 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>{label}</h5>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{description}</p>
-      </div>
-      <button 
-        onClick={onChange}
-        style={{
-          width: '44px', height: '24px', borderRadius: '12px',
-          background: checked ? color : 'var(--bg-input)', border: 'none',
-          position: 'relative', cursor: 'pointer', transition: 'background 0.3s'
-        }}
-      >
-        <div style={{
-          width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
-          position: 'absolute', top: '2px', left: checked ? '22px' : '2px',
-          transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-        }} />
-      </button>
-    </div>
-  );
 
   return (
     <div className="fade-in" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '40px' }}>
@@ -98,7 +58,7 @@ const SettingsPage = () => {
         </div>
         <div>
           <h1 className="page-title">{t('settingsTitle') || 'Settings Center'}</h1>
-          <p className="body-text" style={{ fontSize: '15px', marginTop: '4px' }}>Manage your workspace preferences, security, and account.</p>
+          <p className="body-text" style={{ fontSize: '15px', marginTop: '4px' }}>Manage your workspace preferences, appearance, and account.</p>
         </div>
       </div>
 
@@ -140,7 +100,7 @@ const SettingsPage = () => {
                 return (
                   <>
                     <div style={{ background: `${activeColor}15`, color: activeColor, width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ActiveIcon size={20} />
+                      {ActiveIcon && <ActiveIcon size={20} />}
                     </div>
                     <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
                       {tabs.find(t => t.id === activeTab)?.label}
@@ -276,79 +236,6 @@ const SettingsPage = () => {
                       </select>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: PRIVACY */}
-            {activeTab === 'privacy' && (
-              <div className="fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
-                <h4 className="card-heading" style={{ marginBottom: '16px' }}>Security & Privacy Control</h4>
-                
-                <ToggleSwitch 
-                  label="Two-Factor Authentication (2FA)" 
-                  description="Require an extra security code during login to protect your clinical records."
-                  checked={toggles.twoFactor} onChange={() => handleToggle('twoFactor')} color="#f59e0b"
-                />
-                
-                <ToggleSwitch 
-                  label="Anonymous Data Donation" 
-                  description="Allow MediScan AI to use anonymized metrics to improve medical diagnostic models."
-                  checked={toggles.dataSharing} onChange={() => handleToggle('dataSharing')} color="#f59e0b"
-                />
-
-                <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <h4 className="card-heading" style={{ color: 'var(--danger)', marginBottom: '12px' }}>Danger Zone</h4>
-                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>Permanently delete your account and wipe all patient records from the MediScan network.</p>
-                  <button className="btn btn-danger" style={{ padding: '8px 16px', fontSize: '13px', background: 'transparent', border: '1px solid var(--danger)' }}>Delete Account Data</button>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: NOTIFICATIONS */}
-            {activeTab === 'notifications' && (
-              <div className="fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
-                <h4 className="card-heading" style={{ marginBottom: '16px' }}>Communication Preferences</h4>
-                
-                <ToggleSwitch 
-                  label="Email Alerts" 
-                  description="Receive critical alerts and PDF summaries via your registered email address."
-                  checked={toggles.emailNotifs} onChange={() => handleToggle('emailNotifs')} color="#ec4899"
-                />
-                
-                <ToggleSwitch 
-                  label="Push Notifications" 
-                  description="Get browser notifications when lab reports finish processing."
-                  checked={toggles.pushNotifs} onChange={() => handleToggle('pushNotifs')} color="#ec4899"
-                />
-
-                <ToggleSwitch 
-                  label="Weekly Health Summary" 
-                  description="Receive a weekly digest of your clinical profile and scanner activity."
-                  checked={toggles.weeklyReport} onChange={() => handleToggle('weeklyReport')} color="#ec4899"
-                />
-              </div>
-            )}
-
-            {/* TAB: ACCESSIBILITY */}
-            {activeTab === 'accessibility' && (
-              <div className="fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
-                <h4 className="card-heading" style={{ marginBottom: '16px' }}>Assistive Technologies</h4>
-                
-                <ToggleSwitch 
-                  label="High Contrast Mode" 
-                  description="Increase UI contrast ratios to WCAG AAA standards for better visibility."
-                  checked={toggles.highContrast} onChange={() => handleToggle('highContrast')} color="#3b82f6"
-                />
-                
-                <ToggleSwitch 
-                  label="Screen Reader Optimization" 
-                  description="Inject extended ARIA labels and verbose alt-texts across all medical cards."
-                  checked={toggles.screenReader} onChange={() => handleToggle('screenReader')} color="#3b82f6"
-                />
-
-                <div className="alert alert-info" style={{ marginTop: '24px' }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>Note: Font scaling can be configured in the <strong>Appearance</strong> tab. Language localization is handled in the <strong>Language</strong> tab.</p>
                 </div>
               </div>
             )}

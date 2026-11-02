@@ -14,7 +14,10 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try { return localStorage.getItem('sidebar_collapsed') === 'true'; }
+    catch { return false; }
+  });
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
@@ -135,7 +138,7 @@ const Layout = ({ children }) => {
             {!isCollapsed && <span>{t('logOut')}</span>}
           </button>
           
-          <button className="collapse-toggle" onClick={() => setIsCollapsed(!isCollapsed)}>
+          <button className="collapse-toggle" onClick={() => { const next = !isCollapsed; setIsCollapsed(next); try { localStorage.setItem('sidebar_collapsed', String(next)); } catch {} }}>
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
