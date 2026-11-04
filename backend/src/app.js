@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -5,32 +6,121 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 
-// Load env variables
-dotenv.config({ path: path.join(__dirname, '..', '.env'), override: true });
-
-// Connect to SQLite Database
-connectDB();
+// Load local .env only during development.
+// Vercel production environment variables take priority.
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({
+    path: path.join(__dirname, '..', '.env')
+  });
+}
 
 const app = express();
 
-// Standard Middlewares
-app.use(cors());
-app.use(express.json());
+// ==========================================
+// DATABASE CONNECTION
+// ==========================================
 
-// Serve uploaded files statically
-// Serve uploaded files statically with CORS & CORP headers
-const setUploadHeaders = (res) => {
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-};
-const primaryUploads = path.join(__dirname, '..', 'uploads');
-const altUploads = path.join(__dirname, '..', '..', 'uploads');
-app.use('/uploads', express.static(primaryUploads, { setHeaders: setUploadHeaders }));
-if (fs.existsSync(altUploads)) {
-  app.use('/uploads', express.static(altUploads, { setHeaders: setUploadHeaders }));
+try {
+  Promise.resolve(connectDB()).catch((error) => {
+    console.error('Database connection failed:', error);
+  });
+} catch (error) {
+  console.error('Database initialization failed:', error);
 }
 
-// Routes mapping
+// ==========================================
+// CORS CONFIGURATION
+// ==========================================
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : []),
+  'http://localhost:5000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5000',
+  'http://127.0.0.1:5173'
+]
+  .filter(Boolean)
+  .map((url) => String(url).trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests without an Origin header (health checks, etc.)
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+      return callback(null, true);
+    }
+
+    console.warn('Blocked CORS origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// ==========================================
+// STANDARD MIDDLEWARE
+// ==========================================
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// ==========================================
+// UPLOADS
+// ==========================================
+
+const setUploadHeaders = (res) => {
+  res.setHeader(
+    'Cross-Origin-Resource-Policy',
+    'cross-origin'
+  );
+};
+
+const primaryUploads = path.join(__dirname, '..', 'uploads');
+const altUploads = path.join(__dirname, '..', '..', 'uploads');
+
+if (fs.existsSync(primaryUploads)) {
+  app.use(
+    '/uploads',
+    express.static(primaryUploads, {
+      setHeaders: setUploadHeaders
+    })
+  );
+}
+
+if (fs.existsSync(altUploads)) {
+  app.use(
+    '/uploads',
+    express.static(altUploads, {
+      setHeaders: setUploadHeaders
+    })
+  );
+}
+
+// ==========================================
+// HEALTH CHECK
+// ==========================================
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'MediScan AI Backend is running',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'MediScan AI Backend API is active'
+  });
+});
+
+// ==========================================
+// API ROUTES
+// ==========================================
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/scan', require('./routes/scanRoutes'));
 app.use('/api/report', require('./routes/reportRoutes'));
@@ -38,39 +128,45 @@ app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/disease', require('./routes/diseaseRoutes'));
 
-// Fallback for unmatched API routes
-app.all('/api/*', (req, res) => {
-  res.status(404).json({ success: false, error: 'API endpoint not found' });
+// ==========================================
+// API NOT FOUND
+// ==========================================
+
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'API endpoint not found'
+  });
 });
 
-// Serve frontend statically if built
-const frontendDistPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
-const rootDistPath = path.join(__dirname, '..', '..', 'dist');
+// ==========================================
+// GENERAL NOT FOUND
+// ==========================================
 
-let activeDistPath = null;
-if (fs.existsSync(frontendDistPath)) {
-  activeDistPath = frontendDistPath;
-} else if (fs.existsSync(rootDistPath)) {
-  activeDistPath = rootDistPath;
-}
-
-if (activeDistPath) {
-  app.use(express.static(activeDistPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(activeDistPath, 'index.html'));
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Route not found'
   });
-} else {
-  app.get('/', (req, res) => {
-    res.json({ message: 'MediScan AI Backend API is active. (Frontend build not found)' });
-  });
-}
+});
 
-// Global Error Handler
+// ==========================================
+// GLOBAL ERROR HANDLER
+// ==========================================
+
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err.message);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
   res.status(err.status || 500).json({
     success: false,
-    error: err.message || 'An internal server error occurred.'
+    error:
+      process.env.NODE_ENV === 'production'
+        ? 'An internal server error occurred.'
+        : err.message
   });
 });
 
