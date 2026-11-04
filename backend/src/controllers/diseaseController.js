@@ -146,11 +146,11 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
       });
     }
 
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: deepLocalizeDigits(result, language) });
   } catch (error) {
     console.error('Disease search error:', error);
     const fallback = generateFallbackDiseaseData(req.body?.query || 'Condition', req.body?.language || 'en', req.body?.ageGroup || 'adult');
-    return res.json({ success: true, data: fallback });
+    return res.json({ success: true, data: deepLocalizeDigits(fallback, req.body?.language || 'en') });
   }
 };
 
@@ -816,12 +816,12 @@ IMPORTANT: ALL text, including medicine and chemical names, and ANY NUMBERS (tra
       });
     }
 
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: deepLocalizeDigits(result, language) });
   } catch (error) {
     console.error('Medicine search error:', error);
     // Even in worst case, return clinical fallback instead of 500 crash
     const fallback = generateFallbackMedicineData(req.body?.medicineName || 'Medicine', req.body?.language || 'en', req.body?.ageGroup || 'adult');
-    return res.json({ success: true, data: fallback });
+    return res.json({ success: true, data: deepLocalizeDigits(fallback, req.body?.language || 'en') });
   }
 };
 
