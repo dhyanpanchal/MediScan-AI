@@ -171,5 +171,178 @@
         }
       ]
     }
+  },
+  "fever": {
+    "en": {
+      "diseaseName": "Fever (Pyrexia)",
+      "description": "Fever is a temporary increase in body temperature, often due to an illness or immune response to infection.",
+      "commonSymptoms": [
+        "Elevated body temperature above 100.4°F (38°C)",
+        "Sweating and chills or shivering",
+        "Headache and general muscle aches",
+        "Loss of appetite and mild dehydration",
+        "Fatigue and weakness"
+      ],
+      "causes": [
+        "Viral infections (such as flu, cold, or dengue)",
+        "Bacterial infections (such as strep throat or urinary tract infection)",
+        "Heat exhaustion or extreme sunburn",
+        "Inflammatory conditions or immunization reactions"
+      ],
+      "homeRemedies": [
+        "Drink plenty of fluids including water, clear broths, and electrolyte solutions.",
+        "Get ample rest and avoid strenuous physical activity.",
+        "Use a lukewarm water sponge bath on forehead and neck to ease discomfort.",
+        "Wear light, breathable clothing and maintain a comfortable room temperature."
+      ],
+      "prevention": [
+        "Practice regular and thorough hand washing with soap and water.",
+        "Avoid close contact with individuals suffering from contagious infections.",
+        "Maintain adequate hydration and balanced nutrition to support immune function.",
+        "Keep up to date with recommended vaccinations."
+      ],
+      "whenToSeeDoctor": [
+        "Temperature reaches 103°F (39.4°C) or higher in adults.",
+        "Fever lasts longer than 3 consecutive days (72 hours).",
+        "Accompanied by stiff neck, confusion, difficulty breathing, or chest pain.",
+        "Occurs in infants under 3 months with temperature of 100.4°F (38°C) or higher."
+      ],
+      "ageSpecificAdvice": {
+        "child": "For children: monitor temperature frequently, keep well hydrated, and never administer aspirin to children or teenagers due to the risk of Reye's syndrome.",
+        "teen": "For teens: ensure adequate rest, plenty of oral fluids, and avoid physical sports until fever-free for 24 hours without medication.",
+        "adult": "For adults: rest in a cool environment, stay hydrated, and monitor temperature regularly. Seek medical care if fever exceeds 103°F or lasts past 3 days.",
+        "senior": "For seniors (60+): fever may present subtly with confusion or weakness rather than high body temperature. Seek prompt clinical evaluation."
+      },
+      "recommendedMedicines": [
+        {
+          "name": "Paracetamol 500mg",
+          "form": "Oral Tablet",
+          "purpose": "Reduces elevated body temperature and relieves associated headache and body aches",
+          "dosage": "1 tablet every 4 to 6 hours after meals as needed (maximum 4000mg per 24 hours)",
+          "sideEffects": "Generally very well tolerated; rarely mild nausea or rash"
+        },
+        {
+          "name": "Ibuprofen 400mg",
+          "form": "Oral Tablet",
+          "purpose": "Reduces fever and provides anti-inflammatory relief from muscle and joint aches",
+          "dosage": "1 tablet every 6 to 8 hours with or after food",
+          "sideEffects": "Mild stomach upset, heartburn, or nausea"
+        }
+      ]
+    },
+    "gu": {
+      "diseaseName": "તાવ (Fever / પાયરેક્સિયા)",
+      "description": "તાવ એ શરીરના તાપમાનમાં અસ્થાયી વધારો છે, જે સામાન્ય રીતે કોઈપણ ચેપ, વાયરસ અથવા રોગપ્રતિકારક પ્રતિક્રિયાને કારણે થાય છે.",
+      "commonSymptoms": [
+        "શરીરનું તાપમાન ૧૦૦.૪°F (૩૮°C) થી વધુ થવું",
+        "પરસેવો વળવો અને ઠંડી લાગવી અથવા ધ્રુજારી થવી",
+        "માથાનો દુખાવો અને શરીરના સ્નાયુઓમાં દુખાવો",
+        "ભૂખ ઓછી લાગવી અને સામાન્ય નબળાઈ",
+        "થાક અને સુસ્તી અનુભવવી"
+      ],
+      "causes": [
+        "વાયરલ ચેપ (જેમ કે શરદી, ફ્લૂ, ડેન્ગ્યુ અથવા વાયરલ ફીવર)",
+        "બેક્ટેરિયલ ચેપ (જેમ કે ગળાનો ચેપ, ટાઈફોઈડ અથવા પેશાબમાં ચેપ)",
+        "ગરમીમાં વધુ પડતું ફરવું (લૂ લાગવી)",
+        "શરીરમાં બળતરા અથવા રોગપ્રતિકારક પ્રતિક્રિયા"
+      ],
+      "homeRemedies": [
+        "પુષ્કળ પ્રમાણમાં પ્રવાહી પીવો જેમ કે ગરમ પાણી, સૂપ, નાળિયેર પાણી અને લીંબુ પાણી.",
+        "સંપૂર્ણ બેડ રેસ્ટ લો અને ભારે શારીરિક શ્રમ ટાળો.",
+        "કપાળ અને ગરદન પર સામાન્ય તાપમાનના પાણીના પોતા મૂકો.",
+        "હળવા સુતરાઉ કપડાં પહેરો અને ઓરડાનું તાપમાન સામાન્ય રાખો."
+      ],
+      "prevention": [
+        "નિયમિતપણે સાબુ અને પાણીથી હાથ ધોવાની ટેવ પાડો.",
+        "ચેપી દર્દીઓથી સલામત અંતર જાળવો.",
+        "પૌષ્ટિક અને સ્વચ્છ તાજો ખોરાક ખાવો તેમજ ઉકાળેલું પાણી પીવું.",
+        "મચ્છરોથી બચવા મચ્છરદાની અથવા રિપેલન્ટનો ઉપયોગ કરવો."
+      ],
+      "whenToSeeDoctor": [
+        "તાવ ૧૦૩°F (૩૯.૪°C) કે તેથી વધુ પહોંચે.",
+        "તાવ સતત ૩ દિવસ (૭૨ કલાક) કરતાં વધુ સમય સુધી ચાલુ રહે.",
+        "શ્વાસ લેવામાં તકલીફ, ગળામાં અકડાઈ, અસહ્ય માથાનો દુખાવો અથવા બેભાન જેવી સ્થિતિ થાય.",
+        "નાના બાળકોમાં તાવ સાથે ખેંચ આવવી કે વધુ પડતું રડવું."
+      ],
+      "ageSpecificAdvice": {
+        "child": "બાળકો માટે: તાપમાન વારંવાર માપો, પૂરતું પાણી અને ઓઆરએસ આપો. બાળકોને ક્યારેય એસ્પિરિન ન આપવી.",
+        "teen": "કિશોરો માટે: પૂરતો આરામ કરાવો, પૌષ્ટિક પ્રવાહી આપો અને દવા વગર ૨૪ કલાક તાવ ન આવે ત્યાં સુધી રમતગમત ટાળવી.",
+        "adult": "પુખ્ત વયના લોકો માટે: ઠંડા અને આરામદાયક વાતાવરણમાં રહો, હળવો ખોરાક લો અને જો તાવ ૩ દિવસથી વધુ રહે તો લોહીની તપાસ કરાવો.",
+        "senior": "વૃદ્ધ દર્દીઓ (૬૦+) માટે: વૃદ્ધોમાં તાવમાં શરીર વધુ ગરમ ન થાય છતાં નબળાઈ અને મૂંઝવણ થઈ શકે છે. તાત્કાલિક ડૉક્ટરની સલાહ લેવી."
+      },
+      "recommendedMedicines": [
+        {
+          "name": "પેરાસિટામોલ ૫૦૦mg (Paracetamol 500mg)",
+          "form": "મોં દ્વારા લેવાતી ટેબ્લેટ",
+          "purpose": "શરીરનું તાપમાન ઘટાડે છે અને માથાનો તથા શરીરનો દુખાવો ઓછો કરે છે",
+          "dosage": "જમ્યા પછી જરૂર મુજબ દર ૪ થી ૬ કલાકે ૧ ગોળી (૨૪ કલાકમાં મહત્તમ ૪ ગોળી)",
+          "sideEffects": "હળવી ઉબકા (સામાન્ય ડોઝમાં સંપૂર્ણ સુરક્ષિત)"
+        },
+        {
+          "name": "ઇબુપ્રૉફેન ૪૦૦mg (Ibuprofen 400mg)",
+          "form": "મોં દ્વારા લેવાતી ટેબ્લેટ",
+          "purpose": "તાવ ઘટાડે છે તેમજ સ્નાયુ અને સાંધાના દુખાવામાં રાહત આપે છે",
+          "dosage": "જમ્યા પછી દર ૬ થી ૮ કલાકે ૧ ગોળી",
+          "sideEffects": "પેટમાં હળવી બળતરા અથવા એસિડિટી"
+        }
+      ]
+    },
+    "hi": {
+      "diseaseName": "बुखार (Fever / ज्वर)",
+      "description": "बुखार शरीर के तापमान में एक अस्थायी वृद्धि है, जो आमतौर पर किसी संक्रमण, वायरस या प्रतिरक्षा प्रतिक्रिया के कारण होता है।",
+      "commonSymptoms": [
+        "शरीर का तापमान १००.४°F (३८°C) से अधिक होना",
+        "पसीना आना और ठंड या कंपकंपी लगना",
+        "सिरदर्द और मांसपेशियों में बदन दर्द",
+        "भूख कम लगना और कमजोरी महसूस होना",
+        "थकान और सुस्ती"
+      ],
+      "causes": [
+        "वायरल संक्रमण (जैसे सर्दी-जुकाम, फ्लू, डेंगू या वायरल फीवर)",
+        "बैक्टीरियल संक्रमण (जैसे गले का संक्रमण, टाइफाइड या यूटीआई)",
+        "अधिक गर्मी या धूप के संपर्क में आना",
+        "टीकाकरण प्रतिक्रिया या सूजन संबंधी स्थिति"
+      ],
+      "homeRemedies": [
+        "भरपूर मात्रा में तरल पदार्थ पिएं जैसे गुनगुना पानी, सूप, नारियल पानी और ओआरएस।",
+        "पर्याप्त आराम करें और भारी शारीरिक श्रम से बचें।",
+        "माथे और गर्दन पर सामान्य पानी की ठंडी पट्टियां रखें।",
+        "हल्के सूती कपड़े पहनें और कमरे को हवादार रखें।"
+      ],
+      "prevention": [
+        "हाथों को साबुन और पानी से नियमित रूप से अच्छी तरह धोएं।",
+        "संक्रमित व्यक्तियों से उचित दूरी बनाकर रखें।",
+        "ताजा और स्वच्छ पौष्टिक भोजन लें और उबला पानी पिएं।",
+        "मच्छरों से बचाव के उपाय अपनाएं।"
+      ],
+      "whenToSeeDoctor": [
+        "तापमान १०३°F (३९.४°C) या उससे अधिक हो जाए।",
+        "बुखार लगातार ३ दिनों (७२ घंटों) से अधिक समय तक बना रहे।",
+        "सांस लेने में कठिनाई, गर्दन में अकड़न, तेज सिरदर्द या बेहोशी के लक्षण हों।",
+        "छोटे बच्चों में तेज बुखार के साथ दौरे पड़ना या सुस्ती होना।"
+      ],
+      "ageSpecificAdvice": {
+        "child": "बच्चों के लिए: नियमित रूप से तापमान मापें, हाइड्रेटेड रखें और बच्चों को कभी भी एस्पिरिन न दें।",
+        "teen": "किशोरों के लिए: पर्याप्त आराम करें, तरल पदार्थ लें और जब तक बुखार ठीक न हो जाए खेलकूद से बचें।",
+        "adult": "वयस्कों के लिए: आराम करें, हल्का सुपाच्य भोजन लें और यदि बुखार ३ दिन से अधिक रहे तो रक्त जांच कराएं।",
+        "senior": "वरिष्ठ नागरिकों (६०+) के लिए: बुजुर्गों में बुखार के बिना भी भ्रम या अत्यधिक कमजोरी हो सकती है, तुरंत चिकित्सक से संपर्क करें।"
+      },
+      "recommendedMedicines": [
+        {
+          "name": "पैरासिटामोल ५००mg (Paracetamol 500mg)",
+          "form": "ओरल टैबलेट",
+          "purpose": "शरीर का तापमान कम करता है और सिरदर्द व बदन दर्द में राहत देता है",
+          "dosage": "भोजन के बाद आवश्यकतानुसार प्रत्येक ४ से ६ घंटे में १ गोली (२४ घंटे में अधिकतम ४ गोली)",
+          "sideEffects": "हल्की मितली (उचित मात्रा में अत्यंत सुरक्षित)"
+        },
+        {
+          "name": "इबुप्रोफेन ४००mg (Ibuprofen 400mg)",
+          "form": "ओरल टैबलेट",
+          "purpose": "बुखार कम करता है और मांसपेशियों के दर्द में राहत देता है",
+          "dosage": "भोजन के बाद प्रत्येक ६ से ८ घंटे में १ गोली",
+          "sideEffects": "हल्की एसिडिटी या पेट में जलन"
+        }
+      ]
+    }
   }
 }

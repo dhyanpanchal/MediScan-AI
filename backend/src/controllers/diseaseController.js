@@ -182,10 +182,49 @@ function deepLocalizeDigits(obj, lang) {
   return obj;
 }
 
+const COMMON_DISEASE_NAME_TRANSLATIONS = {
+  'fever': { gu: 'તાવ (Fever)', hi: 'बुखार (Fever)' },
+  'cold': { gu: 'શરદી (Common Cold)', hi: 'सर्दी-जुकाम (Common Cold)' },
+  'cough': { gu: 'ખાંસી / ઉધરસ (Cough)', hi: 'खांसी (Cough)' },
+  'headache': { gu: 'માથાનો દુખાવો (Headache)', hi: 'सिरदर्द (Headache)' },
+  'migraine': { gu: 'આધાશીશી (Migraine)', hi: 'माइग्रेन / अधकपारी (Migraine)' },
+  'hypertension': { gu: 'હાઈ બ્લડ પ્રેશર (Hypertension)', hi: 'उच्च रक्तचाप (Hypertension)' },
+  'asthma': { gu: 'દમ / અસ્થમા (Asthma)', hi: 'दमा / अस्थमा (Asthma)' },
+  'malaria': { gu: 'મેલેરિયા (Malaria)', hi: 'मलेरिया (Malaria)' },
+  'dengue': { gu: 'ડેન્ગ્યુ (Dengue)', hi: 'डेंगू (Dengue)' },
+  'typhoid': { gu: 'ટાઈફોઈડ (Typhoid)', hi: 'टाइफाइड (Typhoid)' },
+  'pneumonia': { gu: 'ન્યુમોનિયા (Pneumonia)', hi: 'निमोनिया (Pneumonia)' },
+  'jaundice': { gu: 'કમળો (Jaundice)', hi: 'पीलिया (Jaundice)' },
+  'diarrhea': { gu: 'ઝાડા / અતિસાર (Diarrhea)', hi: 'दस्त / डायरिया (Diarrhea)' },
+  'cholera': { gu: 'કોલેરા (Cholera)', hi: 'हैजा (Cholera)' },
+  'anemia': { gu: 'એનિમિયા / પાંડુરોગ (Anemia)', hi: 'एनीमिया / रक्तहीनता (Anemia)' },
+  'arthritis': { gu: 'સંધિવા / ગઠિયો વા (Arthritis)', hi: 'गठिया (Arthritis)' },
+  'allergy': { gu: 'એલર્જી (Allergy)', hi: 'एलर्जी (Allergy)' },
+  'acidity': { gu: 'એસિડિટી / પિત્ત (Acidity)', hi: 'एसिडिटी (Acidity)' },
+  'infection': { gu: 'ચેપ (Infection)', hi: 'संक्रमण (Infection)' },
+  'indigestion': { gu: 'અપચો (Indigestion)', hi: 'अपच / बदहजमी (Indigestion)' },
+  'vomiting': { gu: 'ઉલટી / વમન (Vomiting)', hi: 'उल्टी (Vomiting)' },
+  'fatigue': { gu: 'થાક / અશક્તિ (Fatigue)', hi: 'थकान / कमजोरी (Fatigue)' },
+  'insomnia': { gu: 'અનિદ્રા (Insomnia)', hi: 'अनिद्रा (Insomnia)' },
+  'bronchitis': { gu: 'શ્વાસનળીનો સોજો (Bronchitis)', hi: 'ब्रोंकाइटिस (Bronchitis)' },
+  'tonsillitis': { gu: 'ટોન્સિલ / કાકડા (Tonsillitis)', hi: 'टॉन्सिलाइटिस (Tonsillitis)' }
+};
+
+function getTranslatedDiseaseName(clean, title, lang) {
+  if (lang === 'en') return title;
+  for (const [key, map] of Object.entries(COMMON_DISEASE_NAME_TRANSLATIONS)) {
+    if (clean.includes(key) || key.includes(clean)) {
+      return map[lang] || title;
+    }
+  }
+  return title;
+}
+
 function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult') {
   const clean = (query || 'Condition').trim().toLowerCase();
-  const title = (query || 'Condition').trim().charAt(0).toUpperCase() + (query || 'Condition').trim().slice(1);
+  const rawTitle = (query || 'Condition').trim().charAt(0).toUpperCase() + (query || 'Condition').trim().slice(1);
   const lang = (language === 'gu' || language === 'hi') ? language : 'en';
+  const title = getTranslatedDiseaseName(clean, rawTitle, lang);
 
   try {
     const dataPath = path.join(__dirname, '../data/multilingualDiseases.json');
