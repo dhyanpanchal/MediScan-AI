@@ -522,7 +522,7 @@ const LoginPage = () => {
                 }}
                 disabled={loading}
               >
-                ⚡ Instant 1-Click Google Sign In (panchaldhyan007@gmail.com)
+                ⚡ Instant 1-Click Google Sign In
               </button>
             </>
           )}
