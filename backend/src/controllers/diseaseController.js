@@ -220,6 +220,389 @@ function getTranslatedDiseaseName(clean, title, lang) {
   return title;
 }
 
+const DISEASE_SPECIFIC_MEDICINES = [
+  {
+    keywords: ['allergy', 'allergic', 'dust', 'rhinitis', 'sneez', 'pollen', 'hives', 'urticaria', 'એલર્જી', 'एलर्जी'],
+    medicines: {
+      en: [
+        {
+          name: 'Cetirizine 10mg (Cetcip)',
+          form: 'Oral Tablet',
+          purpose: 'Relief of allergy symptoms such as sneezing, runny nose, itchy watery eyes, and skin hives',
+          dosage: '1 tablet once daily at bedtime with water',
+          sideEffects: 'Mild drowsiness, dry mouth, or fatigue'
+        },
+        {
+          name: 'Levocetirizine 5mg (Levocet)',
+          form: 'Oral Tablet',
+          purpose: 'Fast non-sedating relief from dust allergy, allergic rhinitis, and pollen irritation',
+          dosage: '1 tablet once daily in the evening',
+          sideEffects: 'Mild tiredness or dry throat'
+        }
+      ],
+      gu: [
+        {
+          name: 'સેટિરીઝિન ૧૦mg (Cetirizine 10mg)',
+          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
+          purpose: 'ધૂળની એલર્જી, છીંક, વહેતું નાક, આંખોમાં ખંજવાળ અને એલર્જીક પ્રતિક્રિયામાં તાત્કાલિક રાહત',
+          dosage: '૧ ગોળી દિવસમાં ૧ વખત રાત્રે સૂતી વખતે પાણી સાથે',
+          sideEffects: 'હળવી સુસ્તી અથવા મોં સુકાવું'
+        },
+        {
+          name: 'લેવોસેટિરીઝિન ૫mg (Levocetirizine 5mg)',
+          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
+          purpose: 'ધૂળ અને વાતાવરણની એલર્જી, શ્વાસની અગવડ અને ચકામા સામે ઝડપી રાહત',
+          dosage: '૧ ગોળી દિવસમાં ૧ વખત સાંજે જમ્યા પછી',
+          sideEffects: 'હળવો થાક (નહિવત પ્રમાણમાં)'
+        }
+      ],
+      hi: [
+        {
+          name: 'सिटिरिजिन १०mg (Cetirizine 10mg)',
+          form: 'ओरल टैबलेट (गोली)',
+          purpose: 'धूल की एलर्जी, छींकें, बहती नाक, आंखों में खुजली और त्वचा की एलर्जी में राहत',
+          dosage: '१ गोली दिन में १ बार रात को सोते समय पानी के साथ',
+          sideEffects: 'हल्की नींद या मुंह सूखना'
+        },
+        {
+          name: 'लेवोसिटिरिजिन ५mg (Levocetirizine 5mg)',
+          form: 'ओरल टैबलेट (गोली)',
+          purpose: 'धूल की एलर्जी और मौसमी जुकाम से त्वरित एवं प्रभावी राहत',
+          dosage: '१ गोली दिन में १ बार शाम को भोजन के बाद',
+          sideEffects: 'हल्की थकान'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['headache', 'migraine', 'head ache', 'માથુ', 'માથાનો દુખાવો', 'सिरदर्द'],
+    medicines: {
+      en: [
+        {
+          name: 'Ibuprofen 400mg (Brufen)',
+          form: 'Oral Tablet',
+          purpose: 'Relief of moderate to severe headache, tension headache, and localized inflammation',
+          dosage: '1 tablet every 6 to 8 hours after food with water',
+          sideEffects: 'Mild stomach upset or nausea'
+        },
+        {
+          name: 'Paracetamol 650mg (Dolo-650)',
+          form: 'Oral Tablet',
+          purpose: 'Reduces vascular head pain, throbbing headache, and associated discomfort',
+          dosage: '1 tablet every 6 hours after meals as needed',
+          sideEffects: 'Rare when taken in therapeutic doses'
+        }
+      ],
+      gu: [
+        {
+          name: 'ઇબુપ્રૉફેન ૪૦૦mg (Ibuprofen 400mg)',
+          form: 'ઓરલ ટેબ્લેટ',
+          purpose: 'તીવ્ર માથાનો દુખાવો, આધાશીશી અને તણાવપૂર્ણ માથાના દુખાવામાં રાહત',
+          dosage: 'જમ્યા પછી જરૂર મુજબ ૧ ગોળી દર ૬ થી ૮ કલાકે',
+          sideEffects: 'પેટમાં હળવી બળતરા અથવા એસિડિટી'
+        },
+        {
+          name: 'પેરાસિટામોલ ૬૫૦mg (Dolo-650)',
+          form: 'ઓરલ ટેબ્લેટ',
+          purpose: 'માથાનો દુખાવો અને નસોના ખેંચાણમાં સુરક્ષિત રાહત આપે છે',
+          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૬ કલાકે ૧ ગોળી',
+          sideEffects: 'યોગ્ય માત્રામાં અત્યંત સુરક્ષિત'
+        }
+      ],
+      hi: [
+        {
+          name: 'इबुप्रोफेन ४००mg (Ibuprofen 400mg)',
+          form: 'ओरल टैबलेट',
+          purpose: 'गंभीर सिरदर्द, तनाव सिरदर्द और सूजन संबंधी दर्द में त्वरित राहत',
+          dosage: 'भोजन के बाद आवश्यकतानुसार १ गोली प्रत्येक ६ से ८ घंटे में',
+          sideEffects: 'हल्की एसिडिटी या पेट दर्द'
+        },
+        {
+          name: 'पैरासिटामोल ६५०mg (Dolo-650)',
+          form: 'ओरल टैबलेट',
+          purpose: 'सिरदर्द और भारीपन को शांत करने के लिए सुरक्षित दर्द निवारक',
+          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ६ घंटे में १ गोली',
+          sideEffects: 'उचित खुराक में पूरी तरह सुरक्षित'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['cold', 'cough', 'flu', 'congestion', 'runny nose', 'શરદી', 'ખાંસી', 'ઉધરસ', 'सर्दी', 'खांसी'],
+    medicines: {
+      en: [
+        {
+          name: 'Dextromethorphan + Chlorpheniramine Syrup (Ascoril-D)',
+          form: 'Oral Cough Syrup',
+          purpose: 'Suppresses dry allergic cough and clears blocked throat and nasal passages',
+          dosage: '10ml (2 teaspoons) three times daily after meals',
+          sideEffects: 'Mild drowsiness or dizziness'
+        },
+        {
+          name: 'Phenylephrine + Paracetamol Tablet (Sinarest / Cheston Cold)',
+          form: 'Oral Tablet',
+          purpose: 'Clears nasal congestion, sinus pressure, body aches, and feverish cold',
+          dosage: '1 tablet twice daily after meals',
+          sideEffects: 'Mild dryness in mouth or sleepiness'
+        }
+      ],
+      gu: [
+        {
+          name: 'ડેક્સ્ટ્રોમેથોર્ફન કફ સીરપ (Cough Syrup 100ml)',
+          form: 'ઓરલ સીરપ (પીવાની દવા)',
+          purpose: 'સૂકી ખાંસી, ગળાની ખારાશ અને કફમાં તાત્કાલિક રાહત',
+          dosage: '૨ ચમચી (૧૦ml) દિવસમાં ૨ થી ૩ વખત જમ્યા પછી',
+          sideEffects: 'હળવી સુસ્તી'
+        },
+        {
+          name: 'ચેસ્ટોન કોલ્ડ / સિનારેસ્ટ ટેબ્લેટ',
+          form: 'ઓરલ ટેબ્લેટ',
+          purpose: 'બંધ નાક ખોલવા, શરદી, છીંક અને ગળાના દુખાવામાં ઝડપી રાહત',
+          dosage: '૧ ગોળી સવાર-સાંજ જમ્યા પછી',
+          sideEffects: 'હળવું મોં સુકાવું'
+        }
+      ],
+      hi: [
+        {
+          name: 'डेक्सट्रोमेथॉर्फन कफ सिरप (Cough Syrup 100ml)',
+          form: 'कफ सिरप (तरल दवा)',
+          purpose: 'सूखी खांसी, गले की खराश और कफ में त्वरित राहत',
+          dosage: '२ चम्मच (१०ml) दिन में २ से ३ बार भोजन के बाद',
+          sideEffects: 'हल्की नींद आना'
+        },
+        {
+          name: 'सिनेरेस्ट / चेस्टन कोल्ड टैबलेट',
+          form: 'ओरल टैबलेट',
+          purpose: 'बंद नाक, सर्दी, छींकों और बदन दर्द से राहत दिलाता है',
+          dosage: '१ गोली सुबह और शाम भोजन के बाद',
+          sideEffects: 'हल्का मुंह सूखना'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['acidity', 'gas', 'acid reflux', 'heartburn', 'gerd', 'gastric', 'એસિડિટી', 'પિત્ત', 'गैस', 'एसिडिटी'],
+    medicines: {
+      en: [
+        {
+          name: 'Pantoprazole 40mg (Pan-40)',
+          form: 'Delayed-Release Tablet',
+          purpose: 'Inhibits gastric acid pump, healing acid reflux, heartburn, and stomach ulcer irritation',
+          dosage: '1 tablet once daily in the morning 30 minutes before breakfast',
+          sideEffects: 'Mild headache or diarrhea'
+        },
+        {
+          name: 'Antacid Gel (Digene / Gelusil)',
+          form: 'Oral Suspension Gel',
+          purpose: 'Provides instant neutralization of burning stomach acid and heartburn',
+          dosage: '2 teaspoons (10ml) as needed after meals or at onset of burning',
+          sideEffects: 'Generally very well tolerated'
+        }
+      ],
+      gu: [
+        {
+          name: 'પેન્ટોપ્રાઝોલ ૪૦mg (Pan-40)',
+          form: 'ટેબ્લેટ (ગોળી)',
+          purpose: 'પેટમાં વધારાનું એસિડ ઘટાડે છે, ખાટા ઓડકાર, છાતીમાં બળતરા અને અલ્સર મટાડે છે',
+          dosage: '૧ ગોળી સવારે ભૂખ્યા પેટે નાસ્તાના ૩૦ મિનિટ પહેલાં',
+          sideEffects: 'સામાન્ય માત્રામાં સુરક્ષિત'
+        },
+        {
+          name: 'ડાઇજીન એન્ટાસિડ સીરપ (Digene Gel 200ml)',
+          form: 'ઓરલ જેલ સીરપ',
+          purpose: 'એસિડિટી, પેટમાં બળતરા અને ગેસમાંથી ત્વરિત રાહત આપે છે',
+          dosage: '૨ ચમચી (૧૦ml) જમ્યા પછી અથવા બળતરા થાય ત્યારે',
+          sideEffects: 'નહિવત'
+        }
+      ],
+      hi: [
+        {
+          name: 'पैंटोप्राजोल ४०mg (Pan-40)',
+          form: 'ओरल टैबलेट',
+          purpose: 'अत्यधिक पेट के एसिड को रोकता है, सीने में जलन और एसिडिटी से राहत देता है',
+          dosage: '१ गोली सुबह खाली पेट नाश्ते से ३० मिनट पहले',
+          sideEffects: 'सामान्यतः अत्यंत सुरक्षित'
+        },
+        {
+          name: 'डाइजीन एंटासिड जेल (Digene Gel 200ml)',
+          form: 'ओरल सस्पेंशन',
+          purpose: 'सीने में जलन, गैस और खट्टे डकारों से तुरंत राहत प्रदान करता है',
+          dosage: '२ चम्मच (१०ml) भोजन के बाद या जलन होने पर',
+          sideEffects: 'कोई खास नहीं'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['diarrhea', 'loose motion', 'dehydration', 'ઝાડા', 'અતિસાર', 'दस्त'],
+    medicines: {
+      en: [
+        {
+          name: 'Oral Rehydration Salts (ORS Electral)',
+          form: 'Oral Powder Sachet',
+          purpose: 'Restores essential water and electrolytes lost during diarrhea and prevents dehydration',
+          dosage: 'Dissolve 1 sachet in 1 liter of clean drinking water; sip frequently after every loose stool',
+          sideEffects: 'None when mixed with correct water proportion'
+        },
+        {
+          name: 'Loperamide 2mg (Imodium)',
+          form: 'Oral Capsule',
+          purpose: 'Slows down gut movement to reduce frequency of loose stools',
+          dosage: '1 capsule initially, followed by 1 after each unformed stool (maximum 8mg/day)',
+          sideEffects: 'Mild constipation, stomach cramps'
+        }
+      ],
+      gu: [
+        {
+          name: 'ઓઆરએસ ઇલેક્ટ્રોલાઇટ પાવડર (ORS Electral)',
+          form: 'પાઉડર પાઉચ',
+          purpose: 'શરીરમાં પાણી અને ક્ષારની ઘટ પૂરી કરે છે અને ડિહાઇડ્રેશનથી બચાવે છે',
+          dosage: '૧ લિટર સ્વચ્છ પાણીમાં ૧ પાઉચ ઓગાળીને વારંવાર થોડું થોડું પીવું',
+          sideEffects: 'સંપૂર્ણ સુરક્ષિત'
+        },
+        {
+          name: 'લોપેરામાઇડ ૨mg (Loperamide 2mg)',
+          form: 'ઓરલ કેપ્સ્યુલ',
+          purpose: 'ઝાડાની તીવ્રતા ઘટાડે છે અને આંતરડાની અનિયમિત હલનચલન નિયંત્રિત કરે છે',
+          dosage: 'શરૂઆતમાં ૧ કેપ્સ્યુલ, જરૂર જણાય તો ડૉક્ટરની સલાહ મુજબ',
+          sideEffects: 'હળવો કબજિયાત'
+        }
+      ],
+      hi: [
+        {
+          name: 'ओआरएस इलेक्ट्रोल (ORS Electral)',
+          form: 'ओरल पाउडर पाउच',
+          purpose: 'दस्त के दौरान शरीर में पानी और इलेक्ट्रोलाइट्स की कमी को पूरा करता है',
+          dosage: '१ लीटर पीने के पानी में १ पैकेट घोलकर बार-बार पिएं',
+          sideEffects: 'पूरी तरह सुरक्षित'
+        },
+        {
+          name: 'लोपेरामाइड २mg (Loperamide 2mg)',
+          form: 'ओरल कैप्सूल',
+          purpose: 'आंतों की गति को धीमा करके दस्त की आवृत्ति कम करता है',
+          dosage: 'शुरुआत में १ कैप्सूल चिकित्सक के निर्देशानुसार',
+          sideEffects: 'हल्का कब्ज'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['hypertension', 'blood pressure', 'bp', 'હાઈ બ્લડ પ્રેશર', 'બીપી', 'उच्च रक्तचाप'],
+    medicines: {
+      en: [
+        {
+          name: 'Amlodipine 5mg (Amlong)',
+          form: 'Oral Tablet',
+          purpose: 'Relaxes blood vessels to lower elevated blood pressure and protect cardiovascular health',
+          dosage: '1 tablet once daily in the morning with water',
+          sideEffects: 'Mild ankle swelling, dizziness'
+        },
+        {
+          name: 'Telmisartan 40mg (Telma-40)',
+          form: 'Oral Tablet',
+          purpose: 'Blocks angiotensin receptors to manage hypertension and protect kidney function',
+          dosage: '1 tablet once daily consistently at the same time',
+          sideEffects: 'Mild fatigue or dizziness'
+        }
+      ],
+      gu: [
+        {
+          name: 'ટેલ્મિસાર્ટન ૪૦mg (Telma-40)',
+          form: 'ઓરલ ટેબ્લેટ',
+          purpose: 'હાઈ બ્લડ પ્રેશર નિયંત્રિત કરે છે અને હૃદય તથા કિડનીનું રક્ષણ કરે છે',
+          dosage: '૧ ગોળી દિવસમાં ૧ વખત દરરોજ એક જ સમયે',
+          sideEffects: 'હળવા ચક્કર (દુર્લભ)'
+        },
+        {
+          name: 'એમ્લોડિપિન ૫mg (Amlodipine 5mg)',
+          form: 'ઓરલ ટેબ્લેટ',
+          purpose: 'રક્તવાહિનીઓને આરામ આપીને બ્લડ પ્રેશર સામાન્ય રાખવામાં મદદ કરે છે',
+          dosage: '૧ ગોળી સવારે ૧ વખત પાણી સાથે',
+          sideEffects: 'પગમાં હળવો સોજો'
+        }
+      ],
+      hi: [
+        {
+          name: 'टेल्मीसार्टन ४०mg (Telma-40)',
+          form: 'ओरल टैबलेट',
+          purpose: 'उच्च रक्तचाप को नियंत्रित करता है और हृदय स्वास्थ्य को सुरक्षित रखता है',
+          dosage: '१ गोली दिन में १ बार नियमित समय पर',
+          sideEffects: 'हल्के चक्कर'
+        },
+        {
+          name: 'एम्लोडिपिन ५mg (Amlodipine 5mg)',
+          form: 'ओरल टैबलेट',
+          purpose: 'रक्त वाहिकाओं को शिथिल कर रक्तचाप को सामान्य बनाए रखता है',
+          dosage: '१ गोली सुबह पानी के साथ',
+          sideEffects: 'पैरों में हल्की सूजन'
+        }
+      ]
+    }
+  },
+  {
+    keywords: ['fever', 'pyrexia', 'તાવ', 'તવ', 'તવા', 'તપાતી', 'बुखार', 'ज्वर'],
+    medicines: {
+      en: [
+        {
+          name: 'Paracetamol 500mg',
+          form: 'Oral Tablet',
+          purpose: 'Reduces elevated body temperature and relieves headache and body aches',
+          dosage: '1 tablet every 4 to 6 hours after meals as needed',
+          sideEffects: 'Mild nausea (rare with proper dosage)'
+        },
+        {
+          name: 'Ibuprofen 400mg',
+          form: 'Oral Tablet',
+          purpose: 'Relieves inflammatory pain and fever',
+          dosage: '1 tablet every 6 to 8 hours with meals',
+          sideEffects: 'Mild stomach upset'
+        }
+      ],
+      gu: [
+        {
+          name: 'પેરાસિટામોલ ૫૦૦mg (Paracetamol 500mg)',
+          form: 'ગોળી (Tablet)',
+          purpose: 'શરીરનું તાપમાન ઘટાડે છે અને માથાનો તથા સ્નાયુઓનો દુખાવો ઓછો કરે છે',
+          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૪ થી ૬ કલાકે ૧ ગોળી',
+          sideEffects: 'હળવો ઉબકા (યોગ્ય માત્રામાં દુર્લભ)'
+        },
+        {
+          name: 'ઇબુપ્રૉફેન ૪૦૦mg (Ibuprofen 400mg)',
+          form: 'ગોળી (Tablet)',
+          purpose: 'તાવ અને શારીરિક સોજા કે દુખાવામાં રાહત આપે છે',
+          dosage: 'જમ્યા પછી દર ૬ થી ૮ કલાકે ૧ ગોળી',
+          sideEffects: 'હળવી એસિડિટી'
+        }
+      ],
+      hi: [
+        {
+          name: 'पैरासिटामोल ५००mg (Paracetamol 500mg)',
+          form: 'गोली (Tablet)',
+          purpose: 'दर्द और तेज बुखार कम करने के लिए',
+          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ४ से ६ घंटे में १ गोली',
+          sideEffects: 'हल्की मितली (उचित मात्रा में दुर्लभ)'
+        },
+        {
+          name: 'इबुप्रोफेन ४००mg (Ibuprofen 400mg)',
+          form: 'गोली (Tablet)',
+          purpose: 'बुखार और मांसपेशियों के दर्द में राहत देता है',
+          dosage: 'भोजन के बाद प्रत्येक ६ से ८ घंटे में १ गोली',
+          sideEffects: 'हल्की एसिडिटी'
+        }
+      ]
+    }
+  }
+];
+
+function getConditionSpecificMedicines(clean, lang) {
+  for (const entry of DISEASE_SPECIFIC_MEDICINES) {
+    if (entry.keywords.some(kw => clean.includes(kw) || kw.includes(clean))) {
+      return entry.medicines[lang] || entry.medicines['en'];
+    }
+  }
+  return null;
+}
+
 function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult') {
   const clean = (query || 'Condition').trim().toLowerCase();
   const rawTitle = (query || 'Condition').trim().charAt(0).toUpperCase() + (query || 'Condition').trim().slice(1);
@@ -265,13 +648,13 @@ function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult')
       prevention: ['હાથ નિયમિતપણે ધોવા અને પૌષ્ટિક આહાર લેવો.', 'ચેપી વ્યક્તિઓથી યોગ્ય અંતર રાખવું.', 'નિયમિત આરોગ્ય તપાસ કરાવવી.'],
       whenToSeeDoctor: ['લક્ષણો ૭૨ કલાકથી વધુ સમય સુધી ચાલુ રહે અથવા વધે.', 'ઊંચો તાવ, શ્વાસ લેવામાં તકલીફ અથવા અસહ્ય દુખાવો થાય.', 'અન્ય લાંબા ગાળાની બીમારી હોય.'],
       ageSpecificAdvice: `${ageGroup === 'senior' ? 'વૃદ્ધ' : ageGroup === 'child' ? 'બાળકો' : ageGroup === 'teen' ? 'કિશોરો' : 'પુખ્ત'} વ્યક્તિઓ માટે પૂરતો આરામ અને પ્રવાહી સંતુલન જાળવવું. નવી દવા લેતા પહેલાં ડૉક્ટરની સલાહ અવશ્ય લેવી.`,
-      recommendedMedicines: [
+      recommendedMedicines: getConditionSpecificMedicines(clean, 'gu') || [
         {
-          name: 'પેરાસિટામોલ ૫૦૦mg (Paracetamol 500mg)',
-          form: 'ગોળી (Tablet)',
-          purpose: 'દુખાવો અને તાવ ઘટાડવા માટે',
-          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૪ થી ૬ કલાકે ૧ ગોળી',
-          sideEffects: 'હળવો ઉબકા (યોગ્ય માત્રામાં દુર્લભ)'
+          name: 'સેટિરીઝિન ૧૦mg / પેરાસિટામોલ ૫૦૦mg',
+          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
+          purpose: 'તબીબી સ્થિતિ મુજબ લક્ષણોમાં રાહત મેળવવા માટે',
+          dosage: 'ડૉક્ટર અથવા ફાર્માસિસ્ટના નિર્દેશ મુજબ જમ્યા પછી ૧ ગોળી',
+          sideEffects: 'હળવી સુસ્તી અથવા ઉબકા'
         }
       ]
     };
@@ -288,13 +671,13 @@ function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult')
       prevention: ['हाथों की नियमित स्वच्छता और संतुलित पोषण बनाए रखें।', 'संक्रमित व्यक्तियों से उचित दूरी बनाए रखें।', 'नियमित स्वास्थ्य जांच कराते रहें।'],
       whenToSeeDoctor: ['यदि लक्षण ७२ घंटों से अधिक समय तक बने रहें या बढ़ें।', 'तेज बुखार, सांस लेने में अत्यधिक कठिनाई या असहनीय दर्द हो।', 'पहले से कोई गंभीर बीमारी मौजूद हो।'],
       ageSpecificAdvice: `${ageGroup === 'senior' ? 'वरिष्ठ' : ageGroup === 'child' ? 'बच्चों' : ageGroup === 'teen' ? 'किशोरों' : 'वयस्क'} व्यक्तियों के लिए पर्याप्त आराम और जलयोजन जरूरी है। कोई भी दवा लेने से पूर्व चिकित्सक की सलाह लें।`,
-      recommendedMedicines: [
+      recommendedMedicines: getConditionSpecificMedicines(clean, 'hi') || [
         {
-          name: 'पैरासिटामोल ५००mg (Paracetamol 500mg)',
-          form: 'गोली (Tablet)',
-          purpose: 'दर्द और बुखार कम करने के लिए',
-          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ४ से ६ घंटे में १ गोली',
-          sideEffects: 'हल्की मितली (उचित मात्रा में दुर्लभ)'
+          name: 'सिटिरिजिन १०mg / पैरासिटामोल ५००mg',
+          form: 'ओरल टैबलेट (गोली)',
+          purpose: 'रोगसूचक राहत और चिकित्सीय उपचार के लिए',
+          dosage: 'चिकित्सक या फार्मासिस्ट के निर्देशानुसार भोजन के बाद १ गोली',
+          sideEffects: 'हल्की मितली या सुस्ती'
         }
       ]
     };
@@ -310,13 +693,13 @@ function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult')
     prevention: ['Maintain rigorous hand hygiene and balanced nutrition.', 'Avoid close contact with known infectious agents.', 'Stay up to date with routine clinical health screenings.'],
     whenToSeeDoctor: ['Symptoms persist or worsen past 72 hours.', 'Development of high fever, severe difficulty breathing, or severe pain.', 'Pre-existing chronic medical conditions are present.'],
     ageSpecificAdvice: `For ${ageGroup} individuals, ensure age-appropriate rest and fluid balance. Consult a physician before administering any new pharmaceutical remedies.`,
-    recommendedMedicines: [
+    recommendedMedicines: getConditionSpecificMedicines(clean, 'en') || [
       {
-        name: 'Paracetamol 500mg',
+        name: 'Cetirizine 10mg / Paracetamol 500mg',
         form: 'Oral Tablet',
-        purpose: 'Relief of pain and reduction of fever',
-        dosage: '1 tablet every 4 to 6 hours as needed after meals',
-        sideEffects: 'Mild nausea (rare with proper dosage)'
+        purpose: 'Clinical symptom relief indicated for evaluated condition',
+        dosage: '1 tablet as directed by clinical practitioner after meals',
+        sideEffects: 'Mild drowsiness or nausea'
       }
     ]
   };
