@@ -154,9 +154,114 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
   }
 };
 
+function toNativeDigits(str, lang) {
+  if (!str) return str;
+  const s = String(str);
+  if (lang === 'gu') {
+    const guDigits = ['૦','૧','૨','૩','૪','૫','૬','૭','૮','૯'];
+    return s.replace(/[0-9]/g, d => guDigits[parseInt(d, 10)]);
+  }
+  if (lang === 'hi') {
+    const hiDigits = ['०','१','२','३','४','५','६','७','८','९'];
+    return s.replace(/[0-9]/g, d => hiDigits[parseInt(d, 10)]);
+  }
+  return s;
+}
+
+function deepLocalizeDigits(obj, lang) {
+  if (lang !== 'gu' && lang !== 'hi') return obj;
+  if (typeof obj === 'string') return toNativeDigits(obj, lang);
+  if (Array.isArray(obj)) return obj.map(item => deepLocalizeDigits(item, lang));
+  if (obj && typeof obj === 'object') {
+    const res = {};
+    for (const [k, v] of Object.entries(obj)) {
+      res[k] = deepLocalizeDigits(v, lang);
+    }
+    return res;
+  }
+  return obj;
+}
+
 function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult') {
-  const clean = (query || 'Condition').trim();
-  const title = clean.charAt(0).toUpperCase() + clean.slice(1);
+  const clean = (query || 'Condition').trim().toLowerCase();
+  const title = (query || 'Condition').trim().charAt(0).toUpperCase() + (query || 'Condition').trim().slice(1);
+  const lang = (language === 'gu' || language === 'hi') ? language : 'en';
+
+  try {
+    const dataPath = path.join(__dirname, '../data/multilingualDiseases.json');
+    if (fs.existsSync(dataPath)) {
+      const db = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      for (const [key, entry] of Object.entries(db)) {
+        if (clean.includes(key) || key.includes(clean)) {
+          const loc = entry[lang] || entry['en'];
+          if (loc) {
+            const ageAdvice = (loc.ageSpecificAdvice && (loc.ageSpecificAdvice[ageGroup] || loc.ageSpecificAdvice['adult'])) || '';
+            const resData = {
+              diseaseName: loc.diseaseName || title,
+              description: loc.description || '',
+              commonSymptoms: loc.commonSymptoms || [],
+              causes: loc.causes || [],
+              homeRemedies: loc.homeRemedies || [],
+              prevention: loc.prevention || [],
+              whenToSeeDoctor: loc.whenToSeeDoctor || [],
+              ageSpecificAdvice: ageAdvice,
+              recommendedMedicines: loc.recommendedMedicines || []
+            };
+            return deepLocalizeDigits(resData, lang);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading multilingual disease database:', err.message);
+  }
+
+  if (lang === 'gu') {
+    const resData = {
+      diseaseName: title,
+      description: `${title} એ સ્થાનિક અથવા શારીરિક લક્ષણો ધરાવતી તબીબી સ્થિતિ છે, જેમાં યોગ્ય આરામ, પૂરતું પાણી અને ડૉક્ટરની સલાહ જરૂરી છે.`,
+      commonSymptoms: ['થાક અથવા સામાન્ય અસ્વસ્થતા', 'શરીરમાં દુખાવો અથવા અગવડતા', 'હળવો તાવ અથવા માથાનો દુખાવો', 'સોજો કે દાહ'],
+      causes: ['વાયરલ અથવા બેક્ટેરિયલ ચેપ', 'શારીરિક તણાવ અથવા પર્યાવરણીય પ્રભાવ', 'રોગપ્રતિકારક શક્તિનો પ્રતિભાવ'],
+      homeRemedies: ['સંપૂર્ણ આરામ કરો અને પૂરતું પાણી પીવો.', 'જરૂર મુજબ ગરમ અથવા ઠંડો શેક કરો.', 'સ્વચ્છ, આરામદાયક અને હવાઉજાસવાળા વાતાવરણમાં રહો.'],
+      prevention: ['હાથ નિયમિતપણે ધોવા અને પૌષ્ટિક આહાર લેવો.', 'ચેપી વ્યક્તિઓથી યોગ્ય અંતર રાખવું.', 'નિયમિત આરોગ્ય તપાસ કરાવવી.'],
+      whenToSeeDoctor: ['લક્ષણો ૭૨ કલાકથી વધુ સમય સુધી ચાલુ રહે અથવા વધે.', 'ઊંચો તાવ, શ્વાસ લેવામાં તકલીફ અથવા અસહ્ય દુખાવો થાય.', 'અન્ય લાંબા ગાળાની બીમારી હોય.'],
+      ageSpecificAdvice: `${ageGroup === 'senior' ? 'વૃદ્ધ' : ageGroup === 'child' ? 'બાળકો' : ageGroup === 'teen' ? 'કિશોરો' : 'પુખ્ત'} વ્યક્તિઓ માટે પૂરતો આરામ અને પ્રવાહી સંતુલન જાળવવું. નવી દવા લેતા પહેલાં ડૉક્ટરની સલાહ અવશ્ય લેવી.`,
+      recommendedMedicines: [
+        {
+          name: 'પેરાસિટામોલ ૫૦૦mg (Paracetamol 500mg)',
+          form: 'ગોળી (Tablet)',
+          purpose: 'દુખાવો અને તાવ ઘટાડવા માટે',
+          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૪ થી ૬ કલાકે ૧ ગોળી',
+          sideEffects: 'હળવો ઉબકા (યોગ્ય માત્રામાં દુર્લભ)'
+        }
+      ]
+    };
+    return deepLocalizeDigits(resData, lang);
+  }
+
+  if (lang === 'hi') {
+    const resData = {
+      diseaseName: title,
+      description: `${title} एक ऐसी चिकित्सीय स्थिति है जिसमें उचित आराम, पर्याप्त जलपान और चिकित्सीय परामर्श आवश्यक है।`,
+      commonSymptoms: ['थकान या सामान्य अस्वस्थता', 'स्थानीय दर्द या बेचैनी', 'हल्का बुखार या सिरदर्द', 'सूजन या जलन'],
+      causes: ['वायरल या बैक्टीरियल संक्रमण', 'शारीरिक तनाव या पर्यावरणीय प्रभाव', 'प्रतिरक्षा प्रणाली की प्रतिक्रिया'],
+      homeRemedies: ['पर्याप्त आराम करें और खूब पानी पिएं।', 'कष्ट होने पर गर्म या ठंडा सेक करें।', 'स्वच्छ और हवादार वातावरण में विश्राम करें।'],
+      prevention: ['हाथों की नियमित स्वच्छता और संतुलित पोषण बनाए रखें।', 'संक्रमित व्यक्तियों से उचित दूरी बनाए रखें।', 'नियमित स्वास्थ्य जांच कराते रहें।'],
+      whenToSeeDoctor: ['यदि लक्षण ७२ घंटों से अधिक समय तक बने रहें या बढ़ें।', 'तेज बुखार, सांस लेने में अत्यधिक कठिनाई या असहनीय दर्द हो।', 'पहले से कोई गंभीर बीमारी मौजूद हो।'],
+      ageSpecificAdvice: `${ageGroup === 'senior' ? 'वरिष्ठ' : ageGroup === 'child' ? 'बच्चों' : ageGroup === 'teen' ? 'किशोरों' : 'वयस्क'} व्यक्तियों के लिए पर्याप्त आराम और जलयोजन जरूरी है। कोई भी दवा लेने से पूर्व चिकित्सक की सलाह लें।`,
+      recommendedMedicines: [
+        {
+          name: 'पैरासिटामोल ५००mg (Paracetamol 500mg)',
+          form: 'गोली (Tablet)',
+          purpose: 'दर्द और बुखार कम करने के लिए',
+          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ४ से ६ घंटे में १ गोली',
+          sideEffects: 'हल्की मितली (उचित मात्रा में दुर्लभ)'
+        }
+      ]
+    };
+    return deepLocalizeDigits(resData, lang);
+  }
+
   return {
     diseaseName: title,
     description: `${title} is a clinical condition characterized by localized or systemic physiological symptoms requiring appropriate rest, hydration, and medical evaluation.`,

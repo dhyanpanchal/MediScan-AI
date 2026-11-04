@@ -1,0 +1,175 @@
+{
+  "diabetes": {
+    "en": {
+      "diseaseName": "Diabetes Mellitus",
+      "description": "Diabetes is a metabolic disorder characterized by elevated blood glucose levels resulting from insulin deficiency, insulin resistance, or both.",
+      "commonSymptoms": [
+        "Frequent urination (Polyuria)",
+        "Excessive thirst (Polydipsia)",
+        "Unexplained weight loss",
+        "Fatigue and generalized weakness",
+        "Blurred vision",
+        "Slow healing of cuts or sores"
+      ],
+      "causes": [
+        "Insulin resistance in muscle, liver, and adipose tissue",
+        "Pancreatic beta-cell destruction or dysfunction",
+        "Genetic predisposition and family history",
+        "Sedentary lifestyle and obesity"
+      ],
+      "homeRemedies": [
+        "Adopt a balanced low-glycemic, fiber-rich diet with whole grains.",
+        "Engage in 30 minutes of moderate aerobic exercise daily.",
+        "Maintain consistent daily hydration and monitor blood sugar regularly.",
+        "Avoid refined sugars, sugary beverages, and processed carbohydrates."
+      ],
+      "prevention": [
+        "Maintain a healthy body weight and active routine.",
+        "Undergo routine fasting blood glucose and HbA1c screenings.",
+        "Manage stress levels through yoga or meditation.",
+        "Limit intake of saturated fats and high-carbohydrate meals."
+      ],
+      "whenToSeeDoctor": [
+        "Fasting blood sugar consistently exceeds 126 mg/dL.",
+        "Experiencing extreme thirst, confusion, or fruity-smelling breath.",
+        "Non-healing foot ulcers or persistent numbness in extremities."
+      ],
+      "ageSpecificAdvice": {
+        "child": "For pediatric patients, closely monitor blood glucose levels around meal times and physical activities. Maintain emergency glucose supplies.",
+        "teen": "For adolescents, encourage healthy dietary independence, consistent insulin management, and routine sports safety monitoring.",
+        "adult": "For adults, maintain regular HbA1c tests every 3-6 months, prioritize cardiovascular health, and manage work-related stress.",
+        "senior": "For senior individuals (60+), prevent hypoglycemia risks, maintain regular foot care inspections, and monitor renal function."
+      },
+      "recommendedMedicines": [
+        {
+          "name": "Metformin 500mg",
+          "form": "Oral Extended-Release Tablet",
+          "purpose": "Reduces hepatic glucose production and enhances insulin sensitivity",
+          "dosage": "1 tablet once or twice daily with or after meals",
+          "sideEffects": "Mild gastrointestinal discomfort, nausea, or diarrhea"
+        },
+        {
+          "name": "Glimepiride 1mg",
+          "form": "Oral Tablet",
+          "purpose": "Stimulates insulin release from pancreatic beta cells",
+          "dosage": "1 tablet once daily before the first main meal",
+          "sideEffects": "Risk of mild hypoglycemia, dizziness, or headache"
+        }
+      ]
+    },
+    "gu": {
+      "diseaseName": "ડાયાબિટીસ (મધુપ્રમેહ)",
+      "description": "ડાયાબિટીસ એ એક ચયાપચય સંબંધિત સ્થિતિ છે જેમાં શરીરમાં ઇન્સ્યુલિનની ઉણપ અથવા બિનઅસરકારકતાને કારણે લોહીમાં શર્કરા (ગ્લુકોઝ) નું પ્રમાણ વધારે રહે છે.",
+      "commonSymptoms": [
+        "વારંવાર પેશાબ લાગવો (વારંવાર લઘુશંકા)",
+        "વધુ પડતી તરસ લાગવી",
+        "કારણ વગર વજન ઘટવું",
+        "થાક અને સામાન્ય અશક્તિ અનુભવવી",
+        "ઝાંખી દ્રષ્ટિ થવી",
+        "ઘા કે ઈજા ધીમે રુઝાવી"
+      ],
+      "causes": [
+        "શરીરમાં ઇન્સ્યુલિન પ્રતિકાર (Insulin Resistance)",
+        "સ્વાદુપિંડ દ્વારા પૂરતું ઇન્સ્યુલિન ન બનવું",
+        "વારસાગત કે પારિવારિક ઇતિહાસ",
+        "શારીરિક પ્રવૃત્તિનો અભાવ અને વધુ વજન"
+      ],
+      "homeRemedies": [
+        "ફાઇબરયુક્ત અને ઓછા ગ્લાયકેમિક ઇન્ડેક્સ વાળો સાત્વિક ખોરાક લેવો.",
+        "દરરોજ ૩૦ મિનિટ નિયમિત ચાલવું અથવા હળવી કસરત કરવી.",
+        "પુષ્કળ પાણી પીવું અને બ્લડ શુગરનું નિયમિત ચેકઅપ કરાવવું.",
+        "ખાંડ, ગોળ, મીઠાઈઓ અને પ્રોસેસ્ડ ખોરાક ટાળવો."
+      ],
+      "prevention": [
+        "સ્વસ્થ શરીરનું વજન જાળવી રાખવું અને નિયમિત કસરત કરવી.",
+        "દર ૩ થી ૬ મહિને નિયમિત HbA1c અને ફાસ્ટિંગ શુગર ટેસ્ટ કરાવવો.",
+        "માનસિક તણાવ ઓછો કરવા યોગ અને પ્રાણાયામ કરવા.",
+        "તેલયુક્ત અને જંક ફૂડ ખાવાનું ટાળવું."
+      ],
+      "whenToSeeDoctor": [
+        "ફાસ્ટિંગ બ્લડ શુગર ૧૨૬ mg/dL થી વધુ આવતું હોય.",
+        "ખૂબ વધારે ચક્કર આવે, શ્વાસ લેવામાં તકલીફ થાય અથવા બેહોશી જણાય.",
+        "પગમાં રુઝાતો ન હોય તેવો ઘા કે ઝણઝણાટી અનુભવાય."
+      ],
+      "ageSpecificAdvice": {
+        "child": "બાળકો માટે: ભોજન અને રમતગમતના સમયે બ્લડ શુગરનું કડક નિરીક્ષણ રાખો અને હંમેશા ગ્લુકોઝ ઉપલબ્ધ રાખો.",
+        "teen": "કિશોરો માટે: તંદુરસ્ત આહાર, સમયસર ઇન્સ્યુલિન વ્યવસ્થાપન અને સક્રિય રમતગમતની જીવનશૈલી જાળવો.",
+        "adult": "પુખ્ત વયના લોકો માટે: દર ૩ થી ૬ મહિને નિયમિત બ્લડ ટેસ્ટ કરાવો, હૃદયની સંભાળ રાખો અને તણાવ નિયંત્રિત કરો.",
+        "senior": "વૃદ્ધ દર્દીઓ (૬૦+) માટે: લો-શુગર (હાઈપોગ્લાયકેમિઆ) થી સાવધ રહો, નિયમિત પગની તપાસ કરો અને કિડનીની નિયમિત તપાસ કરાવો."
+      },
+      "recommendedMedicines": [
+        {
+          "name": "મેટફોર્મિન ૫૦૦mg",
+          "form": "મોં દ્વારા લેવાતી ટેબ્લેટ",
+          "purpose": "યકૃતમાં ગ્લુકોઝ ઉત્પાદન ઘટાડે છે અને ઇન્સ્યુલિન સંવેદનશીલતા વધારે છે",
+          "dosage": "૧ ગોળી દિવસમાં ૧ થી ૨ વખત ભોજન સાથે અથવા પછી",
+          "sideEffects": "પેટમાં હળવો દુખાવો, ઉબકા અથવા ઝાડા"
+        },
+        {
+          "name": "ગ્લિમેપીરાઇડ ૧mg",
+          "form": "મોં દ્વારા લેવાતી ટેબ્લેટ",
+          "purpose": "સ્વાદુપિંડમાંથી ઇન્સ્યુલિન મુક્ત કરવામાં મદદ કરે છે",
+          "dosage": "૧ ગોળી દિવસમાં ૧ વખત મુખ્ય ભોજન પહેલાં",
+          "sideEffects": "હળવી સુસ્તી, ચક્કર અથવા લો શુગરની શક્યતા"
+        }
+      ]
+    },
+    "hi": {
+      "diseaseName": "मधुमेह (डायबिटीज)",
+      "description": "डायबिटीज एक मेटाबोलिक विकार है जिसमें इंसुलिन की कमी या प्रभावहीनता के कारण रक्त में ग्लूकोज (शर्करा) का स्तर सामान्य से अधिक हो जाता है।",
+      "commonSymptoms": [
+        "बार-बार पेशाब आना",
+        "अत्यधिक प्यास लगना",
+        "अकारण वजन कम होना",
+        "थकान और सामान्य कमजोरी",
+        "धुंधला दिखाई देना",
+        "चोट या घाव का देर से भरना"
+      ],
+      "causes": [
+        "इंसुलिन प्रतिरोध (Insulin Resistance)",
+        "अग्न्याशय (Pancreas) द्वारा अपर्याप्त इंसुलिन निर्माण",
+        "आनुवंशिक और पारिवारिक इतिहास",
+        "शारीरिक निष्क्रियता और मोटापा"
+      ],
+      "homeRemedies": [
+        "फाइबर युक्त और कम ग्लाइसेमिक इंडेक्स वाला संतुलित आहार लें।",
+        "प्रतिदिन ३० मिनट तेज चलना या योग-व्यायाम करें।",
+        "पर्याप्त पानी पिएं और ब्लड शुगर की नियमित जांच करें।",
+        "मीठे पेय, रिफाइंड चीनी और जंक फूड से बचें।"
+      ],
+      "prevention": [
+        "स्वस्थ शारीरिक वजन और सक्रिय जीवनशैली बनाए रखें।",
+        "नियमित रूप से फास्टिंग ब्लड शुगर और HbA1c टेस्ट करवाएं।",
+        "तनाव प्रबंधन के लिए ध्यान और प्राणायाम करें।",
+        "संतुलित पोषण लें और अत्यधिक तेल-मसाले से बचें।"
+      ],
+      "whenToSeeDoctor": [
+        "फास्टिंग ब्लड शुगर लगातार १२६ mg/dL से अधिक रहे।",
+        "अत्यधिक कमजोरी, चक्कर आना या सांस लेने में कठिनाई हो।",
+        "पैरों में सुन्नता या ऐसा घाव जो ठीक न हो रहा हो।"
+      ],
+      "ageSpecificAdvice": {
+        "child": "बच्चों के लिए: भोजन और खेलने के समय ब्लड शुगर की निरंतर निगरानी रखें और आपातकालीन ग्लूकोज साथ रखें।",
+        "teen": "किशोरों के लिए: सही आहार की आदत, समय पर दवा/इंसुलिन और नियमित खेलकूद की दिनचर्या अपनाएं।",
+        "adult": "वयस्कों के लिए: प्रति ३-६ माह में स्वास्थ्य जांच करवाएं, हृदय स्वास्थ्य पर ध्यान दें और कार्य तनाव नियंत्रित रखें।",
+        "senior": "वरिष्ठ नागरिकों (६०+) के लिए: लो शुगर (हाइपोग्लाइसीमिया) से बचें, पैरों की नियमित देखभाल करें और गुर्दे की जांच कराएं।"
+      },
+      "recommendedMedicines": [
+        {
+          "name": "मेटफॉर्मिन ५००mg",
+          "form": "ओरल टैबलेट",
+          "purpose": "लिवर में ग्लूकोज उत्पादन कम करता है और इंसुलिन प्रभावशीलता बढ़ाता है",
+          "dosage": "१ गोली दिन में १ से २ बार भोजन के साथ या बाद में",
+          "sideEffects": "हल्का पेट दर्द, मतली या दस्त"
+        },
+        {
+          "name": "ग्लिमेपिराइड १mg",
+          "form": "ओरल टैबलेट",
+          "purpose": "अग्न्याशय से इंसुलिन स्राव को उत्तेजित करता है",
+          "dosage": "१ गोली दिन में १ बार मुख्य भोजन से पहले",
+          "sideEffects": "चक्कर आना, सिरदर्द या लो-शुगर का जोखिम"
+        }
+      ]
+    }
+  }
+}
