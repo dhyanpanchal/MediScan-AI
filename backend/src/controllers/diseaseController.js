@@ -52,7 +52,7 @@ async function callGemini(contents) {
         config: { responseMimeType: 'application/json' }
       });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI generation timed out')), 6000)
+        setTimeout(() => reject(new Error('AI generation timed out')), 15000)
       );
 
       const response = await Promise.race([apiPromise, timeoutPromise]);
@@ -130,6 +130,19 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
 
     if (!result || !result.diseaseName) {
       result = generateFallbackDiseaseData(query, language, ageGroup);
+    } else {
+      // Validate recommended medicines are present and relevant
+      if (!Array.isArray(result.recommendedMedicines) || result.recommendedMedicines.length === 0) {
+        const fb = generateFallbackDiseaseData(query, language, ageGroup);
+        result.recommendedMedicines = fb.recommendedMedicines;
+      } else {
+        const isAllergy = /allergy|allergic|dust|rhinitis|hay fever|urticaria/i.test(query);
+        const isOnlyParacetamol = result.recommendedMedicines.every(m => /paracetamol|acetaminophen|dolo/i.test(m.name || ''));
+        if (isAllergy && isOnlyParacetamol) {
+          const fb = generateFallbackDiseaseData(query, language, ageGroup);
+          result.recommendedMedicines = fb.recommendedMedicines;
+        }
+      }
     }
     
     // Save to history asynchronously
@@ -146,560 +159,667 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
       });
     }
 
-    return res.json({ success: true, data: deepLocalizeDigits(result, language) });
+    return res.json({ success: true, data: result });
   } catch (error) {
     console.error('Disease search error:', error);
     const fallback = generateFallbackDiseaseData(req.body?.query || 'Condition', req.body?.language || 'en', req.body?.ageGroup || 'adult');
-    return res.json({ success: true, data: deepLocalizeDigits(fallback, req.body?.language || 'en') });
+    return res.json({ success: true, data: fallback });
   }
 };
 
-function toNativeDigits(str, lang) {
-  if (!str) return str;
-  const s = String(str);
-  if (lang === 'gu') {
-    const guDigits = ['૦','૧','૨','૩','૪','૫','૬','૭','૮','૯'];
-    return s.replace(/[0-9]/g, d => guDigits[parseInt(d, 10)]);
-  }
-  if (lang === 'hi') {
-    const hiDigits = ['०','१','२','३','४','५','६','७','८','९'];
-    return s.replace(/[0-9]/g, d => hiDigits[parseInt(d, 10)]);
-  }
-  return s;
-}
-
-function deepLocalizeDigits(obj, lang) {
-  if (lang !== 'gu' && lang !== 'hi') return obj;
-  if (typeof obj === 'string') return toNativeDigits(obj, lang);
-  if (Array.isArray(obj)) return obj.map(item => deepLocalizeDigits(item, lang));
-  if (obj && typeof obj === 'object') {
-    const res = {};
-    for (const [k, v] of Object.entries(obj)) {
-      res[k] = deepLocalizeDigits(v, lang);
-    }
-    return res;
-  }
-  return obj;
-}
-
-const COMMON_DISEASE_NAME_TRANSLATIONS = {
-  'fever': { gu: 'તાવ (Fever)', hi: 'बुखार (Fever)' },
-  'cold': { gu: 'શરદી (Common Cold)', hi: 'सर्दी-जुकाम (Common Cold)' },
-  'cough': { gu: 'ખાંસી / ઉધરસ (Cough)', hi: 'खांसी (Cough)' },
-  'headache': { gu: 'માથાનો દુખાવો (Headache)', hi: 'सिरदर्द (Headache)' },
-  'migraine': { gu: 'આધાશીશી (Migraine)', hi: 'माइग्रेन / अधकपारी (Migraine)' },
-  'hypertension': { gu: 'હાઈ બ્લડ પ્રેશર (Hypertension)', hi: 'उच्च रक्तचाप (Hypertension)' },
-  'asthma': { gu: 'દમ / અસ્થમા (Asthma)', hi: 'दमा / अस्थमा (Asthma)' },
-  'malaria': { gu: 'મેલેરિયા (Malaria)', hi: 'मलेरिया (Malaria)' },
-  'dengue': { gu: 'ડેન્ગ્યુ (Dengue)', hi: 'डेंगू (Dengue)' },
-  'typhoid': { gu: 'ટાઈફોઈડ (Typhoid)', hi: 'टाइफाइड (Typhoid)' },
-  'pneumonia': { gu: 'ન્યુમોનિયા (Pneumonia)', hi: 'निमोनिया (Pneumonia)' },
-  'jaundice': { gu: 'કમળો (Jaundice)', hi: 'पीलिया (Jaundice)' },
-  'diarrhea': { gu: 'ઝાડા / અતિસાર (Diarrhea)', hi: 'दस्त / डायरिया (Diarrhea)' },
-  'cholera': { gu: 'કોલેરા (Cholera)', hi: 'हैजा (Cholera)' },
-  'anemia': { gu: 'એનિમિયા / પાંડુરોગ (Anemia)', hi: 'एनीमिया / रक्तहीनता (Anemia)' },
-  'arthritis': { gu: 'સંધિવા / ગઠિયો વા (Arthritis)', hi: 'गठिया (Arthritis)' },
-  'allergy': { gu: 'એલર્જી (Allergy)', hi: 'एलर्जी (Allergy)' },
-  'acidity': { gu: 'એસિડિટી / પિત્ત (Acidity)', hi: 'एसिडिटी (Acidity)' },
-  'infection': { gu: 'ચેપ (Infection)', hi: 'संक्रमण (Infection)' },
-  'indigestion': { gu: 'અપચો (Indigestion)', hi: 'अपच / बदहजमी (Indigestion)' },
-  'vomiting': { gu: 'ઉલટી / વમન (Vomiting)', hi: 'उल्टी (Vomiting)' },
-  'fatigue': { gu: 'થાક / અશક્તિ (Fatigue)', hi: 'थकान / कमजोरी (Fatigue)' },
-  'insomnia': { gu: 'અનિદ્રા (Insomnia)', hi: 'अनिद्रा (Insomnia)' },
-  'bronchitis': { gu: 'શ્વાસનળીનો સોજો (Bronchitis)', hi: 'ब्रोंकाइटिस (Bronchitis)' },
-  'tonsillitis': { gu: 'ટોન્સિલ / કાકડા (Tonsillitis)', hi: 'टॉन्सिलाइटिस (Tonsillitis)' }
-};
-
-function getTranslatedDiseaseName(clean, title, lang) {
-  if (lang === 'en') return title;
-  for (const [key, map] of Object.entries(COMMON_DISEASE_NAME_TRANSLATIONS)) {
-    if (clean.includes(key) || key.includes(clean)) {
-      return map[lang] || title;
-    }
-  }
-  return title;
-}
-
-const DISEASE_SPECIFIC_MEDICINES = [
+const CLINICAL_DISEASE_PROFILES = [
   {
-    keywords: ['allergy', 'allergic', 'dust', 'rhinitis', 'sneez', 'pollen', 'hives', 'urticaria', 'એલર્જી', 'एलर्जी'],
-    medicines: {
-      en: [
+    regex: /allergy|allergic|dust|rhinitis|hay fever|urticaria|hives|sneeze|itching/i,
+    en: {
+      diseaseName: 'Allergy (Dust & Environmental Allergy)',
+      description: 'An immune hypersensitivity response to airborne particles like dust mites, pollen, or pet dander, leading to nasal congestion, sneezing, and ocular irritation.',
+      commonSymptoms: ['Frequent sneezing and runny nose', 'Itchy, watery, or swollen eyes', 'Nasal congestion and throat tickle', 'Skin redness or hives (urticaria)'],
+      causes: ['Dust mites and airborne particulate exposure', 'Pollen, grass, and mold spore sensitivity', 'Histamine release triggered by allergens'],
+      homeRemedies: ['Use a saline nasal rinse to wash out dust particles.', 'Maintain adequate indoor ventilation and wash bedding weekly in warm water.', 'Wear a dust mask during sweeping or high-dust outdoor activities.'],
+      prevention: ['Use hypoallergenic pillow and mattress covers.', 'Avoid known environmental allergens and keep windows shut during high pollen days.', 'Regularly clean air filters and vacuum living areas.'],
+      whenToSeeDoctor: ['Severe shortness of breath, wheezing, or chest tightness occurs.', 'Swelling of the lips, tongue, face, or throat develops.', 'Symptoms persist beyond 7 days without relief from antihistamines.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, take precautions with sedating antihistamines and prioritize dust avoidance.`,
+      medicines: [
         {
-          name: 'Cetirizine 10mg (Cetcip)',
+          name: 'Cetirizine 10mg',
           form: 'Oral Tablet',
-          purpose: 'Relief of allergy symptoms such as sneezing, runny nose, itchy watery eyes, and skin hives',
-          dosage: '1 tablet once daily at bedtime with water',
-          sideEffects: 'Mild drowsiness, dry mouth, or fatigue'
+          purpose: 'Antihistamine to block histamine receptors and relieve sneezing, itching, and rhinorrhea',
+          dosage: '1 tablet (10mg) once daily in the evening',
+          sideEffects: 'Mild drowsiness, dry mouth'
         },
         {
-          name: 'Levocetirizine 5mg (Levocet)',
-          form: 'Oral Tablet',
-          purpose: 'Fast non-sedating relief from dust allergy, allergic rhinitis, and pollen irritation',
-          dosage: '1 tablet once daily in the evening',
-          sideEffects: 'Mild tiredness or dry throat'
+          name: 'Montelukast 10mg + Levocetirizine 5mg',
+          form: 'Oral Film-Coated Tablet',
+          purpose: 'Dual leukotriene and histamine blocker for comprehensive allergic airway relief',
+          dosage: '1 tablet once daily at bedtime',
+          sideEffects: 'Mild headache, daytime lethargy'
         }
-      ],
-      gu: [
-        {
-          name: 'સેટિરીઝિન ૧૦mg (Cetirizine 10mg)',
-          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
-          purpose: 'ધૂળની એલર્જી, છીંક, વહેતું નાક, આંખોમાં ખંજવાળ અને એલર્જીક પ્રતિક્રિયામાં તાત્કાલિક રાહત',
-          dosage: '૧ ગોળી દિવસમાં ૧ વખત રાત્રે સૂતી વખતે પાણી સાથે',
-          sideEffects: 'હળવી સુસ્તી અથવા મોં સુકાવું'
-        },
-        {
-          name: 'લેવોસેટિરીઝિન ૫mg (Levocetirizine 5mg)',
-          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
-          purpose: 'ધૂળ અને વાતાવરણની એલર્જી, શ્વાસની અગવડ અને ચકામા સામે ઝડપી રાહત',
-          dosage: '૧ ગોળી દિવસમાં ૧ વખત સાંજે જમ્યા પછી',
-          sideEffects: 'હળવો થાક (નહિવત પ્રમાણમાં)'
-        }
-      ],
-      hi: [
+      ]
+    },
+    hi: {
+      diseaseName: 'एलर्जी (Allergy / Dust Allergy)',
+      description: 'धूल के कणों (Dust Mites), परागकण या पर्यावरणीय एलर्जी के संपर्क में आने पर प्रतिरक्षा प्रणाली की प्रतिक्रिया, जिससे छींक, नाक बहना और आंखों में खुजली होती है।',
+      commonSymptoms: ['लगातार छींक आना और बहती या बंद नाक', 'आंखों में खुजली, लाली और पानी आना', 'गले में खराश या खुजली महसूस होना', 'त्वचा पर लाल चकत्ते या पित्ती (hives)'],
+      causes: ['धूल के बारीक कण (Dust Mites) और वायु प्रदूषण', 'परागकण और फफूंद (Mold) के संपर्क में आना', 'शरीर में हिस्टामाइन रसायन का अत्यधिक स्राव'],
+      homeRemedies: ['गुनगुने पानी में नमक डालकर भाप (Steam) लें।', 'धूल भरी जगहों पर मास्क पहनें और घर को स्वच्छ रखें।', 'बिस्तर और तकिए के कवर को गर्म पानी में नियमित धोएं।'],
+      prevention: ['धूल और धुएं के सीधे संपर्क से बचें।', 'घर के पंखों और एसी फिल्टर को नियमित साफ रखें।', 'पर्याप्त पानी पिएं और स्वस्थ संतुलित आहार लें।'],
+      whenToSeeDoctor: ['सांस लेने में अत्यधिक कठिनाई या घरघराहट (wheezing) हो।', 'चेहरे, होंठ, जीभ या गले में सूजन महसूस हो।', 'दवा लेने के ५-७ दिनों बाद भी कोई सुधार न दिखे।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के रोगियों के लिए: उनींदापन पैदा करने वाली दवाओं से बचें और धूल से बचाव पर ध्यान दें।`,
+      medicines: [
         {
           name: 'सिटिरिजिन १०mg (Cetirizine 10mg)',
-          form: 'ओरल टैबलेट (गोली)',
-          purpose: 'धूल की एलर्जी, छींकें, बहती नाक, आंखों में खुजली और त्वचा की एलर्जी में राहत',
-          dosage: '१ गोली दिन में १ बार रात को सोते समय पानी के साथ',
-          sideEffects: 'हल्की नींद या मुंह सूखना'
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'एंटीहिस्टामाइन: छींक, नाक बहने, खुजली और एलर्जी के लक्षणों में तुरंत राहत',
+          dosage: 'शाम को भोजन के बाद १ गोली (१०mg) दिन में एक बार',
+          sideEffects: 'हल्की नींद या उनींदापन, मुंह सूखना'
         },
         {
-          name: 'लेवोसिटिरिजिन ५mg (Levocetirizine 5mg)',
-          form: 'ओरल टैबलेट (गोली)',
-          purpose: 'धूल की एलर्जी और मौसमी जुकाम से त्वरित एवं प्रभावी राहत',
-          dosage: '१ गोली दिन में १ बार शाम को भोजन के बाद',
-          sideEffects: 'हल्की थकान'
+          name: 'मोंटेलुकास्ट + लेवोसिटिरिजिन (Montelukast + Levocetirizine)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'एलर्जी और श्वसन नली की सूजन को शांत करने के लिए',
+          dosage: 'रात को सोते समय १ गोली पानी के साथ',
+          sideEffects: 'हल्का सिरदर्द, पेट में बेचैनी'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'એલર્જી (Allergy / Dust Allergy)',
+      description: 'ધૂળ, પરાગરજ અથવા વાતાવરણના કણોના સંપર્કમાં આવવાથી શરીરની રોગપ્રતિકારક શક્તિની સંવેદનશીલતા, જેનાથી છીંક, શરદી, આંખોમાં પાણી અને ખંજવાળ થાય છે.',
+      commonSymptoms: ['વારંવાર છીંકો આવવી અને નાકમાંથી પાણી વહેવું', 'આંખોમાં ખંજવાળ, લાલાશ અને પાણી આવવું', 'નાક બંધ થવું અને ગળામાં ખંજવાળ આવવી', 'ચામડી પર ખંજવાળ અથવા ચકામા પડવા'],
+      causes: ['ધૂળના રજકણો (Dust Mites) અને વાયુ પ્રદૂષણ', 'પરાગરજ અને ઋતુ પરિવર્તનનો પ્રભાવ', 'શરીરમાં હિસ્ટામાઈન રસાયણનું વધુ પડતું ઉત્સર્જન'],
+      homeRemedies: ['હૂંફાળા પાણીની વરાળ (સ્ટીમ) લો જેથી શ્વાસનળી સાફ રહે.', 'ધૂળવાળા વાતાવરણમાં બહાર નીકળતી વખતે માસ્ક પહેરો.', 'હૂંફાળું પાણી અને આદુ-તુલસીનો ઉકાળો પીવો.'],
+      prevention: ['ધૂળ અને ધુમાડાના સીધા સંપર્કથી દૂર રહો.', 'ઓશિકાના કવર અને ચાદરોને નિયમિતપણે ગરમ પાણીમાં ધોવો.', 'ઘરના પંખા અને બારી-બારણાં નિયમિત સાફ રાખો.'],
+      whenToSeeDoctor: ['શ્વાસ લેવામાં તકલીફ થાય અથવા છાતીમાં સીટી જેવો અવાજ આવે.', 'હોઠ, જીભ અથવા ગળામાં સોજો આવે.', 'દવા લીધા પછી પણ ૫ થી ૭ દિવસ સુધી લક્ષણો ન ઘટે.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: ઊંઘ લાવનારી દવાઓથી સાવચેત રહેવું અને ધૂળથી દૂર રહેવાને પ્રાથમિકતા આપવી.`,
+      medicines: [
+        {
+          name: 'સેટિરીઝિન ૧૦mg (Cetirizine 10mg)',
+          form: 'ઓરલ ગોળી (Tablet)',
+          purpose: 'એન્ટિહિસ્ટામાઇન: છીંક, વહેતું નાક અને એલર્જીની ખંજવાળ અટકાવવા માટે',
+          dosage: 'સાંજે જમ્યા પછી ૧ ગોળી (૧૦mg) દિવસમાં એક વખત',
+          sideEffects: 'હળવી સુસ્તી અથવા ઊંઘ આવવી, મોં સુકાવું'
+        },
+        {
+          name: 'મોન્ટેલુકાસ્ટ + લેવોસેટિરીઝિન (Montelukast + Levocetirizine)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'શ્વાસનળીનો સોજો ઉતારવા અને એલર્જીથી ઝડપી રાહત મેળવવા માટે',
+          dosage: 'રાત્રે સૂતી વખતે પાણી સાથે ૧ ગોળી',
+          sideEffects: 'હળવો માથાનો દુખાવો, પેટમાં અસ્વસ્થતા'
         }
       ]
     }
   },
   {
-    keywords: ['headache', 'migraine', 'head ache', 'માથુ', 'માથાનો દુખાવો', 'सिरदर्द'],
-    medicines: {
-      en: [
+    regex: /diabetes|sugar|glucose|glycemia|diabetic/i,
+    en: {
+      diseaseName: 'Diabetes Mellitus',
+      description: 'A metabolic disorder characterized by sustained high blood glucose levels caused by insufficient insulin secretion or insulin cellular resistance.',
+      commonSymptoms: ['Frequent urination (polyuria) and extreme thirst', 'Unexplained weight loss and chronic fatigue', 'Blurred vision and slow-healing wounds', 'Tingling or numbness in feet and hands'],
+      causes: ['Pancreatic beta-cell dysfunction or autoimmune impairment', 'Insulin resistance associated with sedentary lifestyle and weight gain', 'Genetic predisposition and family history'],
+      homeRemedies: ['Maintain 30 minutes of moderate cardiovascular exercise every day.', 'Consume high-fiber, low-glycemic foods such as whole grains, greens, and fenugreek seeds.', 'Monitor fasting and post-meal glucose logs systematically.'],
+      prevention: ['Maintain a healthy body weight and active daily lifestyle.', 'Strictly avoid sweetened carbonated drinks, refined sweets, and processed snacks.', 'Schedule routine HbA1c tests every 3-6 months.'],
+      whenToSeeDoctor: ['Fasting blood sugar consistently surpasses 180 mg/dL.', 'Symptoms of disorientation, severe dehydration, or nausea appear.', 'Foot cuts, blisters, or sores show signs of infection or fail to heal.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} patients, maintain strict glycemic control and conduct periodic foot and eye examinations.`,
+      medicines: [
         {
-          name: 'Ibuprofen 400mg (Brufen)',
-          form: 'Oral Tablet',
-          purpose: 'Relief of moderate to severe headache, tension headache, and localized inflammation',
-          dosage: '1 tablet every 6 to 8 hours after food with water',
-          sideEffects: 'Mild stomach upset or nausea'
+          name: 'Metformin Hydrochloride 500mg',
+          form: 'Oral Extended-Release Tablet',
+          purpose: 'First-line biguanide to reduce liver glucose production and enhance insulin sensitivity',
+          dosage: '500mg once or twice daily with meals',
+          sideEffects: 'Mild abdominal discomfort, transient loose stools'
         },
         {
-          name: 'Paracetamol 650mg (Dolo-650)',
+          name: 'Glimepiride 1mg',
           form: 'Oral Tablet',
-          purpose: 'Reduces vascular head pain, throbbing headache, and associated discomfort',
-          dosage: '1 tablet every 6 hours after meals as needed',
-          sideEffects: 'Rare when taken in therapeutic doses'
+          purpose: 'Sulfonylurea that stimulates pancreatic insulin secretion',
+          dosage: '1 tablet once daily before morning breakfast',
+          sideEffects: 'Hypoglycemia (low blood sugar), mild dizziness'
         }
-      ],
-      gu: [
+      ]
+    },
+    hi: {
+      diseaseName: 'मधुमेह (Diabetes Mellitus / Sugar)',
+      description: 'एक दीर्घकालिक चयापचय रोग जिसमें इंसुलिन की कमी या इंसुलिन प्रतिरोध के कारण रक्त शर्करा (ब्लड शुगर) का स्तर असामान्य रूप से बढ़ जाता है।',
+      commonSymptoms: ['अत्यधिक प्यास लगना और बार-बार पेशाब आना', 'बिना कारण वजन घटना और अत्यधिक थकान रहना', 'धुंधली दृष्टि और घाव का देर से भरना', 'हाथों या पैरों में सुन्नता या झुनझुनी होना'],
+      causes: ['अग्न्याशय (Pancreas) द्वारा इंसुलिन का कम बनना', 'मोटापा, शारीरिक निष्क्रियता और इंसुलिन प्रतिरोध', 'आनुवंशिक और पारिवारिक इतिहास'],
+      homeRemedies: ['प्रतिदिन कम से कम ३० मिनट तेज चलें या योग करें।', 'कम ग्लाइसेमिक इंडेक्स और फाइबर युक्त आहार (सलाद, मेथी, जामुन) लें।', 'मीठे पेय, रिफाइंड चीनी और जंक फूड का पूरी तरह परहेज करें।'],
+      prevention: ['स्वस्थ वजन बनाए रखें और नियमित व्यायाम करें।', 'तनाव प्रबंधन करें और प्रतिदिन पर्याप्त नींद लें।', 'हर ३ महीने में HbA1c और ब्लड शुगर की नियमित जांच करवाएं।'],
+      whenToSeeDoctor: ['फास्टिंग ब्लड शुगर लगातार १८० mg/dL से ऊपर रहे।', 'अत्यधिक चक्कर, भ्रम या बेहोशी के लक्षण दिखें।', 'पैर में घाव या कट लगने पर वह ठीक न हो रहा हो।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: ब्लड शुगर की नियमित निगरानी रखें और पैरों की देखभाल करें।`,
+      medicines: [
         {
-          name: 'ઇબુપ્રૉફેન ૪૦૦mg (Ibuprofen 400mg)',
-          form: 'ઓરલ ટેબ્લેટ',
-          purpose: 'તીવ્ર માથાનો દુખાવો, આધાશીશી અને તણાવપૂર્ણ માથાના દુખાવામાં રાહત',
-          dosage: 'જમ્યા પછી જરૂર મુજબ ૧ ગોળી દર ૬ થી ૮ કલાકે',
-          sideEffects: 'પેટમાં હળવી બળતરા અથવા એસિડિટી'
+          name: 'मेटफॉर्मिन हाइड्रोक्लोराइड ५००mg (Metformin 500mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'लीवर में ग्लूकोज उत्पादन कम करता है और इंसुलिन संवेदनशीलता बढ़ाता है',
+          dosage: 'भोजन के साथ १ गोली (५००mg) दिन में एक या दो बार',
+          sideEffects: 'पेट में हल्का दर्द, मतली या दस्त'
+        },
+        {
+          name: 'ग्लिमेपिराइड १mg (Glimepiride 1mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'अग्न्याशय से इंसुलिन स्राव को उत्तेजित करता है',
+          dosage: 'सुबह के नाश्ते से तुरंत पहले १ गोली',
+          sideEffects: 'हाइपोग्लाइसीमिया (शुगर बहुत कम होना)'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'ડાયાબિટીસ (Diabetes / Blood Sugar)',
+      description: 'શરીરમાં ઇન્સ્યુલિનની ઉણપ અથવા ઇન્સ્યુલિન સામે પ્રતિકારને કારણે લોહીમાં શર્કરા (સુગર) નું પ્રમાણ વધી જવાની લાંબા ગાળાની સ્થિતિ.',
+      commonSymptoms: ['વારંવાર પેશાબ જવું અને અતિશય તરસ લાગવી', 'કારણ વગર વજન ઘટવું અને સતત થાક લાગવો', 'આંખે ઝાંખપ આવવી અને વાગેલું મોડું રૂઝાવું', 'હાથ-પગમાં ઝણઝણાટી કે બહેરાશ લાગવી'],
+      causes: ['સ્વાદુપિંડ (પેનક્રિયાસ) દ્વારા પૂરતું ઇન્સ્યુલિન ન બનવું', 'મેદસ્વિતા, શારીરિક કસરતનો અભાવ અને વંશાનુગત કારણો', 'માનસિક તણાવ અને બિનઆરોગ્યપ્રદ આહાર'],
+      homeRemedies: ['દરરોજ ૩૦ મિનિટ નિયમિત વૉકિંગ અથવા હળવી કસરત કરો.', 'મેથીનું પાણી, કારેલાનો રસ અને જાંબુનો આહારમાં સમાવેશ કરો.', 'મીઠાઈ, ખાંડ, ગોળ અને મેંદાવાળી વાનગીઓ ટાળો.'],
+      prevention: ['શરીરનું વજન નિયંત્રણમાં રાખો.', 'દર ૩ થી ૬ મહિને નિયમિત HbA1c બ્લડ ટેસ્ટ કરાવો.', 'પૂરતી ૭-૮ કલાકની શાંત ઊંઘ લો અને ટેન્શન મુક્ત રહો.'],
+      whenToSeeDoctor: ['ખાલી પેટે બ્લડ સુગર સતત ૧૮૦ mg/dL થી વધુ આવતી હોય.', 'ચક્કર આવવા, ગભરામણ કે બેભાન જેવી સ્થિતિ લાગે.', 'પગમાં વાગેલું કે ચાંદું રૂઝાતું ન હોય.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: બ્લડ સુગરનું સતત મોનિટરિંગ કરો અને પગની સ્વચ્છતા પર વિશેષ ધ્યાન આપો.`,
+      medicines: [
+        {
+          name: 'મેટફોર્મિન હાઇડ્રોક્લોરાઇડ ૫૦૦mg (Metformin 500mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'બ્લડ શુગરનું નિયંત્રણ અને ઇન્સ્યુલિન કાર્યક્ષમતામાં સુધારો',
+          dosage: 'જમ્યા સાથે ૧ ગોળી દિવસમાં એક કે બે વખત ડૉક્ટરની સલાહ મુજબ',
+          sideEffects: 'પેટમાં ગેસ, હળવી ઉબકા કે ઝાડા'
+        },
+        {
+          name: 'ગ્લિમેપિરાઇડ ૧mg (Glimepiride 1mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'સ્વાદુપિંડમાંથી ઇન્સ્યુલિન છૂટું પાડવામાં મદદરૂપ દવા',
+          dosage: 'સવારના નાસ્તા પહેલાં ૧ ગોળી',
+          sideEffects: 'સુગર અચાનક ઘટી જવી (હાઈપોગ્લાયસેમિયા)'
+        }
+      ]
+    }
+  },
+  {
+    regex: /hypertension|blood pressure|bp|high bp/i,
+    en: {
+      diseaseName: 'Hypertension (High Blood Pressure)',
+      description: 'A chronic cardiovascular condition in which the blood pressure in the systemic arteries is persistently elevated, increasing cardiac workload.',
+      commonSymptoms: ['Morning occipital headache', 'Dizziness or lightheadedness', 'Flushing, palpitations, or visual changes', 'Fatigue and mild shortness of breath upon exertion'],
+      causes: ['Vascular stiffness and peripheral resistance', 'High dietary sodium and low physical activity', 'Chronic emotional stress and genetic traits'],
+      homeRemedies: ['Follow the low-sodium DASH diet (rich in fruits, vegetables, and potassium).', 'Practice deep breathing, meditation, and 30-minute daily walking.', 'Abstain from smoking and minimize caffeine and alcohol intake.'],
+      prevention: ['Keep daily dietary salt below 5 grams.', 'Check blood pressure weekly with a calibrated home monitor.', 'Maintain an optimal BMI between 18.5 and 24.9.'],
+      whenToSeeDoctor: ['Blood pressure exceeds 180/120 mmHg (Hypertensive Urgency).', 'Severe chest pain, vision loss, or numbness in one side occurs.', 'Persistent severe headache accompanied by vomiting.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, monitor blood pressure twice weekly and avoid abrupt discontinuation of antihypertensive therapies.`,
+      medicines: [
+        {
+          name: 'Amlodipine 5mg',
+          form: 'Oral Tablet',
+          purpose: 'Calcium channel blocker to dilate peripheral arteries and lower blood pressure',
+          dosage: '5mg once daily, preferably in the morning',
+          sideEffects: 'Mild ankle swelling (edema), flushing, dizziness'
+        },
+        {
+          name: 'Telmisartan 40mg',
+          form: 'Oral Tablet',
+          purpose: 'Angiotensin II receptor blocker (ARB) for vascular relaxation and renal protection',
+          dosage: '40mg once daily with or without food',
+          sideEffects: 'Mild dizziness, back pain, fatigue'
+        }
+      ]
+    },
+    hi: {
+      diseaseName: 'उच्च रक्तचाप (Hypertension / High BP)',
+      description: 'धमनियों में रक्त के प्रवाह का दबाव लगातार सामान्य से अधिक रहने की स्थिति, जिससे हृदय और रक्तवाहिकाओं पर अतिरिक्त दबाव पड़ता है।',
+      commonSymptoms: ['सुबह सिर के पिछले हिस्से में दर्द रहना', 'चक्कर आना या सिर भारी लगना', 'घबराहट (धड़कन तेज होना) और बेचैनी', 'थोड़ा चलने पर सांस फूलना'],
+      causes: ['धमनियों का संकुचन और लचीलेपन में कमी', 'भोजन में अत्यधिक नमक और गतिहीन जीवनशैली', 'मानसिक तनाव, मोटापा और आनुवंशिक प्रभाव'],
+      homeRemedies: ['भोजन में नमक की मात्रा बहुत कम रखें (DASH डाइट अपनाएं)।', 'रोजाना प्राणायाम, ध्यान और ३० मिनट हल्की सैर करें।', 'धूम्रपान, तंबाकू और शराब से पूर्ण परहेज करें।'],
+      prevention: ['प्रतिदिन ५ ग्राम से कम नमक का सेवन करें।', 'घर पर नियमित रूप से डिजिटल बीपी मॉनिटर से जांच करें।', 'शरीर का वजन नियंत्रित रखें और तनाव मुक्त रहें।'],
+      whenToSeeDoctor: ['रक्तचाप १८०/१२० mmHg से अधिक पहुंच जाए।', 'छाती में तेज दर्द या सांस लेने में भारी तकलीफ हो।', 'शरीर के एक हिस्से में सुन्नता या अचानक कमजोरी महसूस हो।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: बीपी की नियमित जांच करें और डॉक्टर की सलाह के बिना दवा बंद न करें।`,
+      medicines: [
+        {
+          name: 'एम्लोडिपिन ५mg (Amlodipine 5mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'कैल्शियम चैनल ब्लॉकर: रक्त वाहिकाओं को शिथिल कर रक्तचाप को सामान्य करता है',
+          dosage: 'सुबह १ गोली (५mg) प्रतिदिन',
+          sideEffects: 'पैरों या टखनों में हल्का सोथ (सूजन), चक्कर'
+        },
+        {
+          name: 'टेल्मीसार्टन ४०mg (Telmisartan 40mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'रक्त नलिकाओं को खोलकर हृदय और किडनी की सुरक्षा करता है',
+          dosage: 'दिन में १ बार भोजन के साथ या बिना भोजन के',
+          sideEffects: 'हल्का चक्कर, थकान'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'હાઈ બ્લડ પ્રેશર (Hypertension / High BP)',
+      description: 'શરીરની ધમનીઓમાં લોહીનું દબાણ સામાન્ય કરતાં સતત વધુ રહેવાની સ્થિતિ, જેના કારણે હૃદય અને રક્તવાહિનીઓ પર વધારાનું ભારણ પડે છે.',
+      commonSymptoms: ['સવારે માથાના પાછળના ભાગમાં દુખાવો થવો', 'ચક્કર આવવા અથવા માથું ભારે લાગવું', 'છાતીમાં ધબકારા વધવા અને ગભરામણ થવી', 'ઝડપી ચાલવા પર શ્વાસ ચડવો'],
+      causes: ['ધમનીઓનું સંકોચાવું અને લોહીનું પરિભ્રમણ ધીમું પડવું', 'ખોરાકમાં વધુ પડતું મીઠું અને કસરતનો અભાવ', 'માનસિક ચિંતા, તણાવ અને વારસાગત કારણો'],
+      homeRemedies: ['ખોરાકમાં મીઠું (નમક) એકદમ ઓછું કરો.', 'રોજ સવારે પ્રાણાયામ, યોગાસન અને હળવી કસરત કરો.', 'બીડી, સિગારેટ અને તમાકુથી તદ્દન દૂર રહો.'],
+      prevention: ['દિવસમાં ૫ ગ્રામ કરતાં ઓછું મીઠું વાપરો.', 'ઘરે ડિજિટલ મશીનથી અઠવાડિયે બ્લડ પ્રેશર ચેક કરો.', 'વજન કાબૂમાં રાખો અને દરરોજ પૂરતી શાંત ઊંઘ લો.'],
+      whenToSeeDoctor: ['બ્લડ પ્રેશર ૧૮૦/૧૨૦ mmHg કરતાં વધી જાય.', 'છાતીમાં અસહ્ય દુખાવો કે જમણા/ડાબા હાથમાં કળતર થાય.', 'અચાનક ચક્કર આવીને આંખે અંધારા આવી જાય.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: બ્લડ પ્રેશર નિયમિત તપાસો અને ડૉક્ટરની સલાહ વગર દવા ક્યારેય બંધ ન કરો.`,
+      medicines: [
+        {
+          name: 'એમલોડિપાઇન ૫mg (Amlodipine 5mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'રક્તવાહિનીઓને પહોળી કરી લોહીનું દબાણ સામાન્ય કરવા માટે',
+          dosage: 'રોજ સવારે ૧ ગોળી નિયમિત પાણી સાથે',
+          sideEffects: 'પગની ઘૂંટીમાં હળવો સોજો, ચક્કર આવવા'
+        },
+        {
+          name: 'તેલમિસાર્ટન ૪૦mg (Telmisartan 40mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'હૃદય અને કિડનીનું રક્ષણ કરીને હાઈ બીપી કાબૂમાં રાખે છે',
+          dosage: 'દિવસમાં ૧ વખત જમ્યા પછી',
+          sideEffects: 'હળવો થાક, ચક્કર'
+        }
+      ]
+    }
+  },
+  {
+    regex: /asthma|wheezing|bronchitis|breathlessness|respiratory/i,
+    en: {
+      diseaseName: 'Asthma / Bronchial Hyperactivity',
+      description: 'A chronic respiratory inflammation causing hyperreactive airways, bronchospasms, mucosal swelling, and variable airflow obstruction.',
+      commonSymptoms: ['Wheezing sound during exhalation', 'Shortness of breath and rapid breathing', 'Chest tightness or pressure', 'Nocturnal cough interrupting sleep'],
+      causes: ['Cold air, dust, pollen, or pet dander exposure', 'Respiratory viral infections', 'Exercise-induced bronchoconstriction'],
+      homeRemedies: ['Sit upright during acute episodes and practice pursed-lip breathing.', 'Keep living quarters clean, dry, and free of smoke and incense.', 'Drink warm fluids to loosen bronchial mucus.'],
+      prevention: ['Always carry a prescribed rescue bronchodilator inhaler.', 'Identify and systematically avoid known allergic asthma triggers.', 'Avoid active and passive tobacco smoke exposure completely.'],
+      whenToSeeDoctor: ['Severe breathlessness prevents speaking in full sentences.', 'Lips or fingernails turn pale or blue (cyanosis).', 'Rescue inhaler produces no symptomatic relief after 2-4 puffs.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, always carry a rescue inhaler and check peak expiratory flow.`,
+      medicines: [
+        {
+          name: 'Salbutamol (Albuterol) Inhaler 100mcg',
+          form: 'Metered Dose Inhaler',
+          purpose: 'Fast-acting short-acting beta2-agonist (SABA) to rapidly dilate airways during acute wheezing',
+          dosage: '1 to 2 puffs inhaled as needed for acute symptoms (up to 4 times daily)',
+          sideEffects: 'Mild finger tremor, rapid heartbeat (palpitations)'
+        },
+        {
+          name: 'Budesonide + Formoterol Inhaler (200/6mcg)',
+          form: 'Dry Powder / MDI Inhaler',
+          purpose: 'Maintenance corticosteroid and long-acting bronchodilator to prevent asthma flare-ups',
+          dosage: '1 puff twice daily; rinse mouth with water after inhalation',
+          sideEffects: 'Oral candidiasis (thrush), hoarseness'
+        }
+      ]
+    },
+    hi: {
+      diseaseName: 'दमा / अस्थमा (Asthma / Bronchospasm)',
+      description: 'श्वसन नलियों की दीर्घकालिक सूजन जिसमें वायुमार्ग संकीर्ण हो जाते हैं, जिससे सांस लेने में कठिनाई और घरघराहट होती है।',
+      commonSymptoms: ['सांस छोड़ते समय सीटी जैसी आवाज (घरघराहट)', 'सांस फूलना और छाती में जकड़न', 'रात या सुबह के समय तेज खांसी', 'थकावट और कम ऊर्जा महसूस होना'],
+      causes: ['धूल, धुआं, परागकण और ठंडी हवा', 'श्वसन संक्रमण (वायरल इंफेक्शन)', 'शारीरिक परिश्रम और भावनात्मक तनाव'],
+      homeRemedies: ['अस्थमा के दौरे के समय सीधे बैठें और धीमी गहरी सांस लें।', 'गर्म पानी की भाप लें और गुनगुना पानी पिएं।', 'धुएं, अगरबत्ती और तेज गंध वाले परफ्यूम से दूर रहें।'],
+      prevention: ['अपना बचाव इनहेलर (Rescue Inhaler) हमेशा साथ रखें।', 'धूल और ठंडी हवा से बचने के लिए मास्क का प्रयोग करें।', 'धूम्रपान से पूर्ण रूप से दूर रहें।'],
+      whenToSeeDoctor: ['सांस लेने में इतनी कठिनाई हो कि एक वाक्य भी न बोला जाए।', 'होंठ या नाखून नीले पड़ने लगें (ऑक्सीजन की कमी)।', 'इनहेलर लेने के बाद भी सांस में कोई राहत न मिले।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: अपना रेस्क्यू इनहेलर हमेशा साथ रखें और ठंडी चीजों से परहेज करें।`,
+      medicines: [
+        {
+          name: 'सालबुटामोल इनहेलर १००mcg (Salbutamol Inhaler)',
+          form: 'इनहेलर (Inhaler)',
+          purpose: 'तुरंत राहत देने वाला ब्रोन्कोडायलेटर: संकुचित श्वसन नलियों को तुरंत खोलता है',
+          dosage: 'अस्थमा का दौरा पड़ने पर १ से २ पफ मुंह द्वारा सांस में खींचें',
+          sideEffects: 'हल्की कंपन (हाथ कांपना), दिल की धड़कन तेज होना'
+        },
+        {
+          name: 'बुडेसोनाइड + फॉर्मोटेरोल इनहेलर (Budesonide Inhaler)',
+          form: 'इनहेलर (Inhaler)',
+          purpose: 'सूजन कम करने और अस्थमा के दौरों को रोकने के लिए नियमित दवा',
+          dosage: 'सुबह-शाम १-१ पफ (इनहेल करने के बाद कुल्ला जरूर करें)',
+          sideEffects: 'गले में खराश, आवाज बैठना'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'દમ / અસ્થમા (Asthma / Wheezing)',
+      description: 'શ્વાસનળીઓમાં સોજો આવવાથી શ્વાસ લેવાનો માર્ગ સાંકડો થઈ જવાની સ્થિતિ, જેનાથી શ્વાસ લેવામાં તકલીફ અને છાતીમાં સીટી જેવો અવાજ આવે છે.',
+      commonSymptoms: ['શ્વાસ બહાર કાઢતી વખતે સીટી જેવો અવાજ (ઘરઘરાટી)', 'શ્વાસ ચડવો અને છાતીમાં ભારે દબાણ લાગવું', 'રાત્રે કે વહેલી સવારે સૂકી ખાંસી ઉપડવી', 'થોડું કામ કરવાથી થાકી જવું'],
+      causes: ['ધૂળ, ધુમાડો, ઠંડી હવા અને વાયુ પ્રદૂષણ', 'ફેફસાંમાં એલર્જી અથવા વાયરલ ઇન્ફેક્શન', 'શારીરિક શ્રમ અથવા માનસિક તણાવ'],
+      homeRemedies: ['અસ્થમાનો હુમલો થાય ત્યારે સીધા ટટ્ટાર બેસીને શાંતિથી શ્વાસ લો.', 'હૂંફાળા પાણીની સ્ટીમ (વરાળ) લો.', 'ઠંડા પીણાં, આઈસ્ક્રીમ અને ધૂળથી દૂર રહો.'],
+      prevention: ['ડોક્ટરે આપેલું ઇનહેલર (પંપ) હંમેશા ખિસ્સામાં સાથે રાખો.', 'શિયાળામાં ગરમ કપડાં પહેરો અને મોં-નાક ઢાંકીને રાખો.', 'બીડી-સિગારેટના ધુમાડાથી સંપૂર્ણ દૂર રહો.'],
+      whenToSeeDoctor: ['શ્વાસ એટલો ચડે કે બોલવામાં પણ તકલીફ પડે.', 'હોઠ અથવા નખ ભૂરા કે ફીકા પડી જાય.', 'ઇનહેલરના ૨-૩ પફ લીધા પછી પણ શ્વાસ ન સુધરે.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: ઇનહેલર હંમેશા સાથે રાખવું અને ઠંડી હવાથી બચવું.`,
+      medicines: [
+        {
+          name: 'સાલ્બુટામોલ ઇનહેલર ૧૦૦mcg (Salbutamol Inhaler)',
+          form: 'ઇનહેલર પંપ (Inhaler)',
+          purpose: 'શ્વાસનળી પહોળી કરી શ્વાસ લેવામાં તાત્કાલિક રાહત આપવા માટે',
+          dosage: 'શ્વાસ ચડે ત્યારે ૧ થી ૨ પફ મોં વાટે અંદર ખેંચવા',
+          sideEffects: 'હાથમાં હળવી ધ્રૂજારી, ધબકારા વધવા'
+        },
+        {
+          name: 'બ્યુડેસોનાઇડ + ફોર્મોટેરોલ ઇનહેલર (Budesonide Inhaler)',
+          form: 'ઇનહેલર પંપ (Inhaler)',
+          purpose: 'ફેફસાંનો સોજો ઓછો કરી અસ્થમાનો હુમલો રોકવા માટેની નિયમિત દવા',
+          dosage: 'સવાર-સાંજ ૧-૧ પફ (લીધા પછી કોગળા કરવા)',
+          sideEffects: 'ગળામાં ખારાશ, અવાજ ઘોઘરો થવો'
+        }
+      ]
+    }
+  },
+  {
+    regex: /acidity|acid reflux|gerd|heartburn|gastric|gastritis/i,
+    en: {
+      diseaseName: 'Acidity & Acid Reflux (GERD)',
+      description: 'A digestive disorder where stomach hydrochloric acid repeatedly flows back up into the esophagus, causing mucosal irritation and burning discomfort.',
+      commonSymptoms: ['Burning sensation in chest or throat (heartburn)', 'Acidic or sour regurgitation into mouth', 'Abdominal bloating, belching, and indigestion', 'Difficulty swallowing or feeling of throat lump'],
+      causes: ['Lower esophageal sphincter (LES) relaxation', 'Consumption of spicy, oily, fatty, or acidic foods', 'Eating large meals late at night or lying down immediately after eating'],
+      homeRemedies: ['Drink cold milk, coconut water, or lukewarm water.', 'Chew fennel seeds (saunf) after meals to aid digestion.', 'Elevate the head of your bed by 6 inches while sleeping.'],
+      prevention: ['Eat small, frequent meals rather than heavy portions.', 'Wait at least 2-3 hours after dining before going to bed.', 'Limit intake of coffee, tea, chocolate, and carbonated beverages.'],
+      whenToSeeDoctor: ['Chest pain radiates to jaw, neck, or left arm (rule out cardiac causes).', 'Vomiting blood or passing dark, tarry stools.', 'Chronic difficulty swallowing or unexplained weight loss.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, take acid suppressants before morning breakfast and eat light dinners.`,
+      medicines: [
+        {
+          name: 'Pantoprazole 40mg (or Omeprazole 20mg)',
+          form: 'Gastro-resistant Oral Tablet',
+          purpose: 'Proton pump inhibitor (PPI) to suppress gastric acid secretion and heal esophageal lining',
+          dosage: '40mg once daily in the morning 30 minutes before breakfast',
+          sideEffects: 'Mild headache, benign stomach upset'
+        },
+        {
+          name: 'Antacid Gel (Magaldrate + Simethicone 5.5ml)',
+          form: 'Oral Suspension Liquid',
+          purpose: 'Neutralizes existing stomach acid immediately and relieves trapped gas bloating',
+          dosage: '2 teaspoonfuls (10ml) after meals and at bedtime',
+          sideEffects: 'Mild alteration in bowel frequency'
+        }
+      ]
+    },
+    hi: {
+      diseaseName: 'एसिडिटी और गैस (Acidity & Acid Reflux / GERD)',
+      description: 'पेट में पाचक अम्ल (एसिड) की अधिकता जिससे सीने और गले में तेज जलन, खट्टी डकारें और पेट फूलने की समस्या होती है।',
+      commonSymptoms: ['सीने और गले में तेज जलन (Heartburn)', 'खट्टी डकारें आना और मुंह में खट्टा पानी आना', 'पेट में भारीपन, गैस और अपच होना', 'जी मिचलाना और भोजन न पचना'],
+      causes: ['अधिक तला-भुना, मसालेदार और खट्टा भोजन करना', 'देर रात भोजन करके तुरंत सो जाना', 'चाय, कॉफी का अत्यधिक सेवन और मानसिक तनाव'],
+      homeRemedies: ['ठंडा दूध या नारियल पानी पिएं।', 'भोजन के बाद सौंफ और मिश्री चबाएं।', 'सोते समय सिरहाने को थोड़ा ऊंचा रखें।'],
+      prevention: ['एक बार में बहुत अधिक खाने के बजाय थोड़ा-थोड़ा खाएं।', 'रात का खाना सोने से २-३ घंटे पहले खा लें।', 'अधिक मिर्च-मसाले, तली हुई चीजें और कोल्ड ड्रिंक्स छोड़ें।'],
+      whenToSeeDoctor: ['सीने का दर्द बाएं हाथ या जबड़े तक फैले।', 'उल्टी में खून दिखे या काला मल आए।', 'भोजन निगलने में लगातार दर्द या कठिनाई हो।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: सुबह खाली पेट एसिडिटी की दवा लें और हल्का सुपाच्य भोजन करें।`,
+      medicines: [
+        {
+          name: 'पैंटोप्राजोल ४०mg (Pantoprazole 40mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'प्रोटॉन पंप अवरोधक: पेट में एसिड बनना कम करता है और जलन शांत करता है',
+          dosage: 'सुबह नाश्ते से ३० मिनट पहले खाली पेट १ गोली',
+          sideEffects: 'हल्का सिरदर्द, पेट में गैस'
+        },
+        {
+          name: 'एंटासिड सिरप (Antacid Gel / Suspension)',
+          form: 'मौखिक सिरप (Oral Liquid)',
+          purpose: 'पेट के एसिड को तुरंत बेअसर करता है और सीने की जलन में तुरंत राहत देता है',
+          dosage: 'भोजन के बाद २ चम्मच (१०ml)',
+          sideEffects: 'हल्का दस्त या कब्ज'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'એસિડિટી અને ગેસ (Acidity & Acid Reflux / GERD)',
+      description: 'પેટમાં એસિડનું પ્રમાણ વધી જવાથી છાતી અને ગળામાં બળતરા થવી, ખાટા ઓડકાર આવવા અને પેટ ભારે લાગવાની સામાન્ય પાચન સમસ્યા.',
+      commonSymptoms: ['છાતી અને ગળામાં તીવ્ર બળતરા થવી (હાર્ટબર્ન)', 'ખાટા કે કડવા ઓડકાર આવવા અને મોંમાં ખાટું પાણી આવવું', 'પેટ ફૂલી જવું, ગેસ થવો અને અપચો લાગવો', 'ઉબકા આવવા અને ખાધા પછી અસ્વસ્થતા થવી'],
+      causes: ['વધુ પડતું તીખું, તળેલું અને મસાલેદાર ભોજન લેવું', 'રાત્રે મોડેથી જમીને તરત સુઈ જવાની ટેવ', 'ચા, કોફીનું વધુ સેવન અને અનિયમિત ભોજનનો સમય'],
+      homeRemedies: ['ઠંડું દૂધ અથવા નાળિયેર પાણી પીવો.', 'જમ્યા પછી વરિયાળી અને જીરું ચાવો.', 'સૂતી વખતે માથું થોડું ઊંચું રાખીને ડાબા પડખે સૂવો.'],
+      prevention: ['એકસાથે વધારે ખાવાને બદલે થોડું-થોડું જમો.', 'રાત્રિનું ભોજન સૂવાના ૨ થી ૩ કલાક પહેલાં પૂરું કરો.', 'વધુ પડતી તળેલી વસ્તુઓ, અથાણાં અને સોડા ટાળો.'],
+      whenToSeeDoctor: ['છાતીનો દુખાવો ડાબા હાથ અથવા જડબા તરફ ફેલાય.', 'ઉલ્ટીમાં લોહી આવે અથવા કાળો ઝાડો થાય.', 'ખોરાક ગળવામાં સતત દુખાવો કે તકલીફ થાય.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: સવારે ભૂખ્યા પેટે એસિડિટીની ગોળી લેવી અને હળવો સુપાચ્ય ખોરાક લેવો.`,
+      medicines: [
+        {
+          name: 'પેન્ટોપ્રાઝોલ ૪૦mg (Pantoprazole 40mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'પેટમાં વધારાનું એસિડ બનતું અટકાવવા અને બળતરા શાંત કરવા માટે',
+          dosage: 'સવારે નાસ્તાના અડધો કલાક પહેલાં ભૂખ્યા પેટે ૧ ગોળી',
+          sideEffects: 'હળવો માથાનો દુખાવો, પેટમાં ગેસ'
+        },
+        {
+          name: 'એન્ટાસિડ જેલ (Antacid Suspension Syrup)',
+          form: 'ઓરલ સીરપ (Syrup)',
+          purpose: 'પેટના એસિડને તાત્કાલિક શાંત કરી છાતીની બળતરામાં ઝડપી રાહત આપે છે',
+          dosage: 'જમ્યા પછી ૨ ચમચી (૧૦ml)',
+          sideEffects: 'ઝાડા અથવા હળવી કબજિયાત'
+        }
+      ]
+    }
+  },
+  {
+    regex: /headache|migraine|head ache/i,
+    en: {
+      diseaseName: 'Headache & Migraine',
+      description: 'Cephalgia characterized by throbbing or constant pain in the cranial region, frequently linked to stress, vascular dilation, or muscle contraction.',
+      commonSymptoms: ['Unilateral throbbing or diffuse head pain', 'Sensitivity to light (photophobia) and loud sounds', 'Nausea, neck stiffness, and visual aura'],
+      causes: ['Neurovascular fluctuations and trigeminal nerve sensitization', 'Physical fatigue, sleep deficit, and emotional tension', 'Dehydration and prolonged screen exposure'],
+      homeRemedies: ['Rest in a cool, quiet, and darkened room.', 'Apply a cold or warm gel pack across forehead or temples.', 'Maintain generous water hydration.'],
+      prevention: ['Maintain a regular 7-8 hour sleep schedule.', 'Avoid known food triggers like aged cheese, MSG, and skip meals.', 'Take routine 5-minute screen breaks every hour.'],
+      whenToSeeDoctor: ['Sudden explosive "thunderclap" headache reaches peak intensity in seconds.', 'Headache accompanied by stiff neck, high fever, or confusion.', 'New headache onset with visual changes or focal weakness.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, avoid chronic analgesic overuse to prevent medication-overuse headaches.`,
+      medicines: [
+        {
+          name: 'Naproxen 500mg (or Ibuprofen 400mg)',
+          form: 'Oral Tablet',
+          purpose: 'NSAID to suppress prostaglandin synthesis and relieve vascular headache pain',
+          dosage: '500mg once with food at the onset of headache (repeat in 12h if needed)',
+          sideEffects: 'Mild dyspepsia, heartburn'
+        },
+        {
+          name: 'Sumatriptan 50mg',
+          form: 'Oral Tablet',
+          purpose: 'Selective 5-HT1 receptor agonist for acute abortive treatment of migraine attacks',
+          dosage: '1 tablet (50mg) at migraine onset; second dose after 2h only if needed',
+          sideEffects: 'Flushing, chest tightness, tingling sensation'
+        }
+      ]
+    },
+    hi: {
+      diseaseName: 'सिरदर्द और माइग्रेन (Headache & Migraine)',
+      description: 'सिर में तेज, टीस मारने वाला या भारी दर्द, जो तनाव, नींद की कमी, नसों के खिंचाव या माइग्रेन के कारण उत्पन्न होता है।',
+      commonSymptoms: ['सिर के एक हिस्से में तेज धड़कता हुआ दर्द', 'तेज रोशनी और तेज आवाज से चिड़चिड़ाहट', 'जी मिचलाना और उल्टी जैसा लगना'],
+      causes: ['मस्तिष्क की रक्त वाहिकाओं में खिंचाव या सूजन', 'अत्यधिक तनाव, कम नींद और स्क्रीन पर अधिक समय बिताना', 'डिहाइड्रेशन (पानी की कमी) और भूखे पेट रहना'],
+      homeRemedies: ['शांत और अंधेरे कमरे में आराम करें।', 'माथे और गर्दन पर ठंडी या गर्म पट्टी रखें।', 'पर्याप्त मात्रा में पानी और नींबू पानी पिएं।'],
+      prevention: ['प्रतिदिन ७-८ घंटे की पूरी नींद लें।', 'समय पर संतुलित भोजन करें और उपवास से बचें।', 'कंप्यूटर और मोबाइल के इस्तेमाल के दौरान बीच-बीच में ब्रेक लें।'],
+      whenToSeeDoctor: ['अचानक अत्यधिक तेज "बिजली जैसा" सिरदर्द हो।', 'सिरदर्द के साथ तेज बुखार, गर्दन में अकड़न या बेहोशी हो।', 'शरीर के एक हिस्से में कमजोरी या बोलने में लड़खड़ाहट हो।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: पेनकिलर का अत्यधिक उपयोग न करें और तनाव कम रखें।`,
+      medicines: [
+        {
+          name: 'नेप्रोक्सेन ५००mg / इबुप्रोफेन ४००mg (Naproxen / Ibuprofen)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'दर्द और सूजन को शांत करने वाली असरदार दवा',
+          dosage: 'सिरदर्द शुरू होते ही भोजन के बाद १ गोली',
+          sideEffects: 'हल्की एसिडिटी, पेट में जलन'
+        },
+        {
+          name: 'सुमाट्रिप्टान ५०mg (Sumatriptan 50mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'माइग्रेन के तीव्र दर्द को तुरंत रोकने वाली विशिष्ट दवा',
+          dosage: 'माइग्रेन अटैक के समय १ गोली डॉक्टर की सलाह से',
+          sideEffects: 'हल्की घबराहट, गले या सीने में कसाव'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'માથાનો દુખાવો અને આધાશીશી (Headache & Migraine)',
+      description: 'માથામાં એક તરફ અથવા આખા માથામાં સતત કે ટીસ મારતો દુખાવો, જે માનસિક તણાવ, ઊંઘનો અભાવ અથવા માઈગ્રેનને કારણે થાય છે.',
+      commonSymptoms: ['માથાના એક ભાગમાં જોરથી ધબકતો દુખાવો', 'તેજ અજવાળું અથવા મોટો અવાજ સહન ન થવો', 'ઉબકા આવવા, આંખે ઝાંખપ કે ચક્કર આવવા'],
+      causes: ['મગજની નસોનું ખેંચાણ અને લોહીનું અસંતુલન', 'માનસિક ટેન્શન, ઉજાગરા અને ઓછી ઊંઘ', 'શરીરમાં પાણીની અછત (ડિહાઇડ્રેશન) અને લાંબા સમય સુધી ભૂખ્યા રહેવું'],
+      homeRemedies: ['શાંત અને અંધારાવાળા રૂમમાં આરામ કરો.', 'કપાળ પર ઠંડા કે ગરમ પાણીના પોતાં મૂકો.', 'પૂરતું પાણી પીવો અને આદુવાળી હૂંફાળી ચા લો.'],
+      prevention: ['રોજ રાત્રે ૭ થી ૮ કલાકની શાંત ઊંઘ લો.', 'સમયસર જમો અને ભૂખ્યા પેટે વધુ સમય ન રહો.', 'મોબાઇલ અને લેપટોપનો વપરાશ ઓછો કરો.'],
+      whenToSeeDoctor: ['અચાનક અત્યંત અસહ્ય અને વીજળી જેવો માથાનો દુખાવો થાય.', 'દુખાવા સાથે તાવ આવે અથવા ગરદન અકડાઈ જાય.', 'હાથ કે પગમાં નબળાઈ આવી જાય અથવા બોલવામાં તકલીફ થાય.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: પેઇનકિલર્સ વારંવાર લેવાનું ટાળો અને ઊંઘનું શેડ્યુલ જાળવો.`,
+      medicines: [
+        {
+          name: 'નેપ્રોક્સેન ૫૦૦mg / ઇબુપ્રૉફેન ૪૦૦mg (Naproxen / Ibuprofen)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'માથાનો દુખાવો અને સોજો તાત્કાલિક ઉતારવા માટે',
+          dosage: 'જમ્યા પછી ૧ ગોળી પાણી સાથે',
+          sideEffects: 'હળવી એસિડિટી કે પેટમાં બળતરા'
+        },
+        {
+          name: 'સુમાટ્રિપ્ટાન ૫૦mg (Sumatriptan 50mg)',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'માઈગ્રેનનો હુમલો રોકવા માટેની ખાસ અસરકારક દવા',
+          dosage: 'માઈગ્રેન શરૂ થાય ત્યારે ૧ ગોળી ડૉક્ટરના માર્ગદર્શન મુજબ',
+          sideEffects: 'હળવી ગભરામણ, છાતીમાં ખેંચાણ'
+        }
+      ]
+    }
+  },
+  {
+    regex: /cough|cold|flu|runny nose|congestion|influenza/i,
+    en: {
+      diseaseName: 'Common Cold & Upper Respiratory Infection',
+      description: 'A contagious viral infection affecting the upper respiratory mucosal tract, leading to rhinitis, pharyngitis, and coughing.',
+      commonSymptoms: ['Nasal congestion and rhinorrhea', 'Sore or scratchy throat', 'Dry or productive cough', 'Low-grade fever and mild muscle aches'],
+      causes: ['Rhinovirus, Coronavirus, or Adenovirus transmission', 'Airborne droplet exposure from infected individuals'],
+      homeRemedies: ['Gargle with warm salt water 3 times daily.', 'Inhale warm steam with eucalyptus oil.', 'Hydrate abundantly with herbal teas and soups.'],
+      prevention: ['Wash hands frequently with soap and water.', 'Avoid close contact with coughing individuals.', 'Disinfect shared surfaces during flu seasons.'],
+      whenToSeeDoctor: ['Fever exceeds 102°F (38.9°C) or lasts over 3 days.', 'Severe difficulty breathing or chest pain develops.', 'Cough produces thick green/brown blood-tinged sputum.'],
+      ageSpecificAdvice: (ageGroup) => `For ${ageGroup} individuals, ensure plenty of rest and avoid unnecessary antibiotic overuse for viral colds.`,
+      medicines: [
+        {
+          name: 'Dextromethorphan + Chlorpheniramine + Phenylephrine',
+          form: 'Oral Cough Syrup',
+          purpose: 'Triple-action decongestant, antihistamine, and cough suppressant',
+          dosage: '10ml three times daily after meals',
+          sideEffects: 'Mild drowsiness, dry mouth'
+        },
+        {
+          name: 'Paracetamol 650mg (Dolo)',
+          form: 'Oral Tablet',
+          purpose: 'Relief of body aches, headache, and fever associated with the cold',
+          dosage: '1 tablet every 6 to 8 hours as needed after meals',
+          sideEffects: 'Rare mild nausea'
+        }
+      ]
+    },
+    hi: {
+      diseaseName: 'सर्दी, जुकाम और खांसी (Common Cold & Cough)',
+      description: 'श्वसन तंत्र का वायरल संक्रमण जिससे नाक बहना, गले में खराश, खांसी और हल्का बुखार होता है।',
+      commonSymptoms: ['नाक बंद होना या लगातार नाक बहना', 'गले में दर्द, खराश या खुजली', 'सूखी या कफ वाली खांसी', 'हल्का बुखार और शरीर में टूटन/दर्द'],
+      causes: ['राइनोवायरस या अन्य मौसमी श्वसन वायरस', 'संक्रमित व्यक्ति के छींकने या खांसने के कणों से'],
+      homeRemedies: ['गुनगुने पानी में नमक डालकर दिन में ३ बार गरारे करें।', 'तुलसी, अदरक और काली मिर्च की गर्म चाय या काढ़ा पिएं।', 'गर्म पानी की भाप (स्टीम) लें।'],
+      prevention: ['हाथों को साबुन से नियमित धोएं।', 'जुकाम से पीड़ित व्यक्ति से सुरक्षित दूरी रखें।', 'मौसम बदलने पर गर्म कपड़े पहनें।'],
+      whenToSeeDoctor: ['बुखार १०२°F से अधिक हो या ३ दिन से अधिक रहे।', 'सांस लेने में गंभीर तकलीफ या सीने में दर्द हो।', 'खांसी में गहरा पीला/हरा कफ या खून आए।'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} आयु वर्ग के लिए: पर्याप्त आराम करें और बिना जरूरत एंटीबायोटिक न लें।`,
+      medicines: [
+        {
+          name: 'डेक्सट्रोमेथॉर्फन + फिनाइलफ्रिन कफ सिरप (Cough Syrup)',
+          form: 'मौखिक सिरप (Oral Syrup)',
+          purpose: 'बंद नाक खोलता है और खांसी व गले की खराश को शांत करता है',
+          dosage: '१०ml दिन में २ से ३ बार भोजन के बाद',
+          sideEffects: 'हल्की नींद आना, मुंह सूखना'
+        },
+        {
+          name: 'डोलो-६५० / पैरासिटामोल ६५૦mg (Paracetamol 650mg)',
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: 'जुकाम के कारण होने वाले सिरदर्द, बदन दर्द और बुखार में राहत',
+          dosage: 'आवश्यकतानुसार भोजन के बाद १ गोली',
+          sideEffects: 'उचित मात्रा में लेने पर कोई दुष्प्रभाव नहीं'
+        }
+      ]
+    },
+    gu: {
+      diseaseName: 'શરદી, ઉધરસ અને ફ્લૂ (Common Cold & Cough)',
+      description: 'શ્વાસનળીઓ અને ગળાનું વાયરલ ઇન્ફેક્શન, જેના કારણે નાકમાંથી પાણી વહેવું, ગળામાં ખારાશ, ખાંસી અને તાવ આવે છે.',
+      commonSymptoms: ['નાક બંધ થવું અથવા પાણી વહેવું', 'ગળામાં ખારાશ, દુખાવો કે છોલાણ લાગવી', 'સૂકી અથવા કફવાળી ખાંસી આવવી', 'હળવો તાવ અને આખા શરીરમાં કળતર'],
+      causes: ['વાયરલ ઇન્ફેક્શન (રાયનોવાયરસ / ફ્લૂ વાયરસ)', 'ઋતુ પરિવર્તન અને રોગપ્રતિકારક શક્તિ ઓછી હોવી'],
+      homeRemedies: ['હૂંફાળા મીઠાવાળા પાણીના દિવસમાં ૩ વખત કોગળા કરો.', 'તુલસી, આદુ, સૂંઠ અને કાળા મરીનો ઉકાળો પીવો.', 'હૂંફાળા પાણીની સ્ટીમ (વરાળ) લો.'],
+      prevention: ['હાથ સાબુથી નિયમિત સાફ કરો.', 'છીંક ખાતી વખતે રૂમાલનો ઉપયોગ કરો.', 'વાસી અને ઠંડો ખોરાક ટાળો.'],
+      whenToSeeDoctor: ['તાવ ૧૦૨°F કરતાં વધી જાય અથવા ૩ દિવસથી વધુ રહે.', 'શ્વાસ લેવામાં તકલીફ થાય અથવા છાતીમાં દુખાવો થાય.', 'ખાંસી સાથે ઘટ્ટ પીળો કફ અથવા લોહી આવે.'],
+      ageSpecificAdvice: (ageGroup) => `${ageGroup} વય જૂથ માટે: પૂરતો આરામ કરવો, ગરમ પ્રવાહી પીવું અને બિનજરૂરી એન્ટિબાયોટિક્સ ન લેવી.`,
+      medicines: [
+        {
+          name: 'ડેક્સ્ટ્રોમેથોર્ફન + ફિનાઇલફ્રિન સીરપ (Cough Syrup)',
+          form: 'ઓરલ સીરપ (Syrup)',
+          purpose: 'બંધ નાક ખોલવા અને ઉધરસ-ગળાની ખારાશ મટાડવા માટે',
+          dosage: 'જમ્યા પછી ૧૦ml દિવસમાં ૨ થી ૩ વખત',
+          sideEffects: 'હળવી ઊંઘ આવવી, મોં સુકાવું'
         },
         {
           name: 'પેરાસિટામોલ ૬૫૦mg (Dolo-650)',
-          form: 'ઓરલ ટેબ્લેટ',
-          purpose: 'માથાનો દુખાવો અને નસોના ખેંચાણમાં સુરક્ષિત રાહત આપે છે',
-          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૬ કલાકે ૧ ગોળી',
-          sideEffects: 'યોગ્ય માત્રામાં અત્યંત સુરક્ષિત'
-        }
-      ],
-      hi: [
-        {
-          name: 'इबुप्रोफेन ४००mg (Ibuprofen 400mg)',
-          form: 'ओरल टैबलेट',
-          purpose: 'गंभीर सिरदर्द, तनाव सिरदर्द और सूजन संबंधी दर्द में त्वरित राहत',
-          dosage: 'भोजन के बाद आवश्यकतानुसार १ गोली प्रत्येक ६ से ८ घंटे में',
-          sideEffects: 'हल्की एसिडिटी या पेट दर्द'
-        },
-        {
-          name: 'पैरासिटामोल ६५०mg (Dolo-650)',
-          form: 'ओरल टैबलेट',
-          purpose: 'सिरदर्द और भारीपन को शांत करने के लिए सुरक्षित दर्द निवारक',
-          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ६ घंटे में १ गोली',
-          sideEffects: 'उचित खुराक में पूरी तरह सुरक्षित'
-        }
-      ]
-    }
-  },
-  {
-    keywords: ['cold', 'cough', 'flu', 'congestion', 'runny nose', 'શરદી', 'ખાંસી', 'ઉધરસ', 'सर्दी', 'खांसी'],
-    medicines: {
-      en: [
-        {
-          name: 'Dextromethorphan + Chlorpheniramine Syrup (Ascoril-D)',
-          form: 'Oral Cough Syrup',
-          purpose: 'Suppresses dry allergic cough and clears blocked throat and nasal passages',
-          dosage: '10ml (2 teaspoons) three times daily after meals',
-          sideEffects: 'Mild drowsiness or dizziness'
-        },
-        {
-          name: 'Phenylephrine + Paracetamol Tablet (Sinarest / Cheston Cold)',
-          form: 'Oral Tablet',
-          purpose: 'Clears nasal congestion, sinus pressure, body aches, and feverish cold',
-          dosage: '1 tablet twice daily after meals',
-          sideEffects: 'Mild dryness in mouth or sleepiness'
-        }
-      ],
-      gu: [
-        {
-          name: 'ડેક્સ્ટ્રોમેથોર્ફન કફ સીરપ (Cough Syrup 100ml)',
-          form: 'ઓરલ સીરપ (પીવાની દવા)',
-          purpose: 'સૂકી ખાંસી, ગળાની ખારાશ અને કફમાં તાત્કાલિક રાહત',
-          dosage: '૨ ચમચી (૧૦ml) દિવસમાં ૨ થી ૩ વખત જમ્યા પછી',
-          sideEffects: 'હળવી સુસ્તી'
-        },
-        {
-          name: 'ચેસ્ટોન કોલ્ડ / સિનારેસ્ટ ટેબ્લેટ',
-          form: 'ઓરલ ટેબ્લેટ',
-          purpose: 'બંધ નાક ખોલવા, શરદી, છીંક અને ગળાના દુખાવામાં ઝડપી રાહત',
-          dosage: '૧ ગોળી સવાર-સાંજ જમ્યા પછી',
-          sideEffects: 'હળવું મોં સુકાવું'
-        }
-      ],
-      hi: [
-        {
-          name: 'डेक्सट्रोमेथॉर्फन कफ सिरप (Cough Syrup 100ml)',
-          form: 'कफ सिरप (तरल दवा)',
-          purpose: 'सूखी खांसी, गले की खराश और कफ में त्वरित राहत',
-          dosage: '२ चम्मच (१०ml) दिन में २ से ३ बार भोजन के बाद',
-          sideEffects: 'हल्की नींद आना'
-        },
-        {
-          name: 'सिनेरेस्ट / चेस्टन कोल्ड टैबलेट',
-          form: 'ओरल टैबलेट',
-          purpose: 'बंद नाक, सर्दी, छींकों और बदन दर्द से राहत दिलाता है',
-          dosage: '१ गोली सुबह और शाम भोजन के बाद',
-          sideEffects: 'हल्का मुंह सूखना'
-        }
-      ]
-    }
-  },
-  {
-    keywords: ['acidity', 'gas', 'acid reflux', 'heartburn', 'gerd', 'gastric', 'એસિડિટી', 'પિત્ત', 'गैस', 'एसिडिटी'],
-    medicines: {
-      en: [
-        {
-          name: 'Pantoprazole 40mg (Pan-40)',
-          form: 'Delayed-Release Tablet',
-          purpose: 'Inhibits gastric acid pump, healing acid reflux, heartburn, and stomach ulcer irritation',
-          dosage: '1 tablet once daily in the morning 30 minutes before breakfast',
-          sideEffects: 'Mild headache or diarrhea'
-        },
-        {
-          name: 'Antacid Gel (Digene / Gelusil)',
-          form: 'Oral Suspension Gel',
-          purpose: 'Provides instant neutralization of burning stomach acid and heartburn',
-          dosage: '2 teaspoons (10ml) as needed after meals or at onset of burning',
-          sideEffects: 'Generally very well tolerated'
-        }
-      ],
-      gu: [
-        {
-          name: 'પેન્ટોપ્રાઝોલ ૪૦mg (Pan-40)',
-          form: 'ટેબ્લેટ (ગોળી)',
-          purpose: 'પેટમાં વધારાનું એસિડ ઘટાડે છે, ખાટા ઓડકાર, છાતીમાં બળતરા અને અલ્સર મટાડે છે',
-          dosage: '૧ ગોળી સવારે ભૂખ્યા પેટે નાસ્તાના ૩૦ મિનિટ પહેલાં',
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: 'શરદીના કારણે થતો માથાનો દુખાવો, શરીરની કળતર અને તાવ ઘટાડવા માટે',
+          dosage: 'જમ્યા પછી જરૂર મુજબ ૧ ગોળી દિવસમાં ૨ વખત',
           sideEffects: 'સામાન્ય માત્રામાં સુરક્ષિત'
-        },
-        {
-          name: 'ડાઇજીન એન્ટાસિડ સીરપ (Digene Gel 200ml)',
-          form: 'ઓરલ જેલ સીરપ',
-          purpose: 'એસિડિટી, પેટમાં બળતરા અને ગેસમાંથી ત્વરિત રાહત આપે છે',
-          dosage: '૨ ચમચી (૧૦ml) જમ્યા પછી અથવા બળતરા થાય ત્યારે',
-          sideEffects: 'નહિવત'
-        }
-      ],
-      hi: [
-        {
-          name: 'पैंटोप्राजोल ४०mg (Pan-40)',
-          form: 'ओरल टैबलेट',
-          purpose: 'अत्यधिक पेट के एसिड को रोकता है, सीने में जलन और एसिडिटी से राहत देता है',
-          dosage: '१ गोली सुबह खाली पेट नाश्ते से ३० मिनट पहले',
-          sideEffects: 'सामान्यतः अत्यंत सुरक्षित'
-        },
-        {
-          name: 'डाइजीन एंटासिड जेल (Digene Gel 200ml)',
-          form: 'ओरल सस्पेंशन',
-          purpose: 'सीने में जलन, गैस और खट्टे डकारों से तुरंत राहत प्रदान करता है',
-          dosage: '२ चम्मच (१०ml) भोजन के बाद या जलन होने पर',
-          sideEffects: 'कोई खास नहीं'
-        }
-      ]
-    }
-  },
-  {
-    keywords: ['diarrhea', 'loose motion', 'dehydration', 'ઝાડા', 'અતિસાર', 'दस्त'],
-    medicines: {
-      en: [
-        {
-          name: 'Oral Rehydration Salts (ORS Electral)',
-          form: 'Oral Powder Sachet',
-          purpose: 'Restores essential water and electrolytes lost during diarrhea and prevents dehydration',
-          dosage: 'Dissolve 1 sachet in 1 liter of clean drinking water; sip frequently after every loose stool',
-          sideEffects: 'None when mixed with correct water proportion'
-        },
-        {
-          name: 'Loperamide 2mg (Imodium)',
-          form: 'Oral Capsule',
-          purpose: 'Slows down gut movement to reduce frequency of loose stools',
-          dosage: '1 capsule initially, followed by 1 after each unformed stool (maximum 8mg/day)',
-          sideEffects: 'Mild constipation, stomach cramps'
-        }
-      ],
-      gu: [
-        {
-          name: 'ઓઆરએસ ઇલેક્ટ્રોલાઇટ પાવડર (ORS Electral)',
-          form: 'પાઉડર પાઉચ',
-          purpose: 'શરીરમાં પાણી અને ક્ષારની ઘટ પૂરી કરે છે અને ડિહાઇડ્રેશનથી બચાવે છે',
-          dosage: '૧ લિટર સ્વચ્છ પાણીમાં ૧ પાઉચ ઓગાળીને વારંવાર થોડું થોડું પીવું',
-          sideEffects: 'સંપૂર્ણ સુરક્ષિત'
-        },
-        {
-          name: 'લોપેરામાઇડ ૨mg (Loperamide 2mg)',
-          form: 'ઓરલ કેપ્સ્યુલ',
-          purpose: 'ઝાડાની તીવ્રતા ઘટાડે છે અને આંતરડાની અનિયમિત હલનચલન નિયંત્રિત કરે છે',
-          dosage: 'શરૂઆતમાં ૧ કેપ્સ્યુલ, જરૂર જણાય તો ડૉક્ટરની સલાહ મુજબ',
-          sideEffects: 'હળવો કબજિયાત'
-        }
-      ],
-      hi: [
-        {
-          name: 'ओआरएस इलेक्ट्रोल (ORS Electral)',
-          form: 'ओरल पाउडर पाउच',
-          purpose: 'दस्त के दौरान शरीर में पानी और इलेक्ट्रोलाइट्स की कमी को पूरा करता है',
-          dosage: '१ लीटर पीने के पानी में १ पैकेट घोलकर बार-बार पिएं',
-          sideEffects: 'पूरी तरह सुरक्षित'
-        },
-        {
-          name: 'लोपेरामाइड २mg (Loperamide 2mg)',
-          form: 'ओरल कैप्सूल',
-          purpose: 'आंतों की गति को धीमा करके दस्त की आवृत्ति कम करता है',
-          dosage: 'शुरुआत में १ कैप्सूल चिकित्सक के निर्देशानुसार',
-          sideEffects: 'हल्का कब्ज'
-        }
-      ]
-    }
-  },
-  {
-    keywords: ['hypertension', 'blood pressure', 'bp', 'હાઈ બ્લડ પ્રેશર', 'બીપી', 'उच्च रक्तचाप'],
-    medicines: {
-      en: [
-        {
-          name: 'Amlodipine 5mg (Amlong)',
-          form: 'Oral Tablet',
-          purpose: 'Relaxes blood vessels to lower elevated blood pressure and protect cardiovascular health',
-          dosage: '1 tablet once daily in the morning with water',
-          sideEffects: 'Mild ankle swelling, dizziness'
-        },
-        {
-          name: 'Telmisartan 40mg (Telma-40)',
-          form: 'Oral Tablet',
-          purpose: 'Blocks angiotensin receptors to manage hypertension and protect kidney function',
-          dosage: '1 tablet once daily consistently at the same time',
-          sideEffects: 'Mild fatigue or dizziness'
-        }
-      ],
-      gu: [
-        {
-          name: 'ટેલ્મિસાર્ટન ૪૦mg (Telma-40)',
-          form: 'ઓરલ ટેબ્લેટ',
-          purpose: 'હાઈ બ્લડ પ્રેશર નિયંત્રિત કરે છે અને હૃદય તથા કિડનીનું રક્ષણ કરે છે',
-          dosage: '૧ ગોળી દિવસમાં ૧ વખત દરરોજ એક જ સમયે',
-          sideEffects: 'હળવા ચક્કર (દુર્લભ)'
-        },
-        {
-          name: 'એમ્લોડિપિન ૫mg (Amlodipine 5mg)',
-          form: 'ઓરલ ટેબ્લેટ',
-          purpose: 'રક્તવાહિનીઓને આરામ આપીને બ્લડ પ્રેશર સામાન્ય રાખવામાં મદદ કરે છે',
-          dosage: '૧ ગોળી સવારે ૧ વખત પાણી સાથે',
-          sideEffects: 'પગમાં હળવો સોજો'
-        }
-      ],
-      hi: [
-        {
-          name: 'टेल्मीसार्टन ४०mg (Telma-40)',
-          form: 'ओरल टैबलेट',
-          purpose: 'उच्च रक्तचाप को नियंत्रित करता है और हृदय स्वास्थ्य को सुरक्षित रखता है',
-          dosage: '१ गोली दिन में १ बार नियमित समय पर',
-          sideEffects: 'हल्के चक्कर'
-        },
-        {
-          name: 'एम्लोडिपिन ५mg (Amlodipine 5mg)',
-          form: 'ओरल टैबलेट',
-          purpose: 'रक्त वाहिकाओं को शिथिल कर रक्तचाप को सामान्य बनाए रखता है',
-          dosage: '१ गोली सुबह पानी के साथ',
-          sideEffects: 'पैरों में हल्की सूजन'
-        }
-      ]
-    }
-  },
-  {
-    keywords: ['fever', 'pyrexia', 'તાવ', 'તવ', 'તવા', 'તપાતી', 'बुखार', 'ज्वर'],
-    medicines: {
-      en: [
-        {
-          name: 'Paracetamol 500mg',
-          form: 'Oral Tablet',
-          purpose: 'Reduces elevated body temperature and relieves headache and body aches',
-          dosage: '1 tablet every 4 to 6 hours after meals as needed',
-          sideEffects: 'Mild nausea (rare with proper dosage)'
-        },
-        {
-          name: 'Ibuprofen 400mg',
-          form: 'Oral Tablet',
-          purpose: 'Relieves inflammatory pain and fever',
-          dosage: '1 tablet every 6 to 8 hours with meals',
-          sideEffects: 'Mild stomach upset'
-        }
-      ],
-      gu: [
-        {
-          name: 'પેરાસિટામોલ ૫૦૦mg (Paracetamol 500mg)',
-          form: 'ગોળી (Tablet)',
-          purpose: 'શરીરનું તાપમાન ઘટાડે છે અને માથાનો તથા સ્નાયુઓનો દુખાવો ઓછો કરે છે',
-          dosage: 'જમ્યા પછી જરૂર મુજબ દર ૪ થી ૬ કલાકે ૧ ગોળી',
-          sideEffects: 'હળવો ઉબકા (યોગ્ય માત્રામાં દુર્લભ)'
-        },
-        {
-          name: 'ઇબુપ્રૉફેન ૪૦૦mg (Ibuprofen 400mg)',
-          form: 'ગોળી (Tablet)',
-          purpose: 'તાવ અને શારીરિક સોજા કે દુખાવામાં રાહત આપે છે',
-          dosage: 'જમ્યા પછી દર ૬ થી ૮ કલાકે ૧ ગોળી',
-          sideEffects: 'હળવી એસિડિટી'
-        }
-      ],
-      hi: [
-        {
-          name: 'पैरासिटामोल ५००mg (Paracetamol 500mg)',
-          form: 'गोली (Tablet)',
-          purpose: 'दर्द और तेज बुखार कम करने के लिए',
-          dosage: 'भोजन के बाद आवश्यकतानुसार प्रत्येक ४ से ६ घंटे में १ गोली',
-          sideEffects: 'हल्की मितली (उचित मात्रा में दुर्लभ)'
-        },
-        {
-          name: 'इबुप्रोफेन ४००mg (Ibuprofen 400mg)',
-          form: 'गोली (Tablet)',
-          purpose: 'बुखार और मांसपेशियों के दर्द में राहत देता है',
-          dosage: 'भोजन के बाद प्रत्येक ६ से ८ घंटे में १ गोली',
-          sideEffects: 'हल्की एसिडिटी'
         }
       ]
     }
   }
 ];
 
-function getConditionSpecificMedicines(clean, lang) {
-  for (const entry of DISEASE_SPECIFIC_MEDICINES) {
-    if (entry.keywords.some(kw => clean.includes(kw) || kw.includes(clean))) {
-      return entry.medicines[lang] || entry.medicines['en'];
-    }
-  }
-  return null;
-}
-
 function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult') {
-  const clean = (query || 'Condition').trim().toLowerCase();
-  const rawTitle = (query || 'Condition').trim().charAt(0).toUpperCase() + (query || 'Condition').trim().slice(1);
-  const lang = (language === 'gu' || language === 'hi') ? language : 'en';
-  const title = getTranslatedDiseaseName(clean, rawTitle, lang);
+  const clean = (query || 'Condition').trim();
+  const title = clean.charAt(0).toUpperCase() + clean.slice(1);
+  const langKey = ['hi', 'gu'].includes(language) ? language : 'en';
 
-  try {
-    const dataPath = path.join(__dirname, '../data/multilingualDiseases.json');
-    if (fs.existsSync(dataPath)) {
-      const db = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-      for (const [key, entry] of Object.entries(db)) {
-        if (clean.includes(key) || key.includes(clean)) {
-          const loc = entry[lang] || entry['en'];
-          if (loc) {
-            const ageAdvice = (loc.ageSpecificAdvice && (loc.ageSpecificAdvice[ageGroup] || loc.ageSpecificAdvice['adult'])) || '';
-            const resData = {
-              diseaseName: loc.diseaseName || title,
-              description: loc.description || '',
-              commonSymptoms: loc.commonSymptoms || [],
-              causes: loc.causes || [],
-              homeRemedies: loc.homeRemedies || [],
-              prevention: loc.prevention || [],
-              whenToSeeDoctor: loc.whenToSeeDoctor || [],
-              ageSpecificAdvice: ageAdvice,
-              recommendedMedicines: loc.recommendedMedicines || []
-            };
-            return deepLocalizeDigits(resData, lang);
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Error reading multilingual disease database:', err.message);
+  // Find clinical profile matching the query
+  const matched = CLINICAL_DISEASE_PROFILES.find(p => p.regex.test(clean));
+  if (matched && matched[langKey]) {
+    const p = matched[langKey];
+    return {
+      diseaseName: p.diseaseName,
+      description: p.description,
+      commonSymptoms: p.commonSymptoms,
+      causes: p.causes,
+      homeRemedies: p.homeRemedies,
+      prevention: p.prevention,
+      whenToSeeDoctor: p.whenToSeeDoctor,
+      ageSpecificAdvice: typeof p.ageSpecificAdvice === 'function' ? p.ageSpecificAdvice(ageGroup) : p.ageSpecificAdvice,
+      recommendedMedicines: p.medicines
+    };
   }
 
-  if (lang === 'gu') {
-    const resData = {
-      diseaseName: title,
-      description: `${title} એ સ્થાનિક અથવા શારીરિક લક્ષણો ધરાવતી તબીબી સ્થિતિ છે, જેમાં યોગ્ય આરામ, પૂરતું પાણી અને ડૉક્ટરની સલાહ જરૂરી છે.`,
-      commonSymptoms: ['થાક અથવા સામાન્ય અસ્વસ્થતા', 'શરીરમાં દુખાવો અથવા અગવડતા', 'હળવો તાવ અથવા માથાનો દુખાવો', 'સોજો કે દાહ'],
-      causes: ['વાયરલ અથવા બેક્ટેરિયલ ચેપ', 'શારીરિક તણાવ અથવા પર્યાવરણીય પ્રભાવ', 'રોગપ્રતિકારક શક્તિનો પ્રતિભાવ'],
-      homeRemedies: ['સંપૂર્ણ આરામ કરો અને પૂરતું પાણી પીવો.', 'જરૂર મુજબ ગરમ અથવા ઠંડો શેક કરો.', 'સ્વચ્છ, આરામદાયક અને હવાઉજાસવાળા વાતાવરણમાં રહો.'],
-      prevention: ['હાથ નિયમિતપણે ધોવા અને પૌષ્ટિક આહાર લેવો.', 'ચેપી વ્યક્તિઓથી યોગ્ય અંતર રાખવું.', 'નિયમિત આરોગ્ય તપાસ કરાવવી.'],
-      whenToSeeDoctor: ['લક્ષણો ૭૨ કલાકથી વધુ સમય સુધી ચાલુ રહે અથવા વધે.', 'ઊંચો તાવ, શ્વાસ લેવામાં તકલીફ અથવા અસહ્ય દુખાવો થાય.', 'અન્ય લાંબા ગાળાની બીમારી હોય.'],
-      ageSpecificAdvice: `${ageGroup === 'senior' ? 'વૃદ્ધ' : ageGroup === 'child' ? 'બાળકો' : ageGroup === 'teen' ? 'કિશોરો' : 'પુખ્ત'} વ્યક્તિઓ માટે પૂરતો આરામ અને પ્રવાહી સંતુલન જાળવવું. નવી દવા લેતા પહેલાં ડૉક્ટરની સલાહ અવશ્ય લેવી.`,
-      recommendedMedicines: getConditionSpecificMedicines(clean, 'gu') || [
+  // Dynamic clinical fallback when no pre-mapped pattern matches
+  if (langKey === 'hi') {
+    return {
+      diseaseName: `${title} (रोग जानकारी)`,
+      description: `${title} एक चिकित्सकीय स्थिति है जिसके लिए उचित आराम, पर्याप्त जलयोजन और विशेषज्ञ चिकित्सक के मार्गदर्शन की आवश्यकता होती है।`,
+      commonSymptoms: ['थकान या सामान्य अस्वस्थता', 'प्रभावित अंग में हल्का दर्द या बेचैनी', 'हल्का बुखार या सिरदर्द', 'सूजन या शारीरिक कमजोरी'],
+      causes: ['पर्यावरणीय तनाव या मौसमी बदलाव', 'वायरल या जीवाणु संपर्क', 'प्रतिरक्षा प्रणाली की प्रतिक्रिया'],
+      homeRemedies: ['पर्याप्त आराम करें और खूब पानी व तरल पदार्थ पिएं।', 'हल्का, सुपाच्य और पौष्टिक भोजन लें।', 'स्वच्छ और हवादार वातावरण में विश्राम करें।'],
+      prevention: ['हाथों की स्वच्छता का ध्यान रखें।', 'नियमित स्वास्थ्य जांच करवाएं।', 'संतुलित आहार और नियमित दिनचर्या अपनाएं।'],
+      whenToSeeDoctor: ['लक्षण ७२ घंटे से अधिक समय तक बने रहें।', 'तेज बुखार, सांस लेने में तकलीफ या अत्यधिक दर्द हो।', 'पूर्व से कोई अन्य गंभीर बीमारी हो।'],
+      ageSpecificAdvice: `${ageGroup} आयु वर्ग के रोगियों के लिए: अपनी आयु के अनुसार उचित आराम करें और बिना डॉक्टर की सलाह के कोई दवा न लें।`,
+      recommendedMedicines: [
         {
-          name: 'સેટિરીઝિન ૧૦mg / પેરાસિટામોલ ૫૦૦mg',
-          form: 'ઓરલ ટેબ્લેટ (ગોળી)',
-          purpose: 'તબીબી સ્થિતિ મુજબ લક્ષણોમાં રાહત મેળવવા માટે',
-          dosage: 'ડૉક્ટર અથવા ફાર્માસિસ્ટના નિર્દેશ મુજબ જમ્યા પછી ૧ ગોળી',
-          sideEffects: 'હળવી સુસ્તી અથવા ઉબકા'
+          name: `${title} चिकित्सकीय राहत दवा`,
+          form: 'मौखिक गोली (Oral Tablet)',
+          purpose: `${title} के लक्षणों और बेचैनी से राहत पाने के लिए`,
+          dosage: 'चिकित्सक या फार्मासिस्ट के निर्देशानुसार भोजन के बाद',
+          sideEffects: 'हल्की मतली या उनींदापन'
         }
       ]
     };
-    return deepLocalizeDigits(resData, lang);
   }
 
-  if (lang === 'hi') {
-    const resData = {
-      diseaseName: title,
-      description: `${title} एक ऐसी चिकित्सीय स्थिति है जिसमें उचित आराम, पर्याप्त जलपान और चिकित्सीय परामर्श आवश्यक है।`,
-      commonSymptoms: ['थकान या सामान्य अस्वस्थता', 'स्थानीय दर्द या बेचैनी', 'हल्का बुखार या सिरदर्द', 'सूजन या जलन'],
-      causes: ['वायरल या बैक्टीरियल संक्रमण', 'शारीरिक तनाव या पर्यावरणीय प्रभाव', 'प्रतिरक्षा प्रणाली की प्रतिक्रिया'],
-      homeRemedies: ['पर्याप्त आराम करें और खूब पानी पिएं।', 'कष्ट होने पर गर्म या ठंडा सेक करें।', 'स्वच्छ और हवादार वातावरण में विश्राम करें।'],
-      prevention: ['हाथों की नियमित स्वच्छता और संतुलित पोषण बनाए रखें।', 'संक्रमित व्यक्तियों से उचित दूरी बनाए रखें।', 'नियमित स्वास्थ्य जांच कराते रहें।'],
-      whenToSeeDoctor: ['यदि लक्षण ७२ घंटों से अधिक समय तक बने रहें या बढ़ें।', 'तेज बुखार, सांस लेने में अत्यधिक कठिनाई या असहनीय दर्द हो।', 'पहले से कोई गंभीर बीमारी मौजूद हो।'],
-      ageSpecificAdvice: `${ageGroup === 'senior' ? 'वरिष्ठ' : ageGroup === 'child' ? 'बच्चों' : ageGroup === 'teen' ? 'किशोरों' : 'वयस्क'} व्यक्तियों के लिए पर्याप्त आराम और जलयोजन जरूरी है। कोई भी दवा लेने से पूर्व चिकित्सक की सलाह लें।`,
-      recommendedMedicines: getConditionSpecificMedicines(clean, 'hi') || [
+  if (langKey === 'gu') {
+    return {
+      diseaseName: `${title} (તબીબી સ્થિતિ)`,
+      description: `${title} એ એક ક્લિનિકલ સ્થિતિ છે જેમાં યોગ્ય આરામ, પૂરતું પાણી અને લાયસન્સ ધરાવતા ડૉક્ટરની સલાહ જરૂરી છે.`,
+      commonSymptoms: ['શારીરિક થાક અથવા સામાન્ય અસ્વસ્થતા', 'અસરગ્રસ્ત ભાગમાં દુખાવો અથવા અગવડતા', 'હળવો તાવ અથવા માથાનો દુખાવો', 'સોજો અથવા શારીરિક નબળાઈ'],
+      causes: ['વાતાવરણમાં ફેરફાર અથવા શારીરિક તણાવ', 'વાયરલ અથવા બેક્ટેરિયલ સંપર્ક', 'રોગપ્રતિકારક શક્તિનો પ્રતિભાવ'],
+      homeRemedies: ['સંપૂર્ણ આરામ કરો અને પૂરતા પ્રમાણમાં પાણી પીવો.', 'હળવો, તાજો અને પૌષ્ટિક આહાર લો.', 'સ્વચ્છ અને હવાની અવરજવરવાળા વાતાવરણમાં રહો.'],
+      prevention: ['હાથની નિયમિત સફાઈ રાખો.', 'સમયસર સામાન્ય આરોગ્ય તપાસ કરાવો.', 'સંતુલિત આહાર અને તણાવમુક્ત જીવનશૈલી અપનાવો.'],
+      whenToSeeDoctor: ['લક્ષણો ૭૨ કલાકથી વધુ સમય સુધી ચાલુ રહે.', 'તીવ્ર તાવ, શ્વાસ લેવામાં તકલીફ અથવા અસહ્ય દુખાવો થાય.', 'પહેલેથી કોઈ લાંબી બીમારી હોય.'],
+      ageSpecificAdvice: `${ageGroup} જૂથના દર્દીઓ માટે: વય અનુસાર પૂરતો આરામ કરવો અને ડૉક્ટરની સલાહ વિના નવી દવા ન લેવી.`,
+      recommendedMedicines: [
         {
-          name: 'सिटिरिजिन १०mg / पैरासिटामोल ५००mg',
-          form: 'ओरल टैबलेट (गोली)',
-          purpose: 'रोगसूचक राहत और चिकित्सीय उपचार के लिए',
-          dosage: 'चिकित्सक या फार्मासिस्ट के निर्देशानुसार भोजन के बाद १ गोली',
-          sideEffects: 'हल्की मितली या सुस्ती'
+          name: `${title} રાહતદાયક સારવાર દવા`,
+          form: 'ઓરલ ટેબ્લેટ (Tablet)',
+          purpose: `${title} ના લક્ષણો અને દુખાવામાં રાહત માટે`,
+          dosage: 'ડૉક્ટર અથવા ફાર્માસિસ્ટના માર્ગદર્શન મુજબ જમ્યા પછી',
+          sideEffects: 'હળવી ઉબકા કે સુસ્તી'
         }
       ]
     };
-    return deepLocalizeDigits(resData, lang);
   }
 
   return {
     diseaseName: title,
-    description: `${title} is a clinical condition characterized by localized or systemic physiological symptoms requiring appropriate rest, hydration, and medical evaluation.`,
-    commonSymptoms: ['Fatigue or general malaise', 'Localized pain or discomfort', 'Mild low-grade fever or headache', 'Inflammation'],
-    causes: ['Viral or bacterial exposure', 'Environmental irritation or physical stress', 'Immune or inflammatory response'],
-    homeRemedies: ['Ensure complete bed rest and adequate fluid hydration.', 'Apply warm or cold compress as appropriate for discomfort.', 'Maintain a clean, comfortable, and well-ventilated resting environment.'],
+    description: `${title} is a clinical health condition characterized by physiological symptoms requiring appropriate clinical evaluation, rest, and fluid balance.`,
+    commonSymptoms: ['Fatigue or general malaise', 'Localized pain or discomfort', 'Mild low-grade fever or headache', 'Inflammation or stiffness'],
+    causes: ['Environmental stress or seasonal changes', 'Viral or microbial exposure', 'Immune or inflammatory response'],
+    homeRemedies: ['Ensure complete physical rest and adequate fluid hydration.', 'Apply warm or cold compress as appropriate for discomfort.', 'Maintain a clean, comfortable, and well-ventilated resting environment.'],
     prevention: ['Maintain rigorous hand hygiene and balanced nutrition.', 'Avoid close contact with known infectious agents.', 'Stay up to date with routine clinical health screenings.'],
     whenToSeeDoctor: ['Symptoms persist or worsen past 72 hours.', 'Development of high fever, severe difficulty breathing, or severe pain.', 'Pre-existing chronic medical conditions are present.'],
     ageSpecificAdvice: `For ${ageGroup} individuals, ensure age-appropriate rest and fluid balance. Consult a physician before administering any new pharmaceutical remedies.`,
-    recommendedMedicines: getConditionSpecificMedicines(clean, 'en') || [
+    recommendedMedicines: [
       {
-        name: 'Cetirizine 10mg / Paracetamol 500mg',
-        form: 'Oral Tablet',
-        purpose: 'Clinical symptom relief indicated for evaluated condition',
-        dosage: '1 tablet as directed by clinical practitioner after meals',
-        sideEffects: 'Mild drowsiness or nausea'
+        name: `${title} Indicated Therapy`,
+        form: 'Oral Tablet / Capsule',
+        purpose: `Symptomatic relief and therapeutic stabilization for ${clean}`,
+        dosage: 'As prescribed by physician or pharmacist after meals',
+        sideEffects: 'Mild nausea or lethargy'
       }
     ]
   };
@@ -1238,12 +1358,12 @@ IMPORTANT: ALL text, including medicine and chemical names, and ANY NUMBERS (tra
       });
     }
 
-    return res.json({ success: true, data: deepLocalizeDigits(result, language) });
+    return res.json({ success: true, data: result });
   } catch (error) {
     console.error('Medicine search error:', error);
     // Even in worst case, return clinical fallback instead of 500 crash
     const fallback = generateFallbackMedicineData(req.body?.medicineName || 'Medicine', req.body?.language || 'en', req.body?.ageGroup || 'adult');
-    return res.json({ success: true, data: deepLocalizeDigits(fallback, req.body?.language || 'en') });
+    return res.json({ success: true, data: fallback });
   }
 };
 

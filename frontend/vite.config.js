@@ -34,7 +34,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: path.basename(process.cwd()) === 'frontend' ? 'dist' : '../dist',
+    outDir: path.resolve(__dirname, 'dist'),
     emptyOutDir: true,
   }
 })
