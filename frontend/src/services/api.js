@@ -446,6 +446,37 @@ const CLIENT_MEDICINE_FALLBACKS = [
     }
   },
   {
+    regex: /pantoprazole|pantocid|pan[- ]?40|protonix/i,
+    data: {
+      medicineName: 'Pantoprazole Tablets IP 40mg',
+      genericName: 'Pantoprazole Gastro-resistant Tablets IP 40mg',
+      manufacturer: 'Nestor Pharmaceuticals / Alkem / Torrent',
+      category: 'Proton Pump Inhibitor (PPI)',
+      dosageForm: 'Oral Gastro-resistant Tablet',
+      activeIngredient: 'Pantoprazole Sodium Sesquihydrate 40mg',
+      overview: {
+        primaryUse: 'Treatment and relief of Gastroesophageal Reflux Disease (GERD), heartburn, erosive esophagitis, and peptic ulcers.',
+        drugClass: 'Proton Pump Inhibitor (Antisecretory)',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '40 mg once daily in the morning, 30 to 60 minutes before breakfast',
+        frequency: 'Once daily before morning meal',
+        duration: 'Typically 4 to 8 weeks as prescribed by physician',
+        howToTake: 'Take once daily in the morning on an empty stomach. Swallow whole; do not split, chew, or crush.'
+      },
+      sideEffects: {
+        common: ['Headache', 'Diarrhea', 'Nausea', 'Abdominal pain', 'Flatulence'],
+        serious: ['Clostridioides difficile diarrhea', 'Hypomagnesemia in long-term therapy', 'Increased fracture risk with long-term use']
+      },
+      warnings: ['Daily long-term use may reduce magnesium and vitamin B12 levels. Consult physician if symptoms persist.'],
+      precautions: ['Caution in severe hepatic impairment. Inform doctor of all current medications.'],
+      storage: 'Store protected from moisture at a temperature not exceeding 30°C in a dry place.',
+      ageSpecificInfo: 'Adults and adolescents aged 12+ years. Safety in younger children must be determined by a pediatrician.',
+      interactions: ['Ketoconazole, Iron salts, Atazanavir, Methotrexate, Warfarin.']
+    }
+  },
+  {
     regex: /biguanide|biguanides|metformin|glycomet|glucophage/i,
     data: {
       medicineName: 'Metformin HCl 500mg (Biguanides)',
