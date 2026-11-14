@@ -1,3 +1,5 @@
+import { translateMedicinePayload } from './clinicalTranslations';
+
 let API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Self-healing: If running on a production domain but VITE_API_URL points to localhost, ignore it and fall back to relative /api
@@ -359,6 +361,9 @@ export const api = {
         body: JSON.stringify({ medicineName, language, ageGroup, age }),
       });
       if (res && res.success && res.data) {
+        if (language && language !== 'en') {
+          return { success: true, data: translateMedicinePayload(res.data, language) };
+        }
         return res;
       }
     } catch (err) {
@@ -370,7 +375,7 @@ export const api = {
     const matched = CLIENT_MEDICINE_FALLBACKS.find(f => f.regex.test(q));
     let data = matched ? matched.data : generateClientFallbackMedicine(q, language, ageGroup);
     if (language && language !== 'en') {
-      data = translateClientMedicine(data, language);
+      data = translateMedicinePayload(data, language);
     }
     return {
       success: true,
@@ -379,7 +384,7 @@ export const api = {
     };
   },
 
-  translateMedicine: (data, lang = 'en') => translateClientMedicine(data, lang),
+  translateMedicine: (data, lang = 'en') => translateMedicinePayload(data, lang),
 };
 
 const CLIENT_MEDICINE_FALLBACKS = [

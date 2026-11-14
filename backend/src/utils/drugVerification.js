@@ -6,6 +6,7 @@
  */
 
 const https = require('https');
+const { translateMedicinePayload } = require('./clinicalTranslations');
 
 // ============================================================================
 // AUTHORITATIVE PHARMACEUTICAL MONOGRAPHS LIBRARY
@@ -1292,6 +1293,7 @@ module.exports = {
   DRUG_MONOGRAPHS,
   SINGLE_APIS,
   verifyAndEnrichMedicine,
-  queryOpenFda
+  queryOpenFda,
+  translateMedicinePayload
 };
 

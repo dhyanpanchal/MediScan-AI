@@ -71,9 +71,16 @@ const scanMedicineLabel = async (req, res) => {
       sources: analysisResult.sources || []
     });
 
+    const lang = req.body?.language;
+    let responseData = newScan.toObject ? newScan.toObject() : { ...newScan };
+    if (lang && (lang === 'gu' || lang === 'hi')) {
+      const { translateMedicinePayload } = require('../utils/clinicalTranslations');
+      responseData = translateMedicinePayload(responseData, lang);
+    }
+
     res.status(201).json({
       success: true,
-      data: newScan
+      data: responseData
     });
   } catch (error) {
     console.error('Scan controller error:', error);

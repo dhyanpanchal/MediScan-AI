@@ -357,8 +357,17 @@ select::placeholder,
 }
 
 [data-theme="light"] .input-icon-group input {
-  color: var(--text-primary, #0F172A) !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
   background-color: transparent !important;
+}
+
+[data-theme="light"] .input-icon-group input::placeholder,
+[data-theme="light"] .form-control::placeholder,
+[data-theme="light"] input::placeholder {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+  opacity: 0.85 !important;
 }
 
 /* Force any extension-injected element (TempMail, autofill, etc.) or trailing icon to the RIGHT side */
@@ -383,23 +392,35 @@ select::placeholder,
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+input:-webkit-autofill:active,
+.input-icon-group input:-webkit-autofill {
   -webkit-text-fill-color: var(--text-primary, #F8FAFC) !important;
+  color: var(--text-primary, #F8FAFC) !important;
   -webkit-box-shadow: 0 0 0px 1000px var(--bg-input, #171B35) inset !important;
   box-shadow: 0 0 0px 1000px var(--bg-input, #171B35) inset !important;
   caret-color: var(--text-primary, #F8FAFC);
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Chrome/Edge/Safari Autofill - Light Theme */
+/* Chrome/Edge/Safari Autofill - Light Theme (Ultra High Specificity Override) */
+html[data-theme="light"] input:-webkit-autofill,
+html[data-theme="light"] input:-webkit-autofill:hover, 
+html[data-theme="light"] input:-webkit-autofill:focus,
+html[data-theme="light"] input:-webkit-autofill:active,
 [data-theme="light"] input:-webkit-autofill,
 [data-theme="light"] input:-webkit-autofill:hover, 
 [data-theme="light"] input:-webkit-autofill:focus,
-[data-theme="light"] input:-webkit-autofill:active {
+[data-theme="light"] input:-webkit-autofill:active,
+[data-theme="light"] .input-icon-group input:-webkit-autofill,
+[data-theme="light"] .input-icon-group input:-webkit-autofill:hover,
+[data-theme="light"] .input-icon-group input:-webkit-autofill:focus,
+[data-theme="light"] .input-icon-group input:-webkit-autofill:active,
+[data-theme="light"] .form-control:-webkit-autofill {
   -webkit-text-fill-color: #0F172A !important;
+  color: #0F172A !important;
   -webkit-box-shadow: 0 0 0px 1000px #F1F5F9 inset !important;
   box-shadow: 0 0 0px 1000px #F1F5F9 inset !important;
-  caret-color: #0F172A;
+  caret-color: #0F172A !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -409,7 +430,10 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 0px 1000px var(--bg-elevated, #151A32) inset !important;
 }
 
-[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill {
+html[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
+[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
+[data-theme="light"] .form-control:focus:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
   box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
 }

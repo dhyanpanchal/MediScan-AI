@@ -463,9 +463,12 @@ const Layout = ({ children }) => {
           font-weight: 600;
           background: linear-gradient(90deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.02) 100%);
         }
-        [data-theme="light"] .nav-item.active {
-          color: var(--primary, #7C3AED);
-          font-weight: 700;
+        [data-theme="light"] .nav-item.active,
+        [data-theme="light"] .nav-item.active .nav-label,
+        [data-theme="light"] .nav-item.active span {
+          color: #7C3AED !important;
+          -webkit-text-fill-color: #7C3AED !important;
+          font-weight: 700 !important;
           background: linear-gradient(90deg, rgba(124, 58, 237, 0.14) 0%, rgba(124, 58, 237, 0.02) 100%);
         }
         .nav-item.active::before {

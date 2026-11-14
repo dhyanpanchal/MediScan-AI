@@ -530,6 +530,7 @@ export const AppProvider = ({ children }) => {
   const applyTheme = (t) => {
     const root = document.documentElement;
     root.setAttribute('data-theme', t);
+    root.style.colorScheme = t;
     if (t === 'light') {
       root.style.setProperty('--bg-primary', '#F8FAFC');
       root.style.setProperty('--bg-secondary', '#F1F5F9');

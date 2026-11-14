@@ -160,6 +160,32 @@ async function runTests() {
   assert(garbageVerified.warnings.includes('IDENTIFICATION WARNING'), 'Identification warning rendered');
   assert(!JSON.stringify(garbageVerified).includes('Active pharmaceutical ingredients identified from packaging label'), 'Zero generic filler on unverified item');
 
+  console.log('\n--- TEST 7: Multilingual Clinical Monograph Translations (Gujarati & Hindi) ---');
+  const { translateMedicinePayload } = require('./src/utils/clinicalTranslations');
+  
+  // 7a. ACENEXT P translated to Gujarati
+  const acenextGu = translateMedicinePayload(acenextVerified, 'gu');
+  assert(acenextGu.medicineName.includes('એસીનેક્સ્ટ પી'), 'Acenext P brand translated into Gujarati');
+  assert(acenextGu.clinicalUses[0].includes('ઓસ્ટિઓઆર્થરાઇટિસ'), 'Clinical uses translated into Gujarati');
+  assert(acenextGu.activeIngredientsList[0].name.includes('એસેક્લોફેનાક'), 'API name translated into Gujarati');
+  assert(acenextGu.activeIngredientsList[0].mechanism.includes('સાયક્લોઓક્સિજેનેઝ'), 'Molecular mechanism translated into Gujarati');
+  assert(acenextGu.activeIngredientsList[0].strength.includes('૧૦૦'), 'Indic Gujarati numerals applied to strength (૧૦૦ mg)');
+  assert(acenextGu.dosageReference.includes('૧ ગોળી'), 'Dosage reference translated to Gujarati Indic (૧ ગોળી)');
+  assert(acenextGu.sideEffects.common[0].includes('અપચો'), 'Side effects translated into Gujarati');
+
+  // 7b. Montypen-LC translated to Hindi
+  const montypenHi = translateMedicinePayload(montypenVerified, 'hi');
+  assert(montypenHi.medicineName.includes('मॉन्टीपेन-एलसी'), 'Montypen-LC brand translated into Hindi');
+  assert(montypenHi.clinicalUses[0].includes('एलर्जी'), 'Allergy clinical uses translated into Hindi');
+  assert(montypenHi.activeIngredientsList[0].name.includes('मोंटेलुकास्ट'), 'Montelukast API translated into Hindi');
+  assert(montypenHi.activeIngredientsList[0].strength.includes('१०'), 'Indic Hindi numerals applied (१० mg)');
+  assert(montypenHi.dosageReference.includes('१५ वर्ष'), 'Indic numerals in dosage reference (१५ वर्ष)');
+
+  // 7c. Reverting back to English preserves original data
+  const acenextEn = translateMedicinePayload(acenextGu, 'en');
+  assert(acenextEn.medicineName.includes('ACENEXT P'), 'Reverting to English preserves English brand name');
+  assert(acenextEn.activeIngredientsList[0].strength.includes('100 mg'), 'Reverting to English restores ASCII digits (100 mg)');
+
   console.log('\n----------------------------------------------------------------');
   console.log(`TOTAL TESTS: ${total} | PASSED: ${passed} | FAILED: ${total - passed}`);
   console.log('----------------------------------------------------------------\n');

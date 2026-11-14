@@ -348,37 +348,9 @@ const ScannerPage = () => {
     setScanLanguage(newLang);
     if (!result) return;
 
-    // 1. Instant client-side translation
+    // Instant authoritative client-side translation
     const instant = api.translateMedicine(result, newLang);
     if (instant) setResult(instant);
-
-    // 2. Fetch full remote verified translation
-    const medName = result._originalEnglish?.medicineName || result.medicineName;
-    if (!medName || newLang === 'en') return;
-
-    setScanTranslating(true);
-    try {
-      const res = await api.searchMedicineByName(medName, newLang, 'adult', null);
-      if (res && res.success && res.data) {
-        setResult(prev => ({
-          ...prev,
-          category: res.data.category || prev.category,
-          dosageForm: res.data.dosageForm || prev.dosageForm,
-          dosage: res.data.dosageAndUsage?.standardDose || prev.dosage,
-          usageInstructions: res.data.dosageAndUsage?.howToTake || prev.usageInstructions,
-          purposeAndUses: res.data.overview?.primaryUse || prev.purposeAndUses,
-          warnings: Array.isArray(res.data.warnings) ? res.data.warnings.join(' ') : (res.data.warnings || prev.warnings),
-          precautions: Array.isArray(res.data.precautions) ? res.data.precautions.join(' ') : (res.data.precautions || prev.precautions),
-          sideEffects: Array.isArray(res.data.sideEffects?.common) ? res.data.sideEffects.common.join(', ') : (typeof res.data.sideEffects === 'string' ? res.data.sideEffects : prev.sideEffects),
-          storage: res.data.storage || prev.storage,
-          _currentLang: newLang
-        }));
-      }
-    } catch (err) {
-      console.warn('[ScannerPage] Remote scan translation notice:', err.message);
-    } finally {
-      setScanTranslating(false);
-    }
   };
 
   useEffect(() => () => stopCameraStream(), []);
@@ -978,9 +950,9 @@ const ScannerPage = () => {
                         {result.activeIngredientsList.map((ing, idx) => (
                           <div key={idx} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
-                              <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{ing.name}</strong>
-                              {ing.class && <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({ing.class})</span>}
-                              {ing.mechanism && <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{ing.mechanism}</p>}
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{localizeDigits(ing.name, scanLanguage)}</strong>
+                              {ing.class && <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({localizeDigits(ing.class, scanLanguage)})</span>}
+                              {ing.mechanism && <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{localizeDigits(ing.mechanism, scanLanguage)}</p>}
                             </div>
                             <span className="badge badge-normal" style={{ fontSize: '12px', fontWeight: '700', padding: '4px 10px' }}>
                               {localizeDigits(ing.strength, scanLanguage)}

@@ -2,6 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const DiseaseHistory = require('../models/DiseaseHistory');
 const MedicineSearchHistory = require('../models/MedicineSearchHistory');
+const { translateMedicinePayload } = require('../utils/clinicalTranslations');
 
 let aiInstance = null;
 if (process.env.GEMINI_API_KEY) {
@@ -87,6 +88,15 @@ const searchDisease = async (req, res) => {
 ${ageContext}
 
 Provide comprehensive medical information. ALL TEXT, INCLUDING THE DISEASE NAME, MUST BE TRANSLATED INTO ${outputLang}.
+
+CRITICAL MEDICAL ACCURACY RULES:
+- Recommend ONLY clinically proven medicines directly indicated for this specific condition ("${query}").
+- For allergies, dust allergy, rhinitis, sneezing, or hives: Recommend ONLY Antihistamines and leukotriene receptor antagonists (such as Cetirizine 10mg, Levocetirizine 5mg, Montelukast 10mg, or Saline Nasal Spray). NEVER recommend Paracetamol, Analgesics, or Antipyretics for allergies unless high fever or severe pain is explicitly mentioned.
+- For acid reflux/GERD: Recommend Proton Pump Inhibitors (Pantoprazole, Omeprazole) or Antacids.
+- For diabetes: Recommend Metformin or prescribed glycemic stabilizers.
+- For hypertension: Recommend Amlodipine or Telmisartan.
+- For asthma: Recommend Salbutamol Inhaler or Budesonide.
+
 Return a JSON object with this exact structure:
 
 {
@@ -131,14 +141,16 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
     if (!result || !result.diseaseName) {
       result = generateFallbackDiseaseData(query, language, ageGroup);
     } else {
-      // Validate recommended medicines are present and relevant
+      // Validate recommended medicines are present and clinically relevant
       if (!Array.isArray(result.recommendedMedicines) || result.recommendedMedicines.length === 0) {
         const fb = generateFallbackDiseaseData(query, language, ageGroup);
         result.recommendedMedicines = fb.recommendedMedicines;
       } else {
-        const isAllergy = /allergy|allergic|dust|rhinitis|hay fever|urticaria/i.test(query);
-        const isOnlyParacetamol = result.recommendedMedicines.every(m => /paracetamol|acetaminophen|dolo/i.test(m.name || ''));
-        if (isAllergy && isOnlyParacetamol) {
+        const isAllergy = /allergy|allergic|dust|rhinitis|hay fever|urticaria|hives|sneeze|એલર્જી|ધૂળ|एलर्जी|धूल/i.test(query) ||
+                          /allergy|allergic|dust|rhinitis|hay fever|urticaria|hives|sneeze|એલર્જી|ધૂળ|एलर्जी|धूल/i.test(result.diseaseName || '');
+        const hasParacetamol = result.recommendedMedicines.some(m => /paracetamol|acetaminophen|dolo|પેરાસિટામોલ|पैरासिटामोल/i.test(m.name || ''));
+        if (isAllergy && hasParacetamol) {
+          // Paracetamol is clinically invalid as sole or primary allergy recommendation
           const fb = generateFallbackDiseaseData(query, language, ageGroup);
           result.recommendedMedicines = fb.recommendedMedicines;
         }
@@ -1669,14 +1681,14 @@ IMPORTANT: ALL text, including medicine and chemical names, and ANY NUMBERS (tra
     if (!result || !result.medicineName) {
       const matched = CLINICAL_MEDICINE_FALLBACKS.find(f => f.regex.test(medicineName));
       if (matched) {
-        result = (language && language !== 'en')
-          ? translateMedicineFallback(matched.data, language)
-          : matched.data;
+        result = matched.data;
       } else {
         result = generateFallbackMedicineData(medicineName, language, ageGroup);
       }
-    } else if (language && language !== 'en') {
-      result = convertDigitsToLanguage(result, language);
+    }
+
+    if (language && language !== 'en') {
+      result = translateMedicinePayload(result, language);
     }
 
     // Reliably save to medicine search history asynchronously
