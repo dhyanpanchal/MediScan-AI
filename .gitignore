@@ -51,6 +51,7 @@ backend/oauth_error_log.txt
 # OS metadata files
 .DS_Store
 Thumbs.db
+*.traineddata
 
 # Local AI coding tools and agent state
 .agent/
@@ -61,6 +62,3 @@ Thumbs.db
 # Python-generated files
 __pycache__/
 *.py[cod]
-# Local debugging output
-backend/git_res.txt
-backend/test_out.txt

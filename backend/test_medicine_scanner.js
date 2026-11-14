@@ -126,6 +126,28 @@ async function runTests() {
   assert(injVerified.verificationStatus === 'Verified', 'Injection verified');
   assert(injVerified.warnings.includes('Calcium') || injVerified.warnings.includes('precipitation'), 'Calcium contraindication alert present');
 
+  console.log('\n--- TEST 5.5: Pantoprazole Tablets IP (Packaging with USAC/USAGE OCR text) ---');
+  const pantoOcr = `
+    USAC A Cled Dy Ae PHYSIC
+    Borage; Sf atg temperature not FF:
+    <5 ORaRding 30°C in a dry place
+    from light & moisture
+    Keep out of reach of children
+    NESTOR Pharmaceuticals
+    Pantoprazole Tablets IP
+    Each enteric coated tablet contains:
+    Pantoprazole Sodium Sesquihydrate IP
+    eq. to Pantoprazole 40 mg
+  `;
+  const pantoExtracted = extractMedicineDetailsFromOcr(pantoOcr);
+  assert(pantoExtracted.brandName === 'Pantoprazole Tablets IP', 'Brand correctly extracted as Pantoprazole Tablets IP (NOT "USAC A")');
+  assert(pantoExtracted.ingredients.some(i => i.name === 'Pantoprazole'), 'Active ingredient identified as Pantoprazole');
+  const pantoVerified = await verifyAndEnrichMedicine({ rawOcrText: pantoOcr, extractedData: pantoExtracted });
+  assert(pantoVerified.verificationStatus === 'Verified', 'Pantoprazole verified against clinical monographs');
+  assert(pantoVerified.activeIngredients.includes('40 mg'), 'Strength verified as 40 mg');
+  assert(pantoVerified.category.includes('Proton Pump Inhibitor'), 'PPI classification verified');
+  assert(!pantoVerified.medicineName.includes('USAC'), 'Zero USAC misidentification in output');
+
   console.log('\n--- TEST 6: Unverified / Unrecognized Substance ---');
   const garbageOcr = `
     XYZ-NOT-A-REAL-DRUG-998877
@@ -155,3 +177,4 @@ runTests().catch(err => {
   console.error('Test execution error:', err);
   process.exit(1);
 });
+

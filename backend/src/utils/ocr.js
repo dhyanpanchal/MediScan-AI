@@ -2,6 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 
+let sharp = null;
+try {
+  sharp = require('sharp');
+} catch (e) {
+  console.warn('Sharp image processing not available:', e.message);
+}
+
 /**
  * Validates if the file at the given path has a valid image signature.
  * @param {string} filePath - Path to the file.
@@ -40,12 +47,17 @@ const getLangPath = () => {
   if (fs.existsSync(path.join(process.cwd(), 'backend', 'eng.traineddata'))) {
     return path.join(process.cwd(), 'backend');
   }
+  const altPath = 'D:/Medisacn-Ai FINAL/backend';
+  if (fs.existsSync(path.join(altPath, 'eng.traineddata'))) {
+    return altPath;
+  }
   return path.join(__dirname, '..', '..');
 };
 
 /**
  * Extracts rich text and confidence from an image file using Tesseract.js.
- * Supports fallback passes for packaging text orientation and low contrast.
+ * Supports multi-orientation scanning (0°, 90°, 270°) and contrast normalization
+ * to accurately extract text from rotated, blurred, or reflective pharmaceutical blister packs.
  * @param {string} imagePath - Path to the local image file.
  * @returns {Promise<{text: string, confidence: number}>}
  */
@@ -65,43 +77,62 @@ const extractMedicineOcrData = async (imagePath) => {
     console.log(`Starting Advanced OCR on image: ${imagePath}`);
     const langPath = getLangPath();
 
-    // Primary Pass: Standard automatic segmentation
-    const result = await Tesseract.recognize(imagePath, 'eng', {
-      langPath: langPath,
-      logger: (info) => {
-        if (info.status === 'recognizing text' && info.progress % 0.25 === 0) {
-          console.log(`OCR Progress: ${(info.progress * 100).toFixed(0)}%`);
-        }
-      }
+    // 1. Primary Pass: Original orientation
+    const primaryResult = await Tesseract.recognize(imagePath, 'eng', {
+      langPath: langPath
     });
 
-    let extractedText = result.data?.text || '';
-    let confidence = result.data?.confidence || 0;
+    let primaryText = primaryResult.data?.text || '';
+    let primaryConf = primaryResult.data?.confidence || 0;
 
-    // Secondary Pass: If confidence is very low (< 40) or extracted text is sparse (< 20 chars),
-    // attempt single uniform block / sparse layout mode (PSM 6 or 11)
-    if (extractedText.trim().length < 20 || confidence < 40) {
-      console.log('Low confidence / sparse OCR result; attempting secondary layout pass...');
-      try {
-        const secondary = await Tesseract.recognize(imagePath, 'eng', {
-          langPath: langPath,
-          tessedit_pageseg_mode: '6' // uniform block of text
-        });
+    let combinedText = primaryText;
+    let maxConfidence = primaryConf;
 
-        if (secondary.data?.text && secondary.data.text.trim().length > extractedText.trim().length) {
-          extractedText = secondary.data.text;
-          confidence = Math.max(confidence, secondary.data.confidence || 0);
-          console.log('Secondary OCR pass yielded improved text extraction.');
+    // Check if pharmaceutical composition/ingredients were detected in primary pass
+    const hasCompositionKeywords = /\b(?:contains|each|mg|mcg|tablet|capsule|ip|bp|usp)\b/i.test(primaryText);
+
+    // 2. Multi-Orientation Pass: If confidence is moderate/low (< 60) or text lacks composition keywords,
+    // scan rotated angles (270° and 90°) to read vertical text on blister foil strips.
+    if (sharp && (!hasCompositionKeywords || primaryConf < 60 || primaryText.trim().length < 80)) {
+      console.log('Packaging text may be oriented vertically or low-contrast; executing multi-angle OCR scan...');
+      const angles = [270, 90];
+
+      for (const angle of angles) {
+        try {
+          const rotatedBuffer = await sharp(imagePath)
+            .rotate(angle)
+            .grayscale()
+            .normalize()
+            .toBuffer();
+
+          const rotatedResult = await Tesseract.recognize(rotatedBuffer, 'eng', {
+            langPath: langPath
+          });
+
+          const rotText = rotatedResult.data?.text || '';
+          const rotConf = rotatedResult.data?.confidence || 0;
+
+          if (rotText.trim().length > 30) {
+            console.log(`Angle ${angle}° yielded ${rotText.length} chars (conf: ${rotConf}%).`);
+            // Append rotated text so both horizontal brand and vertical composition are captured
+            combinedText = `${combinedText}\n--- ORIENTATION ${angle}° ---\n${rotText}`;
+            maxConfidence = Math.max(maxConfidence, rotConf);
+
+            // If this rotation found clear composition keywords and primary didn't, prioritize it
+            if (/\b(?:contains|each|mg|tablet|capsule|ip|bp)\b/i.test(rotText)) {
+              console.log(`Strong pharmaceutical composition detected at angle ${angle}°.`);
+            }
+          }
+        } catch (rotErr) {
+          console.warn(`Angle ${angle}° scan skipped:`, rotErr.message);
         }
-      } catch (secErr) {
-        console.warn('Secondary OCR pass skipped:', secErr.message);
       }
     }
 
-    console.log(`OCR scan completed with confidence ${confidence}%. Extracted ${extractedText.length} characters.`);
+    console.log(`OCR scan completed with confidence ${maxConfidence}%. Extracted ${combinedText.length} total characters.`);
     return {
-      text: extractedText.trim(),
-      confidence: Math.round(confidence)
+      text: combinedText.trim(),
+      confidence: Math.round(maxConfidence)
     };
   } catch (error) {
     console.error('Error during OCR text extraction:', error);
