@@ -114,7 +114,7 @@ const Layout = ({ children }) => {
 
           {/* Section: Clinical */}
           <div className="nav-section">
-            {!isCollapsed && <p className="nav-section-title">Clinical Apps</p>}
+            {!isCollapsed && <p className="nav-section-title">{t('clinicalApps') || 'Clinical Apps'}</p>}
             {isCollapsed && <div className="nav-section-divider" />}
             <nav className="nav-list">
               {clinicalApps.map((item) => <NavItem key={item.path} item={item} collapsed={isCollapsed} />)}
@@ -123,7 +123,7 @@ const Layout = ({ children }) => {
 
           {/* Section: Management */}
           <div className="nav-section">
-            {!isCollapsed && <p className="nav-section-title">Management</p>}
+            {!isCollapsed && <p className="nav-section-title">{t('management') || 'Management'}</p>}
             {isCollapsed && <div className="nav-section-divider" />}
             <nav className="nav-list">
               {managementApps.map((item) => <NavItem key={item.path} item={item} collapsed={isCollapsed} />)}
@@ -138,7 +138,12 @@ const Layout = ({ children }) => {
             {!isCollapsed && <span>{t('logOut')}</span>}
           </button>
           
-          <button className="collapse-toggle" onClick={() => { const next = !isCollapsed; setIsCollapsed(next); try { localStorage.setItem('sidebar_collapsed', String(next)); } catch {} }}>
+          <button
+            className="collapse-toggle"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={() => { const next = !isCollapsed; setIsCollapsed(next); try { localStorage.setItem('sidebar_collapsed', String(next)); } catch {} }}
+          >
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
@@ -183,13 +188,13 @@ const Layout = ({ children }) => {
                   </div>
                 </div>
               )}
-              <p className="nav-section-title">Clinical Apps</p>
+              <p className="nav-section-title">{t('clinicalApps') || 'Clinical Apps'}</p>
               <nav className="nav-list" aria-label="Clinical navigation">
                 {clinicalApps.map((item) => (
                   <NavItem key={item.path} item={item} collapsed={false} onClick={() => setMobileMenuOpen(false)} />
                 ))}
               </nav>
-              <p className="nav-section-title" style={{ marginTop: '1.5rem' }}>Management</p>
+              <p className="nav-section-title" style={{ marginTop: '1.5rem' }}>{t('management') || 'Management'}</p>
               <nav className="nav-list" aria-label="Management navigation">
                 {managementApps.map((item) => (
                   <NavItem key={item.path} item={item} collapsed={false} onClick={() => setMobileMenuOpen(false)} />
@@ -246,13 +251,18 @@ const Layout = ({ children }) => {
           bottom: 0;
           width: var(--sidebar-width);
           background: var(--bg-card);
-          border-right: 1px solid rgba(255,255,255,0.1);
+          border-right: 1px solid var(--border-color, rgba(255,255,255,0.1));
           display: flex;
           flex-direction: column;
           z-index: 50;
           transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
-          box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+          box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+        }
+        [data-theme="light"] .desktop-sidebar {
+          background: #FFFFFF;
+          border-right: 1px solid var(--border-color, #E2E8F0);
+          box-shadow: 2px 0 16px rgba(0,0,0,0.04);
         }
         .desktop-sidebar.collapsed {
           width: var(--sidebar-collapsed-width);
@@ -388,7 +398,7 @@ const Layout = ({ children }) => {
           gap: 8px;
         }
         .nav-section-title {
-          font-size: 12px;
+          font-size: 11px;
           color: var(--text-muted);
           font-weight: 700;
           letter-spacing: 0.1em;
@@ -396,10 +406,17 @@ const Layout = ({ children }) => {
           padding-left: 12px;
           white-space: nowrap;
         }
+        [data-theme="light"] .nav-section-title {
+          color: #64748B;
+          font-weight: 700;
+        }
         .nav-section-divider {
           height: 1px;
           background: rgba(255,255,255,0.05);
           margin: 8px 12px;
+        }
+        [data-theme="light"] .nav-section-divider {
+          background: var(--border-color, #E2E8F0);
         }
         .nav-list {
           display: flex;
@@ -437,10 +454,19 @@ const Layout = ({ children }) => {
           color: var(--text-primary);
           background: rgba(255,255,255,0.03);
         }
+        [data-theme="light"] .nav-item:hover {
+          color: var(--text-primary);
+          background: rgba(0,0,0,0.04);
+        }
         .nav-item.active {
-          color: #fff;
+          color: var(--text-primary);
           font-weight: 600;
-          background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 100%);
+          background: linear-gradient(90deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.02) 100%);
+        }
+        [data-theme="light"] .nav-item.active {
+          color: var(--primary, #7C3AED);
+          font-weight: 700;
+          background: linear-gradient(90deg, rgba(124, 58, 237, 0.14) 0%, rgba(124, 58, 237, 0.02) 100%);
         }
         .nav-item.active::before {
           width: 4px;
@@ -460,10 +486,18 @@ const Layout = ({ children }) => {
           color: var(--primary);
           filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
         }
+        [data-theme="light"] .nav-item.active .nav-icon-container {
+          color: var(--primary, #7C3AED);
+          filter: none;
+        }
         .nav-label {
           white-space: nowrap;
           opacity: 1;
           animation: fadeIn 0.3s ease forwards;
+        }
+        [data-theme="light"] .nav-item.active .nav-label {
+          color: var(--primary, #7C3AED);
+          font-weight: 700;
         }
         .desktop-sidebar.collapsed .nav-item {
           justify-content: center;
@@ -482,6 +516,10 @@ const Layout = ({ children }) => {
           flex-direction: column;
           gap: 12px;
           background: var(--bg-card);
+        }
+        [data-theme="light"] .sidebar-footer {
+          background: #FFFFFF;
+          border-top: 1px solid var(--border-color, #E2E8F0);
         }
         .logout-btn {
           display: flex;
@@ -523,6 +561,14 @@ const Layout = ({ children }) => {
         }
         .collapse-toggle:hover {
           background: rgba(255,255,255,0.05);
+          color: var(--text-primary);
+        }
+        [data-theme="light"] .collapse-toggle {
+          border: 1px solid var(--border-color, #E2E8F0);
+          color: var(--text-secondary);
+        }
+        [data-theme="light"] .collapse-toggle:hover {
+          background: #F1F5F9;
           color: var(--text-primary);
         }
 

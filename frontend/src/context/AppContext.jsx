@@ -13,6 +13,8 @@ const translations = {
     adminPanel: 'Admin Panel',
     settings: 'Settings',
     logOut: 'Log Out',
+    clinicalApps: 'Clinical Apps',
+    management: 'Management',
     // Disease Search Page
     diseaseSearchTitle: 'Disease Search',
     diseaseSearchSubtitle: 'Search for diseases, symptoms, treatments and medicines',
@@ -162,6 +164,8 @@ const translations = {
     adminPanel: 'एडमिन पैनल',
     settings: 'सेटिंग्स',
     logOut: 'लॉग आउट',
+    clinicalApps: 'क्लिनिकल ऐप्स',
+    management: 'प्रबंधन',
     // Disease Search Page
     diseaseSearchTitle: 'रोग खोज',
     diseaseSearchSubtitle: 'बीमारियों, लक्षणों, उपचार और दवाओं की खोज करें',
@@ -322,6 +326,8 @@ const translations = {
     adminPanel: 'એડમિન પેનલ',
     settings: 'સેટિંગ્સ',
     logOut: 'લૉગ આઉટ',
+    clinicalApps: 'ક્લિનિકલ એપ્સ',
+    management: 'સંચાલન',
     // Disease Search Page
     diseaseSearchTitle: 'રોગ શોધ',
     diseaseSearchSubtitle: 'રોગો, લક્ષણો, સારવાર અને દવાઓ શોધો',
