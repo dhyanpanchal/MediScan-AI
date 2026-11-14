@@ -827,6 +827,161 @@ function generateFallbackDiseaseData(query, language = 'en', ageGroup = 'adult')
 
 const CLINICAL_MEDICINE_FALLBACKS = [
   {
+    regex: /acenext[- ]?p|aceclofenac.*paracetamol|zerodol[- ]?p|hifenac[- ]?p/i,
+    data: {
+      medicineName: 'ACENEXT P (Aceclofenac + Paracetamol)',
+      genericName: 'Aceclofenac 100mg and Paracetamol 325mg Tablets IP',
+      manufacturer: 'Acrochem Laboratories / IPCA',
+      category: 'NSAID & Analgesic Combination',
+      dosageForm: 'Oral Film-coated Tablet',
+      activeIngredient: 'Aceclofenac 100mg + Paracetamol 325mg',
+      overview: {
+        primaryUse: 'Relief of pain and inflammation in osteoarthritis, rheumatoid arthritis, ankylosing spondylitis, acute musculoskeletal pain, and fever.',
+        drugClass: 'NSAID (COX-2 Preferential) & Non-Opioid Analgesic',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 tablet twice daily after meals (every 12 hours)',
+        frequency: 'Twice daily after food',
+        duration: 'Shortest duration necessary under physician guidance (typically 3-7 days)',
+        howToTake: 'Swallow whole with a full glass of water after food. Do not chew or crush.'
+      },
+      sideEffects: {
+        common: ['Dyspepsia', 'Nausea', 'Abdominal discomfort', 'Dizziness', 'Heartburn'],
+        serious: ['Gastrointestinal ulceration or bleeding', 'Elevated liver transaminases (hepatotoxicity)', 'Renal impairment']
+      },
+      warnings: ['Avoid alcohol consumption completely while taking this medicine. Do not take with other paracetamol products.'],
+      precautions: ['Contraindicated in active peptic ulcer, 3rd trimester pregnancy, and severe liver/kidney disease.'],
+      storage: 'Store below 25°C in a dry place. Protect from heat, light, and moisture.',
+      ageSpecificInfo: 'Formulated for adults. Not recommended for children without pediatric specialist evaluation.',
+      interactions: ['Alcohol, Warfarin, other NSAIDs, Methotrexate, ACE inhibitors.']
+    }
+  },
+  {
+    regex: /montypen[- ]?lc|montek[- ]?lc|montair[- ]?lc|montelukast.*levocetirizine/i,
+    data: {
+      medicineName: 'Montypen-LC (Montelukast + Levocetirizine)',
+      genericName: 'Montelukast Sodium 10mg and Levocetirizine Dihydrochloride 5mg Tablets IP',
+      manufacturer: 'Acrochem Laboratories / Sun Pharma / Cipla',
+      category: 'Leukotriene Receptor Antagonist & Antihistamine',
+      dosageForm: 'Oral Film-coated Tablet',
+      activeIngredient: 'Montelukast 10mg + Levocetirizine 5mg',
+      overview: {
+        primaryUse: 'Treatment and prevention of allergic rhinitis (sneezing, runny nose, itchy eyes) and comorbid mild allergic asthma.',
+        drugClass: 'CysLT1 Leukotriene Antagonist & H1-Antihistamine',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 tablet once daily in the evening / at bedtime',
+        frequency: 'Once daily at night',
+        duration: 'As prescribed by physician (often 7 to 14 days or seasonal)',
+        howToTake: 'Take once daily in the evening with or without food. Swallow whole with water.'
+      },
+      sideEffects: {
+        common: ['Drowsiness', 'Dry mouth', 'Fatigue', 'Headache', 'Mild stomach discomfort'],
+        serious: ['FDA Warning: Neuropsychiatric events (severe mood changes, depression, vivid dreams)', 'Severe allergic reactions']
+      },
+      warnings: ['FDA Warning (Montelukast): Report any mood alterations, depression, or suicidal ideation immediately. May cause drowsiness; avoid driving.'],
+      precautions: ['Adjust dose in patients with renal impairment. Use in pregnancy only if clearly prescribed.'],
+      storage: 'Store between 15°C and 30°C in original blister pack away from direct sunlight.',
+      ageSpecificInfo: 'Adults and adolescents aged 15 years and older. Pediatric syrup formulations used for children.',
+      interactions: ['Alcohol, Phenobarbital, Rifampicin, CNS depressants.']
+    }
+  },
+  {
+    regex: /biguanide|biguanides|metformin|glycomet|glucophage/i,
+    data: {
+      medicineName: 'Metformin HCl 500mg (Biguanides)',
+      genericName: 'Metformin Hydrochloride 500mg Extended Release',
+      manufacturer: 'USV Ltd. / Franco-Indian / Sun Pharma',
+      category: 'Biguanide Oral Antidiabetic',
+      dosageForm: 'Extended Release Tablet',
+      activeIngredient: 'Metformin HCl 500mg',
+      overview: {
+        primaryUse: 'First-line medication for blood glucose control in Type 2 Diabetes Mellitus and management of Insulin Resistance / PCOS.',
+        drugClass: 'Biguanide Antihyperglycemic Agent',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '500 mg to 1000 mg once or twice daily with meals',
+        frequency: 'With meals (typically breakfast and dinner)',
+        duration: 'Long-term maintenance therapy under glycemic monitoring',
+        howToTake: 'Take with or immediately after meals to minimize gastrointestinal discomfort. Swallow whole.'
+      },
+      sideEffects: {
+        common: ['Metallic taste in mouth', 'Nausea', 'Diarrhea', 'Abdominal bloating / Flatulence'],
+        serious: ['Lactic acidosis (rare but critical medical emergency)', 'Vitamin B12 deficiency with chronic use']
+      },
+      warnings: ['Black Box Alert: Risk of Lactic Acidosis in severe renal or cardiac impairment. Discontinue before radiographic iodinated contrast scans.'],
+      precautions: ['Contraindicated in severe renal impairment (eGFR < 30 mL/min). Avoid excessive acute or chronic alcohol.'],
+      storage: 'Store between 20°C and 25°C protected from light and moisture.',
+      ageSpecificInfo: 'Approved for adults and children over 10 years for Type 2 Diabetes under medical supervision.',
+      interactions: ['Alcohol, Cimetidine, Furosemide, Iodinated contrast agents.']
+    }
+  },
+  {
+    regex: /augmentin|clavulanate/i,
+    data: {
+      medicineName: 'Augmentin 625mg (Amoxicillin + Clavulanate)',
+      genericName: 'Amoxicillin 500mg + Potassium Clavulanate 125mg Tablets IP',
+      manufacturer: 'GlaxoSmithKline (GSK)',
+      category: 'Penicillin Antibiotic & Beta-Lactamase Inhibitor',
+      dosageForm: 'Oral Film-coated Tablet',
+      activeIngredient: 'Amoxicillin 500mg + Clavulanic Acid 125mg',
+      overview: {
+        primaryUse: 'Treatment of bacterial infections of the respiratory tract, sinusitis, otitis media, skin and soft tissue, and urinary tract.',
+        drugClass: 'Beta-Lactam Antibiotic & Beta-Lactamase Inhibitor',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 tablet (625mg) every 12 hours at the start of a meal',
+        frequency: 'Twice daily at 12-hour intervals',
+        duration: '5 to 10 days as prescribed by physician',
+        howToTake: 'Take at the start of a meal to enhance absorption and reduce gastrointestinal intolerance.'
+      },
+      sideEffects: {
+        common: ['Diarrhea / Loose stools', 'Nausea', 'Vomiting', 'Candidiasis / Fungal rash'],
+        serious: ['Severe anaphylactic reaction', 'Cholestatic jaundice / Hepatitis', 'Clostridium difficile colitis']
+      },
+      warnings: ['Strictly contraindicated in penicillin or cephalosporin allergy. Complete the entire course.'],
+      precautions: ['Monitor liver and renal functions during prolonged treatment.'],
+      storage: 'Store in moisture-proof packaging below 25°C.',
+      ageSpecificInfo: 'For adults and children weighing 40kg or more.',
+      interactions: ['Methotrexate, Oral Contraceptives, Allopurinol.']
+    }
+  },
+  {
+    regex: /pan[- ]?d|pantocid[- ]?d/i,
+    data: {
+      medicineName: 'Pan-D (Pantoprazole + Domperidone SR)',
+      genericName: 'Pantoprazole Gastro-resistant 40mg and Domperidone Prolonged-release 30mg Capsules IP',
+      manufacturer: 'Alkem Laboratories Ltd.',
+      category: 'Proton Pump Inhibitor & Prokinetic Anti-emetic',
+      dosageForm: 'Sustained-release Capsule',
+      activeIngredient: 'Pantoprazole 40mg + Domperidone 30mg SR',
+      overview: {
+        primaryUse: 'Treatment of Gastroesophageal Reflux Disease (GERD), acid regurgitation, heartburn, and nausea associated with dyspepsia.',
+        drugClass: 'Proton Pump Inhibitor (PPI) & Peripheral D2 Antagonist',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 capsule once daily in the morning, 30 to 60 minutes before breakfast',
+        frequency: 'Once daily before breakfast',
+        duration: 'Typically 2 to 4 weeks as indicated by gastroenterologist',
+        howToTake: 'Take on an empty stomach with a glass of water. Swallow whole; do not open or crush.'
+      },
+      sideEffects: {
+        common: ['Headache', 'Dry mouth', 'Diarrhea', 'Flatulence'],
+        serious: ['Prolonged QT interval and cardiac arrhythmias', 'Hypomagnesemia in prolonged use']
+      },
+      warnings: ['Do not take with potent CYP3A4 inhibitors or other QT-prolonging drugs.'],
+      precautions: ['Caution in patients with cardiac disease or electrolyte imbalances.'],
+      storage: 'Store below 25°C in a dry place protected from light.',
+      ageSpecificInfo: 'For adult use. Not recommended for children without pediatric specialist evaluation.',
+      interactions: ['Ketoconazole, Erythromycin, Atazanavir, Digoxin.']
+    }
+  },
+  {
     regex: /cetcip|cetirizine/i,
     data: {
       medicineName: 'Cetcip 10mg (Cetirizine HCl)',
@@ -1076,20 +1231,50 @@ const CLINICAL_MEDICINE_FALLBACKS = [
   }
 ];
 
+function convertDigitsToLanguage(obj, lang) {
+  if (lang !== 'gu' && lang !== 'hi') return obj;
+  const guMap = { '0': '૦', '1': '૧', '2': '૨', '3': '૩', '4': '૪', '5': '૫', '6': '૬', '7': '૭', '8': '૮', '9': '૯' };
+  const hiMap = { '0': '०', '1': '१', '2': '२', '3': '३', '4': '४', '5': '५', '6': '६', '7': '७', '8': '८', '9': '९' };
+  const digitMap = lang === 'gu' ? guMap : hiMap;
+
+  const replaceDigits = (str) => {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[0-9]/g, d => digitMap[d] || d);
+  };
+
+  const traverse = (val) => {
+    if (typeof val === 'string') return replaceDigits(val);
+    if (Array.isArray(val)) return val.map(traverse);
+    if (val !== null && typeof val === 'object') {
+      const res = {};
+      for (const k of Object.keys(val)) {
+        res[k] = traverse(val[k]);
+      }
+      return res;
+    }
+    return val;
+  };
+
+  return traverse(obj);
+}
+
 function translateMedicineFallback(data, lang = 'en') {
   if (lang === 'en') return data;
   const isHi = lang === 'hi';
   const isGu = lang === 'gu';
 
   const hiMedicineNames = {
+    'ACENEXT P (Aceclofenac + Paracetamol)': 'एसीनेक्स्ट पी (Aceclofenac + Paracetamol)',
+    'Montypen-LC (Montelukast + Levocetirizine)': 'मॉन्टीपेन-एलसी (Montelukast + Levocetirizine)',
+    'Metformin HCl 500mg (Biguanides)': 'मेटफॉर्मिन एचसीएल 500mg (बायगुआनाइड्स)',
+    'Augmentin 625mg (Amoxicillin + Clavulanate)': 'ऑगमेंटिन 625mg (एमोक्सिसिलिन + क्लैवुलैनेट)',
+    'Pan-D (Pantoprazole + Domperidone SR)': 'पैन-डी (पैंटोप्राजोल + डोमपेरिडोन एसआर)',
     'Ibuprofen 400mg': 'इबुप्रोफेन 400mg',
     'Ibuprofen IP 400mg': 'इबुप्रोफेन आईपी 400mg',
     'Dolo-650 (Paracetamol 650mg)': 'डोलो-650 (पैरासिटामोल 650mg)',
     'Paracetamol / Acetaminophen IP 650 mg': 'पैरासिटामोल / एसिटामिनोफेन आईपी 650 mg',
     'Amoxicillin 500mg': 'एमोक्सिसिलिन 500mg',
     'Amoxicillin Trihydrate 500mg': 'एमोक्सिसिलिन ट्राइहाइड्रेट 500mg',
-    'Metformin HCl 500mg': 'मेटफॉर्मिन एचसीएल 500mg',
-    'Metformin Hydrochloride 500mg': 'मेटफॉर्मिन हाइड्रोक्लोराइड 500mg',
     'Pantoprazole 40mg': 'पैंटोप्राजोल 40mg',
     'Pantoprazole Sodium IP 40 mg': 'पैंटोप्राजोल सोडियम आईपी 40 mg',
     'Zithromax 500mg (Azithromycin)': 'जिथ्रोमैक्स 500mg (एजिथ्रोमाइसिन)',
@@ -1097,14 +1282,17 @@ function translateMedicineFallback(data, lang = 'en') {
   };
 
   const guMedicineNames = {
+    'ACENEXT P (Aceclofenac + Paracetamol)': 'એસીનેક્સ્ટ પી (Aceclofenac + Paracetamol)',
+    'Montypen-LC (Montelukast + Levocetirizine)': 'મોન્ટીપેન-એલસી (Montelukast + Levocetirizine)',
+    'Metformin HCl 500mg (Biguanides)': 'મેટફોર્મિન એચસીએલ 500mg (બાયગુઆનાઇડ્સ)',
+    'Augmentin 625mg (Amoxicillin + Clavulanate)': 'ઓગમેન્ટિન 625mg (એમોક્સિસિલિન + ક્લેવ્યુલેનેટ)',
+    'Pan-D (Pantoprazole + Domperidone SR)': 'પેન-ડી (પેન્ટોપ્રાઝોલ + ડોમપેરિડોન એસઆર)',
     'Ibuprofen 400mg': 'ઇબુપ્રૉફેન 400mg',
     'Ibuprofen IP 400mg': 'ઇબુપ્રૉફેન આઈપી 400mg',
     'Dolo-650 (Paracetamol 650mg)': 'ડોલો-650 (પેરાસિટામોલ 650mg)',
     'Paracetamol / Acetaminophen IP 650 mg': 'પેરાસિટામોલ / એસિટામિનોફેન આઈપી 650 mg',
     'Amoxicillin 500mg': 'એમોક્સિસિલિન 500mg',
     'Amoxicillin Trihydrate 500mg': 'એમોક્સિસિલિન ટ્રાઈહાઈડ્રેટ 500mg',
-    'Metformin HCl 500mg': 'મેટફોર્મિન એચસીએલ 500mg',
-    'Metformin Hydrochloride 500mg': 'મેટફોર્મિન હાઇડ્રોક્લોરાઇડ 500mg',
     'Pantoprazole 40mg': 'પેન્ટોપ્રાઝોલ 40mg',
     'Pantoprazole Sodium IP 40 mg': 'પેન્ટોપ્રાઝોલ સોડિયમ આઈપી 40 mg',
     'Zithromax 500mg (Azithromycin)': 'ઝિથ્રોમેક્સ 500mg (એઝિથ્રોમાસીન)',
@@ -1112,50 +1300,203 @@ function translateMedicineFallback(data, lang = 'en') {
   };
 
   const nameMap = isHi ? hiMedicineNames : (isGu ? guMedicineNames : {});
-
   const translated = JSON.parse(JSON.stringify(data));
   if (nameMap[data.medicineName]) translated.medicineName = nameMap[data.medicineName];
-  if (nameMap[data.genericName]) translated.genericName = nameMap[data.genericName];
+
+  const medKey = (data.medicineName || '').toLowerCase();
 
   if (isHi) {
-    if (translated.category) translated.category = 'चिकित्सीय दवा (Therapeutic Medication)';
-    if (translated.dosageForm) translated.dosageForm = 'मौखिक गोली / कैप्सूल (Oral Tablet)';
-    if (translated.overview) {
-      translated.overview.primaryUse = `${translated.medicineName || 'दवा'} का उपयोग दर्द, सूजन, बुखार और चिकित्सीय लक्षणों से राहत पाने के लिए किया जाता है।`;
-      translated.overview.drugClass = 'चिकित्सीय सूत्रीकरण (Therapeutic Agent)';
+    if (medKey.includes('acenext') || medKey.includes('aceclofenac')) {
+      translated.category = 'दर्द निवारक और सूजनरोधी दवा (NSAID)';
+      translated.dosageForm = 'मौखिक गोली (Oral Film-coated Tablet)';
+      translated.genericName = 'एसीक्लोफेनाक 100mg और पैरासिटामोल 325mg गोलियां';
+      translated.activeIngredient = 'एसीक्लोफेनाक 100mg + पैरासिटामोल 325mg';
+      translated.overview = {
+        primaryUse: 'ऑस्टियोआर्थराइटिस, रुमेटीइड गठिया, जोड़ों और मांसपेशियों में दर्द, सूजन और बुखार से त्वरित राहत के लिए।',
+        drugClass: 'एनएसएआईडी और गैर-ओपिओइड एनाल्जेसिक संयोजन',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: 'भोजन के बाद 1 गोली दिन में दो बार (प्रत्येक 12 घंटे में)',
+        frequency: 'दिन में दो बार भोजन के बाद',
+        duration: 'डॉक्टर की सलाह अनुसार 3 से 7 दिन',
+        howToTake: 'पेट की सुरक्षा के लिए भोजन के बाद एक गिलास पानी से निगलें। चबाएं या तोड़ें नहीं।'
+      };
+      translated.sideEffects = {
+        common: ['अपच या पेट में जलन', 'मतली', 'हल्का चक्कर आना', 'पेट दर्द'],
+        serious: ['गैस्ट्रोइंटेस्टाइनल अल्सर या रक्तस्राव', 'यकृत एंजाइमों में वृद्धि', 'गुर्दे की दुर्बलता']
+      };
+      translated.warnings = ['इस दवा के साथ शराब का सेवन बिल्कुल न करें। अन्य पैरासिटामोल दवाओं के साथ न लें।'];
+      translated.precautions = ['पेट के अल्सर, गर्भावस्था की तीसरी तिमाही और यकृत/गुर्दे की गंभीर बीमारी में वर्जित।'];
+      translated.storage = '25°C से नीचे सीधी धूप और नमी से दूर सूखी जगह पर रखें।';
+      translated.ageSpecificInfo = 'वयस्क उपयोग के लिए। बच्चों के लिए बाल रोग विशेषज्ञ की सलाह आवश्यक है।';
+      translated.interactions = ['शराब, वार्फरिन, अन्य एनएसएआईडी, मेथोट्रेक्सेट।'];
+    } else if (medKey.includes('montypen') || medKey.includes('montek') || medKey.includes('montelukast')) {
+      translated.category = 'एलर्जी-रोधी और श्वास नलिका रक्षक दवा';
+      translated.dosageForm = 'मौखिक फिल्म-लेपित गोली';
+      translated.genericName = 'मॉन्टेलुकास्ट सोडियम 10mg और लेवोसेटिरिज़िन डाइहाइड्रोक्लोराइड 5mg';
+      translated.activeIngredient = 'मॉन्टेलुकास्ट 10mg + लेवोसेटिरिज़िन 5mg';
+      translated.overview = {
+        primaryUse: 'एलर्जिक राइनाइटिस (छींक आना, बहती नाक, आंखों में खुजली, बंद नाक) और एलर्जिक अस्थमा से राहत।',
+        drugClass: 'ल्यूकोट्रिएन रिसेप्टर विरोधी और एच1-एंटीहिस्टामाइन',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: '1 गोली रोजाना शाम को / सोते समय',
+        frequency: 'प्रतिदिन रात में एक बार',
+        duration: 'चिकित्सक की सलाह अनुसार (सामान्यतः 7 से 14 दिन)',
+        howToTake: 'शाम को भोजन के साथ या बिना भोजन के एक गिलास पानी के साथ लें।'
+      };
+      translated.sideEffects = {
+        common: ['हल्की उनींदापन', 'मुंह का सूखना', 'थकान', 'सिरदर्द'],
+        serious: ['गंभीर मूड परिवर्तन या अवसाद', 'गंभीर एलर्जी या पित्ती']
+      };
+      translated.warnings = ['एफडीए चेतावनी: मूड में बदलाव या अवसाद होने पर तुरंत डॉक्टर को बताएं। उनींदापन हो सकता है; गाड़ी न चलाएं।'];
+      translated.precautions = ['गुर्दे की बीमारी वाले मरीजों में खुराक कम करें।'];
+      translated.storage = '15°C से 30°C के बीच मूल ब्लिस्टर पैक में नमी और धूप से बचाकर रखें।';
+      translated.ageSpecificInfo = '15 वर्ष और उससे अधिक उम्र के वयस्कों और किशोरों के लिए।';
+      translated.interactions = ['शराब, नींद की गोलियां, फेनोबार्बिटल।'];
+    } else if (medKey.includes('biguanide') || medKey.includes('metformin')) {
+      translated.category = 'मधुमेह-रोधी दवा (Oral Antidiabetic)';
+      translated.dosageForm = 'एक्सटेंडेड रिलीज गोली (Extended Release)';
+      translated.genericName = 'मेटफॉर्मिन हाइड्रोक्लोराइड 500mg एक्सटेंडेड रिलीज';
+      translated.activeIngredient = 'मेटफॉर्मिन हाइड्रोक्लोराइड 500mg';
+      translated.overview = {
+        primaryUse: 'टाइप २ डायबिटीज मेलिटस में रक्त शर्करा (ब्लड शुगर) नियंत्रण के लिए प्रथम-पंक्ति की दवा और पीसीओएस प्रबंधन।',
+        drugClass: 'बायगुआनाइड एंटी-हाइपरग्लाइसेमिक एजेंट',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: '500 mg से 1000 mg भोजन के साथ दिन में एक या दो बार',
+        frequency: 'भोजन के साथ (नाश्ता और रात का खाना)',
+        duration: 'नियमित शुगर जांच के साथ दीर्घकालिक रखरखाव',
+        howToTake: 'पेट की गड़बड़ी से बचने के लिए भोजन के साथ या तुरंत बाद लें। चबाएं नहीं।'
+      };
+      translated.sideEffects = {
+        common: ['मुंह में धातु का स्वाद', 'मतली', 'दस्त', 'पेट फूलना'],
+        serious: ['लैक्टिक एसिडोसिस (दुर्लभ परंतु गंभीर स्थिति)', 'विटामिन बी12 की कमी']
+      };
+      translated.warnings = ['गंभीर गुर्दे या हृदय रोग में लैक्टिक एसिडोसिस का जोखिम। एक्स-रे कंट्रास्ट स्कैन से पहले बंद करें।'];
+      translated.precautions = ['गंभीर गुर्दे की विफलता में वर्जित। अत्यधिक शराब से बचें।'];
+      translated.storage = '20°C से 25°C के बीच नमी और धूप से बचाकर रखें।';
+      translated.ageSpecificInfo = '10 वर्ष से अधिक उम्र के बच्चों और वयस्कों के लिए चिकित्सकीय देखरेख में।';
+      translated.interactions = ['शराब, सिमेटिडाइन, फ्यूरोसेमाइड।'];
+    } else {
+      translated.category = 'चिकित्सीय दवा (Therapeutic Medication)';
+      translated.dosageForm = 'मौखिक गोली / कैप्सूल (Oral Formulation)';
+      if (translated.overview) {
+        translated.overview.drugClass = 'चिकित्सीय सूत्रीकरण (Therapeutic Agent)';
+      }
+      if (translated.dosageAndUsage) {
+        translated.dosageAndUsage.standardDose = 'डॉक्टर या फार्मासिस्ट के निर्देशानुसार 1 खुराक पानी के साथ लें।';
+        translated.dosageAndUsage.frequency = 'भोजन के बाद निर्देशानुसार';
+        translated.dosageAndUsage.duration = 'लक्षण बने रहने तक 3 से 7 दिन';
+        translated.dosageAndUsage.howToTake = 'भोजन के बाद एक गिलास पानी से लें।';
+      }
+      translated.warnings = ['चिकित्सक द्वारा निर्देशित अनुसार ही लें। अनुशंसित खुराक से अधिक न लें।'];
+      translated.precautions = ['गर्भावस्था, स्तनपान या अन्य दवाओं के साथ लेने से पहले डॉक्टर की सलाह लें।'];
+      translated.storage = '25°C से नीचे सीधी धूप और नमी से दूर सूखी जगह पर रखें।';
+      translated.ageSpecificInfo = 'वयस्क खुराक: आवश्यकतानुसार लें। बुजुर्गों और बच्चों में सावधानी बरतें।';
+      translated.interactions = ['संभावित दवा अंतःक्रिया के संबंध में फार्मासिस्ट से परामर्श लें।'];
     }
-    if (translated.dosageAndUsage) {
-      translated.dosageAndUsage.standardDose = 'डॉक्टर या फार्मासिस्ट के निर्देशानुसार 1 गोली पानी के साथ लें।';
-      translated.dosageAndUsage.frequency = 'भोजन के बाद हर 6 से 8 घंटे में';
-      translated.dosageAndUsage.duration = 'लक्षण बने रहने तक 3 से 7 दिन';
-      translated.dosageAndUsage.howToTake = 'भोजन या दूध के साथ एक गिलास पानी से निगलें। खाली पेट लेने से बचें।';
-    }
-    translated.warnings = ['चिकित्सक द्वारा निर्देशित अनुसार ही लें। अनुशंसित खुराक से अधिक न लें।', 'यदि पेट में अल्सर या एलर्जी हो तो उपयोग करने से पहले डॉक्टर से परामर्श लें।'];
-    translated.precautions = ['गर्भावस्था, स्तनपान या अन्य दवाओं के साथ लेने से पहले डॉक्टर की सलाह लें।', 'पर्याप्त मात्रा में पानी पिएं।'];
-    translated.storage = '25°C से नीचे सीधी धूप और नमी से दूर सूखी जगह पर रखें।';
-    translated.ageSpecificInfo = 'वयस्क खुराक: आवश्यकतानुसार लें। बुजुर्गों और बच्चों में सावधानी बरतें।';
-    translated.interactions = ['अन्य एनएसएआईडी, एस्पिरिन या रक्त पतला करने वाली दवाओं के साथ बिना डॉक्टर की सलाह के न लें।'];
   } else if (isGu) {
-    if (translated.category) translated.category = 'તબીબી દવા (Therapeutic Medication)';
-    if (translated.dosageForm) translated.dosageForm = 'ઓરલ ટેબ્લેટ / કેપ્સ્યુલ (Oral Tablet)';
-    if (translated.overview) {
-      translated.overview.primaryUse = `${translated.medicineName || 'દવા'} નો ઉપયોગ દુખાવો, સોજો, તાવ અને તબીબી લક્ષણોમાં રાહત માટે થાય છે.`;
-      translated.overview.drugClass = 'ક્લિનિકલ થેરાપ્યુટિક દવા (Therapeutic Agent)';
+    if (medKey.includes('acenext') || medKey.includes('aceclofenac')) {
+      translated.category = 'દુખાવો અને સોજો નિવારક દવા (NSAID)';
+      translated.dosageForm = 'ઓરલ ફિલ્મ-કોટેડ ટેબ્લેટ';
+      translated.genericName = 'એસિક્લોફેનાક 100mg અને પેરાસિટામોલ 325mg ગોળીઓ';
+      translated.activeIngredient = 'એસિક્લોફેનાક 100mg + પેરાસિટામોલ 325mg';
+      translated.overview = {
+        primaryUse: 'ઓસ્ટિઓઆર્થરાઇટિસ, રુમેટોઇડ આર્થરાઇટિસ, સાંધાનો દુખાવો, સ્નાયુઓમાં સોજો અને તાવમાં ઝડપી રાહત માટે.',
+        drugClass: 'એનએસએઆઈડી અને સેન્ટ્રલ એનાલ્જેસિક મિશ્રણ',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: 'જમ્યા પછી દર 12 કલાકે 1 ગોળી (દિવસમાં બે વાર)',
+        frequency: 'દિવસમાં બે વાર જમ્યા પછી',
+        duration: 'ડૉક્ટરની સલાહ મુજબ 3 થી 7 દિવસ',
+        howToTake: 'પેટમાં બળતરા ટાળવા માટે જમ્યા પછી એક ગ્લાસ પાણી સાથે આખી ગળી જાઓ. ચાવવી નહીં.'
+      };
+      translated.sideEffects = {
+        common: ['છાતીમાં બળતરા / અપચો', 'ઉબકા', 'હળવા ચક્કર', 'પેટમાં દુખાવો'],
+        serious: ['પેટમાં ચાંદી (અલ્સર) અથવા રક્તસ્રાવ', 'લીવર એન્ઝાઇમમાં વધારો', 'કિડની પર પ્રતિકૂળ અસર']
+      };
+      translated.warnings = ['આ દવા સાથે દારૂનું સેવન બિલકુલ ન કરવું. અન્ય પેરાસિટામોલ દવાઓ સાથે ન લેવી.'];
+      translated.precautions = ['પેટમાં અલ્સર, ગર્ભાવસ્થાના છેલ્લા મહિનાઓ અને કિડની/લીવરની ગંભીર બીમારીમાં લેવી નહીં.'];
+      translated.storage = '25°C થી નીચે સીધા તડકા અને ભેજથી દૂર સૂકી જગ્યાએ સંગ્રહ કરવો.';
+      translated.ageSpecificInfo = 'પુખ્ત વયના લોકો માટે. બાળકો માટે બાળરોગ નિષ્ણાતની સલાહ આવશ્યક છે.';
+      translated.interactions = ['દારૂ, લોહી પાતળું કરતી દવાઓ (વોરફેરિન), અન્ય પેઇનકિલર્સ.'];
+    } else if (medKey.includes('montypen') || medKey.includes('montek') || medKey.includes('montelukast')) {
+      translated.category = 'એલર્જી નિવારક અને શ્વાસનળી રક્ષક દવા';
+      translated.dosageForm = 'ઓરલ ફિલ્મ-કોટેડ ટેબ્લેટ';
+      translated.genericName = 'મોન્ટેલુકાસ્ટ સોડિયમ 10mg અને લેવોસેટિરીઝિન ડાયહાઇડ્રોક્લોરાઇડ 5mg';
+      translated.activeIngredient = 'મોન્ટેલુકાસ્ટ 10mg + લેવોસેટિરીઝિન 5mg';
+      translated.overview = {
+        primaryUse: 'એલર્જીક શરદી (છીંકો આવવી, નાક વહેવું, આંખોમાં ખંજવાળ, નાક બંધ થવું) અને એલર્જીક અસ્થમામાં રાહત માટે.',
+        drugClass: 'લ્યુકોટ્રિઅન એન્ટાગોનિસ્ટ અને એન્ટિહિસ્ટામાઇન',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: 'દરરોજ સાંજે / સૂતી વખતે 1 ગોળી',
+        frequency: 'દરરોજ રાત્રે એક વાર',
+        duration: 'ડૉક્ટરના નિર્દેશ મુજબ (સામાન્ય રીતે 7 થી 14 દિવસ)',
+        howToTake: 'સાંજે જમ્યા સાથે અથવા જમ્યા વિના એક ગ્લાસ પાણી સાથે લો.'
+      };
+      translated.sideEffects = {
+        common: ['હળવી ઊંઘ આવવી (સુસ્તી)', 'મોં સુકાવું', 'થાક લાગવો', 'માથાનો દુખાવો'],
+        serious: ['ગંભીર મૂડ પરિવર્તન અથવા હતાશા (FDA ચેતવણી)', 'ગંભીર એલર્જીક ચકામા']
+      };
+      translated.warnings = ['FDA ચેતવણી: મૂડમાં ફેરફાર કે હતાશા જણાય તો તરત ડૉક્ટરનો સંપર્ક કરવો. સુસ્તી આવી શકે માટે ડ્રાઇવિંગ ન કરવું.'];
+      translated.precautions = ['કિડનીની બીમારીમાં ડોઝ ઘટાડવો જરૂરી છે. ગર્ભાવસ્થામાં ડૉક્ટરની સલાહ મુજબ જ લેવી.'];
+      translated.storage = '15°C થી 30°C વચ્ચે મૂળ પેકિંગમાં ભેજ અને સૂર્યપ્રકાશથી સુરક્ષિત રાખો.';
+      translated.ageSpecificInfo = '15 વર્ષ કે તેથી વધુ ઉંમરના પુખ્તો માટે. બાળકો માટે સિરપ ફોર્મ્યુલેશન વપરાય છે.';
+      translated.interactions = ['દારૂ, ઊંઘની ગોળીઓ, સેન્ટ્રલ નર્વસ સિસ્ટમ ડિપ્રેસન્ટ્સ.'];
+    } else if (medKey.includes('biguanide') || medKey.includes('metformin')) {
+      translated.category = 'ડાયાબિટીસ નિયંત્રણ દવા (Oral Antidiabetic)';
+      translated.dosageForm = 'એક્સટેન્ડેડ રીલીઝ ટેબ્લેટ (Extended Release)';
+      translated.genericName = 'મેટફોર્મિન હાઇડ્રોક્લોરાઇડ 500mg એક્સટેન્ડેડ રીલીઝ';
+      translated.activeIngredient = 'મેટફોર્મિન હાઇડ્રોક્લોરાઇડ 500mg';
+      translated.overview = {
+        primaryUse: 'ટાઇપ ૨ ડાયાબિટીસ મેલીટસમાં બ્લડ સુગર (ગ્લુકોઝ) નિયંત્રણ માટે પ્રથમ-પંક્તિની દવા અને પીસીઓએસ વ્યવસ્થાપન.',
+        drugClass: 'બાયગુઆનાઇડ એન્ટિ-હાઇપરગ્લાયકેમિક એજન્ટ',
+        prescriptionRequired: true
+      };
+      translated.dosageAndUsage = {
+        standardDose: '500 mg થી 1000 mg જમ્યા સાથે દિવસમાં એક કે બે વાર',
+        frequency: 'જમ્યા સાથે (સામાન્ય રીતે સવારનો નાસ્તો અને રાત્રિભોજન)',
+        duration: 'નિયમિત સુગર મોનિટરિંગ સાથે લાંબા ગાળાની સારવાર',
+        howToTake: 'પેટની તકલીફ ટાળવા માટે જમ્યા સાથે અથવા તરત પછી લો. આખી ગોળી ગળવી.'
+      };
+      translated.sideEffects = {
+        common: ['મોંમાં ધાતુનો સ્વાદ', 'ઉબકા', 'ઝાડા / પેટનું ફૂલવું', 'ભૂખ ઓછી લાગવી'],
+        serious: ['લેક્ટિક એસિડોસિસ (અત્યંત ગંભીર કટોકટી)', 'લાંબા ગાળે વિટામિન બી૧૨ ની ઉણપ']
+      };
+      translated.warnings = ['ગંભીર કિડની કે હૃદય રોગમાં લેક્ટિક એસિડોસિસનું જોખમ. એક્સ-રે કોન્ટ્રાસ્ટ સ્કેન પહેલાં દવા બંધ કરવી.'];
+      translated.precautions = ['ગંભીર કિડની નિષ્ફળતામાં પ્રતિબંધિત. વધુ પડતો દારૂ પીવાનું ટાળવું.'];
+      translated.storage = '20°C થી 25°C તાપમાને ભેજ અને સીધા પ્રકાશથી દૂર રાખો.';
+      translated.ageSpecificInfo = '10 વર્ષથી વધુ ઉંમરના બાળકો અને પુખ્તો માટે તબીબી દેખરેખ હેઠળ યોગ્ય.';
+      translated.interactions = ['દારૂ, સિમેટિડિન, ફ્યુરોસેમાઇડ, આયોડિનેટેડ કોન્ટ્રાસ્ટ.'];
+    } else {
+      translated.category = 'તબીબી દવા (Therapeutic Medication)';
+      translated.dosageForm = 'ઓરલ ટેબ્લેટ / કેપ્સ્યુલ (Oral Formulation)';
+      if (translated.overview) {
+        translated.overview.drugClass = 'ક્લિનિકલ થેરાપ્યુટિક દવા (Therapeutic Agent)';
+      }
+      if (translated.dosageAndUsage) {
+        translated.dosageAndUsage.standardDose = 'ડૉક્ટર અથવા ફાર્માસિસ્ટની સલાહ મુજબ 1 માત્રા પાણી સાથે લો.';
+        translated.dosageAndUsage.frequency = 'જમ્યા પછી નિર્દેશ મુજબ';
+        translated.dosageAndUsage.duration = 'જરૂર મુજબ 3 થી 7 દિવસ';
+        translated.dosageAndUsage.howToTake = 'જમ્યા પછી એક ગ્લાસ પાણી સાથે આખી ગળી જાઓ.';
+      }
+      translated.warnings = ['ડૉક્ટરની સલાહ મુજબ જ લો. ભલામણ કરેલ ડોઝ કરતાં વધુ ન લો.'];
+      translated.precautions = ['ગર્ભાવસ્થા અથવા અન્ય દવાઓ સાથે લેતા પહેલા ડૉક્ટરની સલાહ લો.'];
+      translated.storage = '25°C થી નીચે સીધા તડકા અને ભેજથી દૂર સૂકી જગ્યાએ સંગ્રહિત કરો.';
+      translated.ageSpecificInfo = 'પુખ્ત વયના લોકો માટે નિયમિત માત્રા. બાળકો અને વૃદ્ધોમાં સાવધાનીપૂર્વક ઉપયોગ કરવો.';
+      translated.interactions = ['સંભવિત દવાઓની ક્રિયાપ્રતિક્રિયા અંગે ફાર્માસિસ્ટની સલાહ લો.'];
     }
-    if (translated.dosageAndUsage) {
-      translated.dosageAndUsage.standardDose = 'ડૉક્ટર અથવા ફાર્માસિસ્ટની સલાહ મુજબ 1 ગોળી પાણી સાથે લો.';
-      translated.dosageAndUsage.frequency = 'જમ્યા પછી દર 6 થી 8 કલાકે';
-      translated.dosageAndUsage.duration = 'જરૂર મુજબ 3 થી 7 દિવસ';
-      translated.dosageAndUsage.howToTake = 'જમ્યા પછી એક ગ્લાસ પાણી અથવા દૂધ સાથે આખી ગળી જાઓ.';
-    }
-    translated.warnings = ['ડોક્ટરની સૂચના મુજબ જ લો. ભલામણ કરેલ ડોઝ કરતાં વધુ ન લો.', 'જો પેટમાં ચાંદી કે એલર્જી હોય તો ઉપયોગ કરતા પહેલા ડૉક્ટરનો સંપર્ક કરો.'];
-    translated.precautions = ['ગર્ભાવસ્થા અથવા અન્ય દવાઓ સાથે લેતા પહેલા ડૉક્ટરની સલાહ લો.', 'પૂરતા પ્રમાણમાં પાણી પીવો.'];
-    translated.storage = '25°C થી નીચે સીધા તડકા અને ભેજથી દૂર સૂકી જગ્યાએ સંગ્રહિત કરો.';
-    translated.ageSpecificInfo = 'પુખ્ત વયના લોકો માટે નિયમિત માત્રા. બાળકો અને વૃદ્ધોમાં સાવધાનીપૂર્વક ઉપયોગ કરવો.';
-    translated.interactions = ['એસ્પિરિન અથવા લોહી પાતળું કરતી દવાઓ સાથે ડૉક્ટરની સલાહ વિના ન લેવી.'];
   }
 
-  return translated;
+  // Convert digits to native script numerals if Gujarati or Hindi
+  return convertDigitsToLanguage(translated, lang);
 }
 
 function generateFallbackMedicineData(medicineName, language = 'en', ageGroup = 'adult') {
@@ -1334,6 +1675,8 @@ IMPORTANT: ALL text, including medicine and chemical names, and ANY NUMBERS (tra
       } else {
         result = generateFallbackMedicineData(medicineName, language, ageGroup);
       }
+    } else if (language && language !== 'en') {
+      result = convertDigitsToLanguage(result, language);
     }
 
     // Reliably save to medicine search history asynchronously

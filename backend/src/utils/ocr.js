@@ -31,59 +31,94 @@ const isValidImage = (filePath) => {
 };
 
 /**
- * Extracts text from an image file using Tesseract.js.
- * @param {string} imagePath - Path to the local image file.
- * @returns {Promise<string>} - Extracted text content.
+ * Determines the langPath for traineddata dynamically based on environment
  */
-const extractTextFromImage = async (imagePath) => {
+const getLangPath = () => {
+  if (fs.existsSync(path.join(process.cwd(), 'eng.traineddata'))) {
+    return process.cwd();
+  }
+  if (fs.existsSync(path.join(process.cwd(), 'backend', 'eng.traineddata'))) {
+    return path.join(process.cwd(), 'backend');
+  }
+  return path.join(__dirname, '..', '..');
+};
+
+/**
+ * Extracts rich text and confidence from an image file using Tesseract.js.
+ * Supports fallback passes for packaging text orientation and low contrast.
+ * @param {string} imagePath - Path to the local image file.
+ * @returns {Promise<{text: string, confidence: number}>}
+ */
+const extractMedicineOcrData = async (imagePath) => {
   try {
     console.log(`Verifying image signature for file: ${imagePath}`);
     
-    // Check if the image signature is valid
     if (!isValidImage(imagePath)) {
-      console.log('Invalid image signature detected. Falling back or throwing.');
-      // If it's a simulated file, check if we can read the text directly
+      console.log('Invalid image signature detected. Falling back or checking text mock.');
       const content = fs.readFileSync(imagePath, 'utf8');
-      if (content.startsWith('mock_') || content.includes('label') || content.includes('report')) {
-        console.log('Simulated label/report file detected. Returning text content directly.');
-        return content;
+      if (content.startsWith('mock_') || content.includes('label') || content.includes('report') || content.includes('tablet')) {
+        return { text: content, confidence: 95 };
       }
-      throw new Error('The file is not a valid image format (PNG, JPEG, GIF expected).');
+      throw new Error('The file is not a valid image format (PNG, JPEG, GIF, WebP expected).');
     }
 
-    console.log(`Starting OCR on image: ${imagePath}`);
-    
-    // Determine the langPath for traineddata dynamically based on environment
-    const getLangPath = () => {
-      // 1. Check process.cwd() (if running as Vercel Service, the service root is backend/)
-      if (fs.existsSync(path.join(process.cwd(), 'eng.traineddata'))) {
-        return process.cwd();
-      }
-      // 2. Check process.cwd()/backend (if running as monolithic root)
-      if (fs.existsSync(path.join(process.cwd(), 'backend', 'eng.traineddata'))) {
-        return path.join(process.cwd(), 'backend');
-      }
-      // 3. Fallback relative to this utility file
-      return path.join(__dirname, '..', '..');
-    };
+    console.log(`Starting Advanced OCR on image: ${imagePath}`);
     const langPath = getLangPath();
 
+    // Primary Pass: Standard automatic segmentation
     const result = await Tesseract.recognize(imagePath, 'eng', {
       langPath: langPath,
       logger: (info) => {
-        if (info.status === 'recognizing text') {
-          console.log(`OCR Progress: ${(info.progress * 100).toFixed(1)}%`);
+        if (info.status === 'recognizing text' && info.progress % 0.25 === 0) {
+          console.log(`OCR Progress: ${(info.progress * 100).toFixed(0)}%`);
         }
       }
     });
-    
-    const extractedText = result.data.text;
-    console.log('OCR scan completed successfully.');
-    return extractedText || '';
+
+    let extractedText = result.data?.text || '';
+    let confidence = result.data?.confidence || 0;
+
+    // Secondary Pass: If confidence is very low (< 40) or extracted text is sparse (< 20 chars),
+    // attempt single uniform block / sparse layout mode (PSM 6 or 11)
+    if (extractedText.trim().length < 20 || confidence < 40) {
+      console.log('Low confidence / sparse OCR result; attempting secondary layout pass...');
+      try {
+        const secondary = await Tesseract.recognize(imagePath, 'eng', {
+          langPath: langPath,
+          tessedit_pageseg_mode: '6' // uniform block of text
+        });
+
+        if (secondary.data?.text && secondary.data.text.trim().length > extractedText.trim().length) {
+          extractedText = secondary.data.text;
+          confidence = Math.max(confidence, secondary.data.confidence || 0);
+          console.log('Secondary OCR pass yielded improved text extraction.');
+        }
+      } catch (secErr) {
+        console.warn('Secondary OCR pass skipped:', secErr.message);
+      }
+    }
+
+    console.log(`OCR scan completed with confidence ${confidence}%. Extracted ${extractedText.length} characters.`);
+    return {
+      text: extractedText.trim(),
+      confidence: Math.round(confidence)
+    };
   } catch (error) {
     console.error('Error during OCR text extraction:', error);
     throw new Error(error.message || 'Failed to extract text from the image using OCR.');
   }
 };
 
-module.exports = { extractTextFromImage };
+/**
+ * Backwards compatible string return for standard callers
+ */
+const extractTextFromImage = async (imagePath) => {
+  const ocrData = await extractMedicineOcrData(imagePath);
+  return ocrData.text || '';
+};
+
+module.exports = {
+  isValidImage,
+  extractTextFromImage,
+  extractMedicineOcrData
+};

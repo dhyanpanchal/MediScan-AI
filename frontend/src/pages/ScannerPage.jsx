@@ -6,7 +6,7 @@ import {
   Upload, Camera, Pill, FileCheck,
   Sparkles, Loader2, AlertOctagon,
   ShieldAlert, Clock, Building, X, Search, CheckCircle2, AlertTriangle,
-  Globe, ChevronDown, Check
+  Globe, ChevronDown, Check, Info, ExternalLink, BookmarkCheck
 } from 'lucide-react';
 
 const LANGUAGES = [
@@ -18,226 +18,235 @@ const LANGUAGES = [
 const SCAN_LABELS = {
   en: {
     analysisResults: 'Analysis Results',
+    searchResults: 'Search Results',
     verified: 'Verified',
+    partiallyVerified: 'Partially Verified',
+    notVerified: 'Information Not Verified',
+    found: 'Found',
     awaitingScan: 'Awaiting Scan',
     awaitingScanDesc: 'Upload an image and analyze it to view the structured clinical breakdown here.',
-    generic: 'Generic',
+    awaitingSearch: 'Awaiting Search',
+    awaitingSearchDesc: 'Enter a medicine name on the left and click Search to view detailed clinical information here.',
+    generic: 'Generic Name',
+    maker: 'Maker / Brand',
+    manufacturer: 'Manufacturer',
     overview: 'Overview',
     dosage: 'Dosage',
     warnings: 'Warnings',
     sideEffects: 'Side Effects',
     clinicalPurpose: 'Clinical Purpose',
-    manufacturer: 'Manufacturer',
-    storage: 'Storage',
-    prescribedDosage: 'Prescribed Dosage',
-    usageInstructions: 'Usage Instructions',
-    missedDose: 'If you miss a dose',
-    criticalWarnings: 'Critical Warnings',
-    generalPrecautions: 'General Precautions',
-    knownSideEffects: 'Known Side Effects',
-    // ── Manual name-search labels ──
-    searchResults: 'Search Results',
-    found: 'Found',
-    medicineNameSearch: 'Medicine Name Search',
-    medicineNameSearchDesc: 'Type the name of any medicine or drug to get detailed clinical information \u2014 dosage, warnings, side effects, and interactions.',
-    searchMedicine: 'Search Medicine',
-    searching: 'Searching...',
-    awaitingSearch: 'Awaiting Search',
-    awaitingSearchDesc: 'Enter a medicine name on the left and click Search to view detailed clinical information here.',
-    quickSuggestions: 'QUICK SUGGESTIONS',
-    analyzingMedicineData: 'Analyzing Medicine Data',
-    analyzingMedicineDataDesc: 'AI is retrieving clinical information...',
-    reset: 'Reset',
-    maker: 'Maker',
     primaryUse: 'Primary Use',
     drugClass: 'Drug Class',
     activeIngredient: 'Active Ingredient',
-    ageSpecificInfo: 'Age-Specific Info',
-    drugInteractions: 'Drug Interactions',
-    standardDose: 'Standard Dose',
+    activeIngredientsBreakdown: 'Active Pharmaceutical Ingredients (APIs)',
+    combinationRationale: 'Combination Synergy & Rationale',
+    ageSpecificInfo: 'Age-Specific Guidance',
+    storage: 'Storage',
+    interactions: 'Drug Interactions',
+    standardDose: 'Standard Reference Dose',
     frequency: 'Frequency',
-    duration: 'Duration',
+    duration: 'Treatment Duration',
     howToTake: 'How to Take',
-    precautions: 'Precautions',
+    prescribedDosage: 'Prescribed Dosage',
+    usageInstructions: 'Usage Instructions',
+    missedDose: 'If You Miss a Dose',
+    criticalWarnings: 'Critical Warnings & Alerts',
+    generalPrecautions: 'General Precautions',
+    knownSideEffects: 'Side Effects & Reactions',
     commonSideEffects: 'Common Side Effects',
-    seriousSideEffects: 'Serious Side Effects',
-    // ── Image scan mode labels ──
-    clinicalOcrEngine: 'Clinical OCR Engine',
-    scannerPageDesc: 'Upload pill bottles, packaging, or prescription labels. Our system extracts textual data and generates structured clinical dosages, active ingredients, warnings, and safety information.',
-    scanImage: 'Scan Image',
-    manualSearch: 'Manual Search',
-    imageSource: 'Image Source',
-    translateResultTo: 'Translate Result To:',
-    analyzeMedicine: 'Analyze Medicine',
-    uploadMedicineLabel: 'Upload Medicine Label',
-    uploadDesc: 'Drag and drop an image, click to browse, or use your camera.',
-    browseFiles: 'Browse Files',
-    openCamera: 'Open Camera',
-    demoPresets: 'DEMO PRESETS',
-    captureLabel: 'Capture Label',
-    captureFrame: 'Capture Frame',
-    cancel: 'Cancel',
-    analyzingMedicine: 'Analyzing Medicine',
-    imageUploaded: 'Image uploaded securely',
-    ocrExtracted: 'OCR text extracted',
-    medicineIdentified: 'Medicine identified via AI',
-    crossReferencing: 'Cross-referencing clinical data',
-    preparingSummary: 'Preparing safety summary',
+    seriousSideEffects: 'Serious Adverse Reactions',
+    medicalReferences: 'Verified Medical References & Citations',
+    referenceDosageNotice: 'Clinical Notice: An individual prescribed dosage for this specific patient is not available from the packaging label. Follow the licensed physician\'s prescription strictly.',
+    confidence: 'Clinical Match Confidence',
+    searchTitle: 'Medicine Name Search',
+    searchPrompt: 'Type the name of any medicine or drug to get detailed clinical information — dosage, warnings, side effects, and interactions.',
+    searchPlaceholder: 'e.g. ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'Search Medicine',
+    searching: 'Searching Database...',
+    reset: 'Reset',
+    quickSuggestions: 'QUICK SUGGESTIONS',
+    analyzingData: 'Analyzing Medicine Data',
+    aiRetrieving: 'Retrieving verified clinical information...',
+    route: 'Route of Administration',
+    dosageForm: 'Dosage Form'
   },
   hi: {
-    analysisResults: '\u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u0930\u093f\u0923\u093e\u092e',
-    verified: '\u0938\u0924\u094d\u092f\u093e\u092a\u093f\u0924',
-    awaitingScan: '\u0938\u094d\u0915\u0948\u0928 \u0915\u0940 \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0939\u0948',
-    awaitingScanDesc: '\u0938\u0902\u0930\u091a\u093f\u0924 \u0915\u094d\u0932\u093f\u0928\u093f\u0915\u0932 \u0935\u093f\u0935\u0930\u0923 \u0926\u0947\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u090f\u0915 \u091b\u0935\u093f \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902 \u0914\u0930 \u0909\u0938\u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0930\u0947\u0902\u0964',
-    generic: '\u091c\u0947\u0928\u0947\u0930\u093f\u0915 \u0928\u093e\u092e',
-    overview: '\u0905\u0935\u0932\u094b\u0915\u0928',
-    dosage: '\u0916\u0941\u0930\u093e\u0915',
-    warnings: '\u091a\u0947\u0924\u093e\u0935\u0928\u093f\u092f\u093e\u0902',
-    sideEffects: '\u0926\u0941\u0937\u094d\u092a\u094d\u0930\u092d\u093e\u0935',
-    clinicalPurpose: '\u091a\u093f\u0915\u093f\u0924\u094d\u0938\u0940\u092f \u0909\u092a\u092f\u094b\u0917',
-    manufacturer: '\u0928\u093f\u0930\u094d\u092e\u093e\u0924\u093e',
-    storage: '\u092d\u0902\u0921\u093e\u0930\u0923',
-    prescribedDosage: '\u0928\u093f\u0930\u094d\u0927\u093e\u0930\u093f\u0924 \u0916\u0941\u0930\u093e\u0915',
-    usageInstructions: '\u0909\u092a\u092f\u094b\u0917 \u0928\u093f\u0930\u094d\u0926\u0947\u0936',
-    missedDose: '\u092f\u0926\u093f \u0916\u0941\u0930\u093e\u0915 \u091b\u0942\u091f \u091c\u093e\u090f',
-    criticalWarnings: '\u092e\u0939\u0924\u094d\u0935\u092a\u0942\u0930\u094d\u0923 \u091a\u0947\u0924\u093e\u0935\u0928\u093f\u092f\u093e\u0902',
-    generalPrecautions: '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0938\u093e\u0935\u0927\u093e\u0928\u093f\u092f\u093e\u0902',
-    knownSideEffects: '\u091c\u094d\u091e\u093e\u0924 \u0926\u0941\u0937\u094d\u092a\u094d\u0930\u092d\u093e\u0935',
-    searchResults: '\u0916\u094b\u091c \u092a\u0930\u093f\u0923\u093e\u092e',
-    found: '\u092e\u093f\u0932\u093e',
-    medicineNameSearch: '\u0926\u0935\u093e\u0908 \u0915\u093e \u0928\u093e\u092e \u0916\u094b\u091c\u0947\u0902',
-    medicineNameSearchDesc: '\u0935\u093f\u0938\u094d\u0924\u0943\u0924 \u091a\u093f\u0915\u093f\u0924\u094d\u0938\u0940\u092f \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u092a\u094d\u0930\u093e\u092a\u094d\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u093f\u0938\u0940 \u092d\u0940 \u0926\u0935\u093e\u0908 \u0915\u093e \u0928\u093e\u092e \u091f\u093e\u0907\u092a \u0915\u0930\u0947\u0902 \u2014 \u0916\u0941\u0930\u093e\u0915, \u091a\u0947\u0924\u093e\u0935\u0928\u093f\u092f\u093e\u0902, \u0926\u0941\u0937\u094d\u092a\u094d\u0930\u092d\u093e\u0935 \u0914\u0930 \u0926\u0935\u093e\u0908 \u0915\u0940 \u092a\u0930\u0938\u094d\u092a\u0930 \u0915\u094d\u0930\u093f\u092f\u093e\u0964',
-    searchMedicine: '\u0926\u0935\u093e\u0908 \u0916\u094b\u091c\u0947\u0902',
-    searching: '\u0916\u094b\u091c \u0930\u0939\u093e \u0939\u0948...',
-    awaitingSearch: '\u0916\u094b\u091c \u0915\u0940 \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e',
-    awaitingSearchDesc: '\u092c\u093e\u0908\u0902 \u0913\u0930 \u0926\u0935\u093e\u0908 \u0915\u093e \u0928\u093e\u092e \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902 \u0914\u0930 \u0935\u093f\u0938\u094d\u0924\u0943\u0924 \u091a\u093f\u0915\u093f\u0924\u094d\u0938\u0940\u092f \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u092f\u0939\u093e\u0902 \u0926\u0947\u0916\u0947\u0902\u0964',
-    quickSuggestions: '\u0924\u094d\u0935\u0930\u093f\u0924 \u0938\u0941\u091d\u093e\u0935',
-    analyzingMedicineData: '\u0926\u0935\u093e\u0908 \u0921\u0947\u091f\u093e \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923',
-    analyzingMedicineDataDesc: 'AI \u091a\u093f\u0915\u093f\u0924\u094d\u0938\u0940\u092f \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u092a\u094d\u0930\u093e\u092a\u094d\u0924 \u0915\u0930 \u0930\u0939\u093e \u0939\u0948...',
-    reset: '\u0930\u0940\u0938\u0947\u091f',
-    maker: '\u0928\u093f\u0930\u094d\u092e\u093e\u0924\u093e',
-    primaryUse: '\u092a\u094d\u0930\u093e\u0925\u092e\u093f\u0915 \u0909\u092a\u092f\u094b\u0917',
-    drugClass: '\u0926\u0935\u093e\u0908 \u0935\u0930\u094d\u0917',
-    activeIngredient: '\u0938\u0915\u094d\u0930\u093f\u092f \u0924\u0924\u094d\u0935',
-    ageSpecificInfo: '\u0906\u092f\u0941-\u0935\u093f\u0936\u093f\u0937\u094d\u091f \u091c\u093e\u0928\u0915\u093e\u0930\u0940',
-    drugInteractions: '\u0926\u0935\u093e\u0908 \u092a\u0930\u0938\u094d\u092a\u0930 \u0915\u094d\u0930\u093f\u092f\u093e',
-    standardDose: '\u092e\u093e\u0928\u0915 \u0916\u0941\u0930\u093e\u0915',
-    frequency: '\u0906\u0935\u0943\u0924\u094d\u0924\u093f',
-    duration: '\u0905\u0935\u0927\u093f',
-    howToTake: '\u0915\u0948\u0938\u0947 \u0932\u0947\u0902',
-    precautions: '\u0938\u093e\u0935\u0927\u093e\u0928\u093f\u092f\u093e\u0902',
-    commonSideEffects: '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0926\u0941\u0937\u094d\u092a\u094d\u0930\u092d\u093e\u0935',
-    seriousSideEffects: '\u0917\u0902\u092d\u0940\u0930 \u0926\u0941\u0937\u094d\u092a\u094d\u0930\u092d\u093e\u0935',
-    clinicalOcrEngine: '\u0915\u094d\u0932\u093f\u0928\u093f\u0915\u0932 OCR \u0907\u0902\u091c\u0928',
-    scannerPageDesc: '\u0926\u0935\u093e\u0908 \u0915\u0940 \u092c\u094b\u0924\u0932, \u092a\u0948\u0915\u0947\u091c\u093f\u0902\u0917 \u092f\u093e \u092a\u094d\u0930\u093f\u0938\u094d\u0915\u094d\u0930\u093f\u092a\u094d\u0936\u0928 \u0932\u0947\u092c\u0932 \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964 \u0939\u092e\u093e\u0930\u0940 \u092a\u094d\u0930\u0923\u093e\u0932\u0940 \u091f\u0947\u0915\u094d\u0938\u094d\u091f \u0921\u0947\u091f\u093e \u0928\u093f\u0915\u093e\u0932\u0924\u0940 \u0939\u0948 \u0914\u0930 \u0938\u0902\u0930\u091a\u093f\u0924 \u0916\u0941\u0930\u093e\u0915, \u0938\u0915\u094d\u0930\u093f\u092f \u0924\u0924\u094d\u0935, \u091a\u0947\u0924\u093e\u0935\u0928\u093f\u092f\u093e\u0902 \u0914\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0924\u0948\u092f\u093e\u0930 \u0915\u0930\u0924\u0940 \u0939\u0948\u0964',
-    scanImage: '\u091b\u0935\u093f \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0947\u0902',
-    manualSearch: '\u092e\u0948\u0928\u0941\u0905\u0932 \u0916\u094b\u091c',
-    imageSource: '\u091b\u0935\u093f \u0938\u094d\u0930\u094b\u0924',
-    translateResultTo: '\u092a\u0930\u093f\u0923\u093e\u092e \u0905\u0928\u0941\u0935\u093e\u0926 \u0915\u0930\u0947\u0902:',
-    analyzeMedicine: '\u0926\u0935\u093e\u0908 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0930\u0947\u0902',
-    uploadMedicineLabel: '\u0926\u0935\u093e\u0908 \u0915\u093e \u0932\u0947\u092c\u0932 \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902',
-    uploadDesc: '\u091b\u0935\u093f \u0921\u094d\u0930\u0948\u0917 \u0914\u0930 \u0921\u094d\u0930\u0949\u092a \u0915\u0930\u0947\u0902, \u092c\u094d\u0930\u093e\u0909\u091c \u0915\u0930\u0947\u0902, \u092f\u093e \u0915\u0948\u092e\u0930\u093e \u0916\u094b\u0932\u0947\u0902\u0964',
-    browseFiles: '\u092b\u093e\u0907\u0932 \u091a\u0941\u0928\u0947\u0902',
-    openCamera: '\u0915\u0948\u092e\u0930\u093e \u0916\u094b\u0932\u0947\u0902',
-    demoPresets: '\u0921\u0947\u092e\u094b \u092a\u094d\u0930\u0940\u0938\u0947\u091f',
-    captureLabel: '\u0932\u0947\u092c\u0932 \u0915\u0948\u092a\u094d\u091a\u0930 \u0915\u0930\u0947\u0902',
-    captureFrame: '\u092b\u094d\u0930\u0947\u092e \u0915\u0948\u092a\u094d\u091a\u0930 \u0915\u0930\u0947\u0902',
-    cancel: '\u0930\u0926\u094d\u0926 \u0915\u0930\u0947\u0902',
-    analyzingMedicine: '\u0926\u0935\u093e\u0908 \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923',
-    imageUploaded: '\u091b\u0935\u093f \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0930\u0942\u092a \u0938\u0947 \u0905\u092a\u0932\u094b\u0921 \u0939\u0941\u0908',
-    ocrExtracted: 'OCR \u091f\u0947\u0915\u094d\u0938\u094d\u091f \u0928\u093f\u0915\u093e\u0932\u093e \u0917\u092f\u093e',
-    medicineIdentified: 'AI \u0926\u094d\u0935\u093e\u0930\u093e \u0926\u0935\u093e\u0908 \u092a\u0939\u091a\u093e\u0928\u0940 \u0917\u0908',
-    crossReferencing: '\u0915\u094d\u0932\u093f\u0928\u093f\u0915\u0932 \u0921\u0947\u091f\u093e \u0915\u094d\u0930\u0949\u0938-\u0930\u0947\u092b\u0930\u0947\u0902\u0938 \u0939\u094b \u0930\u0939\u093e \u0939\u0948',
-    preparingSummary: '\u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0938\u093e\u0930\u093e\u0902\u0936 \u0924\u0948\u092f\u093e\u0930 \u0939\u094b \u0930\u0939\u093e \u0939\u0948',
+    analysisResults: 'विश्लेषण परिणाम (Analysis Results)',
+    searchResults: 'खोज परिणाम (Search Results)',
+    verified: 'सत्यापित (Verified)',
+    partiallyVerified: 'आंशिक रूप से सत्यापित (Partially Verified)',
+    notVerified: 'जानकारी सत्यापित नहीं है (Not Verified)',
+    found: 'उपलब्ध (Found)',
+    awaitingScan: 'स्कैन की प्रतीक्षा है',
+    awaitingScanDesc: 'संरचित क्लिनिकल विवरण देखने के लिए एक छवि अपलोड करें और उसका विश्लेषण करें।',
+    awaitingSearch: 'खोज की प्रतीक्षा है',
+    awaitingSearchDesc: 'बाईं ओर दवा का नाम दर्ज करें और विस्तृत चिकित्सीय जानकारी देखने के लिए खोज बटन दबाएं।',
+    generic: 'जेनेरिक नाम',
+    maker: 'निर्माता / ब्रांड',
+    manufacturer: 'निर्माता कंपनी',
+    overview: 'अवलोकन (Overview)',
+    dosage: 'खुराक (Dosage)',
+    warnings: 'चेतावनियां (Warnings)',
+    sideEffects: 'दुष्प्रभाव (Side Effects)',
+    clinicalPurpose: 'चिकित्सीय उपयोग',
+    primaryUse: 'प्रमुख चिकित्सीय उपयोग',
+    drugClass: 'दवा वर्ग (Drug Class)',
+    activeIngredient: 'सक्रिय घटक',
+    activeIngredientsBreakdown: 'सक्रिय औषधीय घटक (APIs)',
+    combinationRationale: 'संयोजन का चिकित्सीय उद्देश्य (Synergy)',
+    ageSpecificInfo: 'आयु-विशिष्ट सलाह',
+    storage: 'भंडारण निर्देश',
+    interactions: 'दवाओं का परस्पर प्रभाव (Interactions)',
+    standardDose: 'मानक अनुशंसित खुराक',
+    frequency: 'लेने की आवृत्ति (Frequency)',
+    duration: 'उपचार अवधि (Duration)',
+    howToTake: 'लेने का तरीका (How to Take)',
+    prescribedDosage: 'निर्धारित खुराक (Dosage)',
+    usageInstructions: 'उपयोग निर्देश',
+    missedDose: 'यदि खुराक छूट जाए (Missed Dose)',
+    criticalWarnings: 'महत्वपूर्ण चेतावनियां एवं अलर्ट',
+    generalPrecautions: 'सामान्य सावधानियां',
+    knownSideEffects: 'ज्ञात दुष्प्रभाव एवं प्रतिक्रियाएं',
+    commonSideEffects: 'सामान्य दुष्प्रभाव',
+    seriousSideEffects: 'गंभीर प्रतिकूल प्रतिक्रियाएं',
+    medicalReferences: 'सत्यापित चिकित्सीय संदर्भ एवं स्रोत',
+    referenceDosageNotice: 'क्लिनिकल सूचना: मरीज के लिए व्यक्तिगत निर्धारित खुराक इस पैकेजिंग से निर्धारित नहीं होती। हमेशा डॉक्टर के पर्चे अनुसार ही दवा लें।',
+    confidence: 'सटीकता स्कोर',
+    searchTitle: 'दवा का नाम खोजें',
+    searchPrompt: 'विस्तृत चिकित्सीय जानकारी — खुराक, चेतावनियां, दुष्प्रभाव और परस्पर प्रभाव प्राप्त करने के लिए किसी भी दवा का नाम लिखें।',
+    searchPlaceholder: 'जैसे: ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'दवा खोजें',
+    searching: 'डेटाबेस खोजा जा रहा है...',
+    reset: 'रीसेट',
+    quickSuggestions: 'त्वरित सुझाव',
+    analyzingData: 'दवा डेटा का विश्लेषण जारी है',
+    aiRetrieving: 'सत्यापित चिकित्सीय जानकारी प्राप्त की जा रही है...',
+    route: 'प्रशासन मार्ग (Route)',
+    dosageForm: 'दवा का प्रकार (Form)'
   },
   gu: {
-    analysisResults: '\u0AB5\u0ABF\u0AB6\u0ACD\u0AB2\u0AC7\u0AB7\u0AA3 \u0AAA\u0AB0\u0ABF\u0AA3\u0ABE\u0AAE\u0ACB',
-    verified: '\u0A9A\u0A95\u0ABE\u0AB8\u0ABE\u0AAF\u0AC7\u0AB2',
-    awaitingScan: '\u0AB8\u0ACD\u0A95\u0AC7\u0AA8 \u0AAE\u0ABE\u0A9F\u0AC7 \u0AAA\u0ACD\u0AB0\u0AA4\u0AC0\u0A95\u0ACD\u0AB7\u0ABE\u0AB0\u0AA4',
-    awaitingScanDesc: '\u0A95\u0ACD\u0AB2\u0ABF\u0AA8\u0ABF\u0A95\u0AB2 \u0AB5\u0ABF\u0A97\u0AA4\u0ACB \u0A9C\u0ACB\u0AB5\u0ABE \u0AAE\u0ABE\u0A9F\u0AC7 \u0AA6\u0AB5\u0ABE\u0AA8\u0ABE \u0AB2\u0AC7\u0AAC\u0AB2\u0AA8\u0ACB \u0AAB\u0ACB\u0A9F\u0ACB \u0A85\u0AAA\u0AB2\u0ACB\u0AA1 \u0A95\u0AB0\u0ACB \u0A85\u0AA8\u0AC7 \u0AB5\u0ABF\u0AB6\u0ACD\u0AB2\u0AC7\u0AB7\u0AA3 \u0A95\u0AB0\u0ACB.',
-    generic: '\u0A9C\u0AC7\u0AA8\u0AC7\u0AB0\u0ABF\u0A95 \u0AA8\u0ABE\u0AAE',
-    overview: '\u0AB5\u0ABF\u0AB9\u0A82\u0A97\u0ABE\u0AB5\u0AB2\u0ACB\u0A95\u0AA8',
-    dosage: '\u0AAE\u0ABE\u0AA4\u0ACD\u0AB0\u0ABE / \u0AA1\u0ACB\u0A9D',
-    warnings: '\u0A9A\u0AC7\u0AA4\u0AB5\u0AA3\u0AC0\u0A93',
-    sideEffects: '\u0A86\u0AA1\u0A85\u0AB8\u0AB0\u0ACB',
-    clinicalPurpose: '\u0AA4\u0AAC\u0AC0\u0AAC\u0AC0 \u0A89\u0AAA\u0AAF\u0ACB\u0A97',
-    manufacturer: '\u0A89\u0AA4\u0ACD\u0AAA\u0ABE\u0AA6\u0A95',
-    storage: '\u0AB8\u0A82\u0A97\u0ACD\u0AB0\u0AB9',
-    prescribedDosage: '\u0AAD\u0AB2\u0ABE\u0AAE\u0AA3 \u0A95\u0AB0\u0AC7\u0AB2 \u0AA1\u0ACB\u0A9D',
-    usageInstructions: '\u0AB5\u0AAA\u0AB0\u0ABE\u0AB6 \u0AAE\u0ABE\u0AB0\u0ACD\u0A97\u0AA6\u0AB0\u0ACD\u0AB6\u0ABF\u0A95\u0ABE',
-    missedDose: '\u0A9C\u0ACB \u0AA1\u0ACB\u0A9D \u0A9A\u0AC2\u0A95\u0AC0 \u0A9C\u0ABE\u0A93',
-    criticalWarnings: '\u0AAE\u0AB9\u0AA4\u0ACD\u0AB5\u0AAA\u0AC2\u0AB0\u0ACD\u0AA3 \u0A9A\u0AC7\u0AA4\u0AB5\u0AA3\u0AC0\u0A93',
-    generalPrecautions: '\u0AB8\u0ABE\u0AAE\u0ABE\u0AA8\u0ACD\u0AAF \u0AB8\u0ABE\u0AB5\u0A9A\u0AC7\u0AA4\u0AC0\u0A93',
-    knownSideEffects: '\u0A9C\u0ABE\u0AA3\u0AC0\u0AA4\u0AC0 \u0A86\u0AA1\u0A85\u0AB8\u0AB0\u0ACB',
-    searchResults: '\u0AB6\u0ACB\u0AA7 \u0AAA\u0AB0\u0ABF\u0AA3\u0ABE\u0AAE\u0ACB',
-    found: '\u0AAE\u0AB3\u0ACD\u0AAF\u0AC1\u0A82',
-    medicineNameSearch: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AA8\u0ABE\u0AAE \u0AB6\u0ACB\u0AA7\u0ACB',
-    medicineNameSearchDesc: '\u0AB5\u0ABF\u0AB8\u0ACD\u0AA4\u0AC3\u0AA4 \u0AA4\u0AAC\u0AC0\u0AAC\u0AC0 \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0 \u0AAE\u0AC7\u0AB3\u0AB5\u0AB5\u0ABE \u0AAE\u0ABE\u0A9F\u0AC7 \u0A95\u0ACB\u0A88\u0AAA\u0AA3 \u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AA8\u0ABE\u0AAE \u0A9F\u0ABE\u0A87\u0AAA \u0A95\u0AB0\u0ACB \u2014 \u0AAE\u0ABE\u0AA4\u0ACD\u0AB0\u0ABE, \u0A9A\u0AC7\u0AA4\u0AB5\u0AA3\u0AC0\u0A93, \u0A86\u0AA1\u0A85\u0AB8\u0AB0\u0ACB \u0A85\u0AA8\u0AC7 \u0AA6\u0AB5\u0ABE\u0AA8\u0AC0 \u0A86\u0A82\u0AA4\u0AB0\u0A95\u0ACD\u0AB0\u0ABF\u0AAF\u0ABE.',
-    searchMedicine: '\u0AA6\u0AB5\u0ABE \u0AB6\u0ACB\u0AA7\u0ACB',
-    searching: '\u0AB6\u0ACB\u0AA7\u0AC0 \u0AB0\u0AB9\u0ACD\u0AAF\u0ABE \u0A9B\u0AC0\u0A8F...',
-    awaitingSearch: '\u0AB6\u0ACB\u0AA7\u0AA8\u0AC0 \u0AAA\u0ACD\u0AB0\u0AA4\u0AC0\u0A95\u0ACD\u0AB7\u0ABE',
-    awaitingSearchDesc: '\u0AA1\u0ABE\u0AAC\u0AC0 \u0AAC\u0ABE\u0A9C\u0AC1 \u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AA8\u0ABE\u0AAE \u0AA6\u0ABE\u0A96\u0AB2 \u0A95\u0AB0\u0ACB \u0A85\u0AA8\u0AC7 \u0AB5\u0ABF\u0AB8\u0ACD\u0AA4\u0AC3\u0AA4 \u0AA4\u0AAC\u0AC0\u0AAC\u0AC0 \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0 \u0A85\u0AB9\u0AC0\u0A82 \u0A9C\u0AC1\u0A93.',
-    quickSuggestions: '\u0AA4\u0ACD\u0AB5\u0AB0\u0ABF\u0AA4 \u0AB8\u0AC2\u0A9A\u0AA8\u0ACB',
-    analyzingMedicineData: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC0 \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0\u0AA8\u0AC1\u0A82 \u0AB5\u0ABF\u0AB6\u0ACD\u0AB2\u0AC7\u0AB7\u0AA3',
-    analyzingMedicineDataDesc: 'AI \u0A95\u0ACD\u0AB2\u0ABF\u0AA8\u0ABF\u0A95\u0AB2 \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0 \u0AAE\u0AC7\u0AB3\u0AB5\u0AC0 \u0AB0\u0AB9\u0ACD\u0AAF\u0AC1\u0A82 \u0A9B\u0AC7...',
-    reset: '\u0AB0\u0AC0\u0AB8\u0AC7\u0A9F',
-    maker: '\u0A89\u0AA4\u0ACD\u0AAA\u0ABE\u0AA6\u0A95',
-    primaryUse: '\u0AAA\u0ACD\u0AB0\u0ABE\u0AA5\u0AAE\u0ABF\u0A95 \u0A89\u0AAA\u0AAF\u0ACB\u0A97',
-    drugClass: '\u0AA6\u0AB5\u0ABE \u0AB5\u0AB0\u0ACD\u0A97',
-    activeIngredient: '\u0AB8\u0A95\u0ACD\u0AB0\u0ABF\u0AAF \u0A98\u0A9F\u0A95',
-    ageSpecificInfo: '\u0A89\u0A82\u0AAE\u0AB0-\u0AB5\u0ABF\u0AB6\u0ABF\u0AB7\u0ACD\u0A9F \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0',
-    drugInteractions: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC0 \u0A86\u0A82\u0AA4\u0AB0\u0A95\u0ACD\u0AB0\u0ABF\u0AAF\u0ABE',
-    standardDose: '\u0AAE\u0ABE\u0AA8\u0A95 \u0AA1\u0ACB\u0A9D',
-    frequency: '\u0A86\u0AB5\u0AC3\u0AA4\u0ACD\u0AA4\u0ABF',
-    duration: '\u0AB8\u0AAE\u0AAF\u0A97\u0ABE\u0AB3\u0ACB',
-    howToTake: '\u0A95\u0AC7\u0AB5\u0AC0 \u0AB0\u0AC0\u0AA4\u0AC7 \u0AB2\u0AC7\u0AB5\u0AC0',
-    precautions: '\u0AB8\u0ABE\u0AB5\u0A9A\u0AC7\u0AA4\u0AC0\u0A93',
-    commonSideEffects: '\u0AB8\u0ABE\u0AAE\u0ABE\u0AA8\u0ACD\u0AAF \u0A86\u0AA1\u0A85\u0AB8\u0AB0\u0ACB',
-    seriousSideEffects: '\u0A97\u0A82\u0AAD\u0AC0\u0AB0 \u0A86\u0AA1\u0A85\u0AB8\u0AB0\u0ACB',
-    clinicalOcrEngine: '\u0A95\u0ACD\u0AB2\u0ABF\u0AA8\u0ABF\u0A95\u0AB2 OCR \u0A8F\u0AA8\u0ACD\u0A9C\u0ABF\u0AA8',
-    scannerPageDesc: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC0 \u0AAC\u0ACB\u0AA4\u0AB2, \u0AAA\u0AC7\u0A95\u0AC7\u0A9C\u0ABF\u0A82\u0A97 \u0A85\u0AA5\u0AB5\u0ABE \u0AAA\u0ACD\u0AB0\u0ABF\u0AB8\u0ACD\u0A95\u0ACD\u0AB0\u0ABF\u0AAA\u0ACD\u0AB6\u0AA8 \u0AB2\u0AC7\u0AAC\u0AB2 \u0A85\u0AAA\u0AB2\u0ACB\u0AA1 \u0A95\u0AB0\u0ACB. \u0A85\u0AAE\u0ABE\u0AB0\u0AC0 \u0AB8\u0ABF\u0AB8\u0ACD\u0A9F\u0AAE \u0A9F\u0AC7\u0A95\u0ACD\u0AB8\u0ACD\u0A9F \u0AA1\u0AC7\u0A9F\u0ABE \u0A95\u0ABE\u0AA2\u0AC7 \u0A9B\u0AC7 \u0A85\u0AA8\u0AC7 \u0AB8\u0A82\u0AB0\u0A9A\u0ABF\u0AA4 \u0AAE\u0ABE\u0AA4\u0ACD\u0AB0\u0ABE, \u0AB8\u0A95\u0ACD\u0AB0\u0ABF\u0AAF \u0A98\u0A9F\u0A95\u0ACB, \u0A9A\u0AC7\u0AA4\u0AB5\u0AA3\u0AC0\u0A93 \u0A85\u0AA8\u0AC7 \u0AB8\u0AC1\u0AB0\u0A95\u0ACD\u0AB7\u0ABE \u0AAE\u0ABE\u0AB9\u0ABF\u0AA4\u0AC0 \u0AA4\u0AC8\u0AAF\u0ABE\u0AB0 \u0A95\u0AB0\u0AC7 \u0A9B\u0AC7.',
-    scanImage: '\u0A9B\u0AAC\u0AC0 \u0AB8\u0ACD\u0A95\u0AC7\u0AA8 \u0A95\u0AB0\u0ACB',
-    manualSearch: '\u0AAE\u0AC7\u0AA8\u0ACD\u0AAF\u0AC1\u0A85\u0AB2 \u0AB6\u0ACB\u0AA7',
-    imageSource: '\u0A9B\u0AAC\u0AC0 \u0AB8\u0ACD\u0AB0\u0ACB\u0AA4',
-    translateResultTo: '\u0AAA\u0AB0\u0ABF\u0AA3\u0ABE\u0AAE \u0A85\u0AA8\u0AC1\u0AB5\u0ABE\u0AA6 \u0A95\u0AB0\u0ACB:',
-    analyzeMedicine: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AB5\u0ABF\u0AB6\u0ACD\u0AB2\u0AC7\u0AB7\u0AA3 \u0A95\u0AB0\u0ACB',
-    uploadMedicineLabel: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AB2\u0AC7\u0AAC\u0AB2 \u0A85\u0AAA\u0AB2\u0ACB\u0AA1 \u0A95\u0AB0\u0ACB',
-    uploadDesc: '\u0A9B\u0AAC\u0AC0 \u0AA1\u0ACD\u0AB0\u0AC7\u0A97 \u0A85\u0AA8\u0AC7 \u0AA1\u0ACD\u0AB0\u0ACB\u0AAA \u0A95\u0AB0\u0ACB, \u0AAC\u0ACD\u0AB0\u0ABE\u0A89\u0A9D \u0A95\u0AB0\u0ACB, \u0A85\u0AA5\u0AB5\u0ABE \u0A95\u0AC7\u0AAE\u0AB0\u0ACB \u0A96\u0ACB\u0AB2\u0ACB.',
-    browseFiles: '\u0AAB\u0ABE\u0A87\u0AB2 \u0AAC\u0ACD\u0AB0\u0ABE\u0A89\u0A9D \u0A95\u0AB0\u0ACB',
-    openCamera: '\u0A95\u0AC7\u0AAE\u0AB0\u0ACB \u0A96\u0ACB\u0AB2\u0ACB',
-    demoPresets: '\u0AA1\u0AC7\u0AAE\u0ACB \u0AAA\u0ACD\u0AB0\u0AC0\u0AB8\u0AC7\u0A9F',
-    captureLabel: '\u0AB2\u0AC7\u0AAC\u0AB2 \u0A95\u0AC7\u0AAA\u0ACD\u0A9A\u0AB0 \u0A95\u0AB0\u0ACB',
-    captureFrame: '\u0AAB\u0ACD\u0AB0\u0AC7\u0AAE \u0A95\u0AC7\u0AAA\u0ACD\u0A9A\u0AB0 \u0A95\u0AB0\u0ACB',
-    cancel: '\u0AB0\u0AA6 \u0A95\u0AB0\u0ACB',
-    analyzingMedicine: '\u0AA6\u0AB5\u0ABE\u0AA8\u0AC1\u0A82 \u0AB5\u0ABF\u0AB6\u0ACD\u0AB2\u0AC7\u0AB7\u0AA3',
-    imageUploaded: '\u0A9B\u0AAC\u0AC0 \u0AB8\u0AC1\u0AB0\u0A95\u0ACD\u0AB7\u0ABF\u0AA4 \u0AB0\u0AC0\u0AA4\u0AC7 \u0A85\u0AAA\u0AB2\u0ACB\u0AA1 \u0AA5\u0A88',
-    ocrExtracted: 'OCR \u0A9F\u0AC7\u0A95\u0ACD\u0AB8\u0ACD\u0A9F \u0A95\u0ABE\u0AA2\u0AB5\u0ABE\u0AAE\u0ABE\u0A82 \u0A86\u0AB5\u0ACD\u0AAF\u0ACB',
-    medicineIdentified: 'AI \u0AA6\u0ACD\u0AB5\u0ABE\u0AB0\u0ABE \u0AA6\u0AB5\u0ABE \u0A93\u0AB3\u0A96\u0ABE\u0A88',
-    crossReferencing: '\u0A95\u0ACD\u0AB2\u0ABF\u0AA8\u0ABF\u0A95\u0AB2 \u0AA1\u0AC7\u0A9F\u0ABE \u0A95\u0ACD\u0AB0\u0ACB\u0AB8-\u0AB0\u0AC7\u0AAB\u0AB0\u0AC7\u0AA8\u0ACD\u0AB8 \u0AA5\u0A88 \u0AB0\u0AB9\u0ACD\u0AAF\u0AC1\u0A82 \u0A9B\u0AC7',
-    preparingSummary: '\u0AB8\u0AC1\u0AB0\u0A95\u0ACD\u0AB7\u0ABE \u0AB8\u0ABE\u0AB0\u0ABE\u0A82\u0AB6 \u0AA4\u0AC8\u0AAF\u0ABE\u0AB0 \u0AA5\u0A88 \u0AB0\u0AB9\u0ACD\u0AAF\u0ACB \u0A9B\u0AC7',
+    analysisResults: 'વિશ્લેષણ પરિણામો (Analysis Results)',
+    searchResults: 'શોધ પરિણામો (Search Results)',
+    verified: 'ચકાસાયેલ (Verified)',
+    partiallyVerified: 'આંશિક ચકાસાયેલ (Partially Verified)',
+    notVerified: 'માહિતી ચકાસાયેલ નથી (Not Verified)',
+    found: 'મળેલ છે (Found)',
+    awaitingScan: 'સ્કેન માટે પ્રતીક્ષારત',
+    awaitingScanDesc: 'ક્લિનિકલ વિગતો જોવા માટે દવાના લેબલનો ફોટો અપલોડ કરો અને વિશ્લેષણ કરો.',
+    awaitingSearch: 'શોધ માટે પ્રતીક્ષારત',
+    awaitingSearchDesc: 'ડાબી બાજુ દવાનું નામ દાખલ કરો અને વિગતવાર ક્લિનિકલ માહિતી મેળવવા માટે સર્ચ પર ક્લિક કરો.',
+    generic: 'જેનેરિક નામ',
+    maker: 'બ્રાન્ડ / ઉત્પાદક',
+    manufacturer: 'ઉત્પાદક કંપની',
+    overview: 'વિહંગાવલોકન (Overview)',
+    dosage: 'માત્રા / ડોઝ (Dosage)',
+    warnings: 'ચેતવણીઓ (Warnings)',
+    sideEffects: 'આડઅસરો (Side Effects)',
+    clinicalPurpose: 'તબીબી ઉપયોગ (Clinical Purpose)',
+    primaryUse: 'મુખ્ય તબીબી ઉપયોગ',
+    drugClass: 'દવા વર્ગીકરણ (Drug Class)',
+    activeIngredient: 'સક્રિય ઘટક',
+    activeIngredientsBreakdown: 'સક્રિય ઔષધીય ઘટકો (APIs)',
+    combinationRationale: 'સંયોજનનો હેતુ (Synergy Rationale)',
+    ageSpecificInfo: 'ઉંમર મુજબ સલાહ (Age-Specific Info)',
+    storage: 'સંગ્રહ માર્ગદર્શિકા (Storage)',
+    interactions: 'દવાઓની ક્રિયાપ્રતિક્રિયા (Drug Interactions)',
+    standardDose: 'ભલામણ કરેલ સામાન્ય માત્રા',
+    frequency: 'લેવાનો સમય / આવર્તન',
+    duration: 'સારવારનો સમયગાળો',
+    howToTake: 'લેવાની સાચી રીત',
+    prescribedDosage: 'ભલામણ કરેલ ડોઝ',
+    usageInstructions: 'વપરાશ માર્ગદર્શિકા',
+    missedDose: 'જો ડોઝ ચૂકી જાઓ તો (Missed Dose)',
+    criticalWarnings: 'મહત્વપૂર્ણ ચેતવણીઓ (Critical Warnings)',
+    generalPrecautions: 'સામાન્ય સાવચેતીઓ (Precautions)',
+    knownSideEffects: 'જાણીતી આડઅસરો (Known Side Effects)',
+    commonSideEffects: 'સામાન્ય આડઅસરો',
+    seriousSideEffects: 'ગંભીર આડઅસરો (Serious Side Effects)',
+    medicalReferences: 'તબીબી સંદર્ભ અને સ્ત્રોતો (Medical References)',
+    referenceDosageNotice: 'ક્લિનિકલ સૂચના: દર્દી માટેનો વ્યક્તિગત નિર્ધારિત ડોઝ પેકેજિંગમાંથી નક્કી થતો નથી. હંમેશા ડૉક્ટરના પ્રિસ્ક્રિપ્શન મુજબ જ દવા લો.',
+    confidence: 'ચોકસાઈ સ્કોર',
+    searchTitle: 'દવાનું નામ સર્ચ કરો',
+    searchPrompt: 'કોઈપણ દવા વિશે વિગતવાર ક્લિનિકલ માહિતી — માત્રા, ચેતવણીઓ, આડઅસરો અને ક્રિયાપ્રતિક્રિયા મેળવવા માટે નામ લખો.',
+    searchPlaceholder: 'ઉદાહરણ: ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'દવા શોધો',
+    searching: 'ડેટાબેઝ શોધાઈ રહ્યો છે...',
+    reset: 'રીસેટ',
+    quickSuggestions: 'ઝડપી સૂચનો',
+    analyzingData: 'દવાના ડેટાનું વિશ્લેષણ ચાલુ છે',
+    aiRetrieving: 'ચકાસાયેલ ક્લિનિકલ માહિતી લાવવામાં આવી રહી છે...',
+    route: 'લેવાનો માર્ગ (Route)',
+    dosageForm: 'દવાનું સ્વરૂપ (Form)'
   }
+};
+
+const localizeDigits = (text, lang) => {
+  if (typeof text !== 'string') {
+    if (typeof text === 'number') text = String(text);
+    else return text;
+  }
+  if (lang !== 'gu' && lang !== 'hi') return text;
+  const guMap = { '0': '૦', '1': '૧', '2': '૨', '3': '૩', '4': '૪', '5': '૫', '6': '૬', '7': '૭', '8': '૮', '9': '૯' };
+  const hiMap = { '0': '०', '1': '१', '2': '२', '3': '३', '4': '४', '5': '५', '6': '६', '7': '७', '8': '૮', '9': '९' };
+  const digitMap = lang === 'gu' ? guMap : hiMap;
+  return text.replace(/[0-9]/g, d => digitMap[d] || d);
 };
 
 const PRESET_MEDICINES = [
   {
-    id: 'amoxicillin', name: 'Amoxicillin 500mg', category: 'Antibiotic',
+    id: 'acenext_p',
+    name: 'ACENEXT P',
+    category: 'NSAID / Pain Relief',
+    labelText: 'ACENEXT P TABLETS - Each film coated tablet contains: Aceclofenac IP 100 mg, Paracetamol IP 325 mg. Mfg by Acrochem Laboratories.'
+  },
+  {
+    id: 'montypen_lc',
+    name: 'Montypen-LC',
+    category: 'Antiallergic',
+    labelText: 'Montypen-LC Tablets - Each film coated tablet contains: Montelukast Sodium IP 10 mg + Levocetirizine Dihydrochloride IP 5 mg. Mfg by Acrochem.'
+  },
+  {
+    id: 'amoxicillin',
+    name: 'Amoxicillin 500mg',
+    category: 'Antibiotic',
     labelText: 'AMOXICILLIN 500mg CAPSULES - GSK Pharma. Take 1 capsule every 8 hours.'
   },
   {
-    id: 'metformin', name: 'Metformin 850mg', category: 'Diabetes',
-    labelText: 'METFORMIN HYDROCHLORIDE 850mg. Take 1 tablet twice daily with meals.'
+    id: 'metformin',
+    name: 'Metformin 850mg',
+    category: 'Diabetes',
+    labelText: 'METFORMIN HYDROCHLORIDE 850mg (Biguanides). Take 1 tablet twice daily with meals.'
   }
 ];
 
 const generatePresetImageFile = (preset) => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
-    canvas.width = 600; canvas.height = 400;
+    canvas.width = 650; canvas.height = 420;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#0B0D1C'; ctx.fillRect(0, 0, 600, 400);
-    ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 4; ctx.strokeRect(20, 20, 560, 360);
-    ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 24px sans-serif'; ctx.fillText(preset.name, 40, 60);
-    ctx.fillStyle = '#A8AEC7'; ctx.font = '16px monospace'; ctx.fillText(preset.labelText, 40, 100);
+    ctx.fillStyle = '#0B0D1C'; ctx.fillRect(0, 0, 650, 420);
+    ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 4; ctx.strokeRect(20, 20, 610, 380);
+    ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 26px sans-serif'; ctx.fillText(preset.name, 40, 65);
+    ctx.fillStyle = '#10B981'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(`Category: ${preset.category}`, 40, 95);
+    ctx.fillStyle = '#CBD5E1'; ctx.font = '15px monospace';
+    
+    // Multi-line wrap
+    const words = preset.labelText.split(' ');
+    let line = '';
+    let y = 140;
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > 550 && i > 0) {
+        ctx.fillText(line, 40, y);
+        line = words[i] + ' ';
+        y += 26;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, 40, y);
+
     canvas.toBlob((blob) => {
       resolve({ file: new File([blob], `${preset.id}.jpg`, { type: 'image/jpeg' }), dataUrl: canvas.toDataURL('image/jpeg') });
     }, 'image/jpeg', 0.95);
@@ -247,21 +256,21 @@ const generatePresetImageFile = (preset) => {
 const LoadingChecklist = ({ progress }) => {
   const steps = [
     { label: 'Image uploaded securely', threshold: 15 },
-    { label: 'OCR text extracted', threshold: 40 },
-    { label: 'Medicine identified via AI', threshold: 65 },
-    { label: 'Cross-referencing clinical data', threshold: 85 },
-    { label: 'Preparing safety summary', threshold: 95 }
+    { label: 'OCR pharmaceutical text extracted', threshold: 40 },
+    { label: 'Active ingredients & strengths identified', threshold: 65 },
+    { label: 'Cross-referencing verified databases', threshold: 85 },
+    { label: 'Preparing clinical monograph & summary', threshold: 95 }
   ];
 
   return (
     <div style={{
-      position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.9)', backdropFilter: 'blur(8px)',
+      position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.92)', backdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20
     }}>
-      <div style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
           <Sparkles size={24} style={{ color: 'var(--primary)' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>Analyzing Medicine</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>Analyzing Medicine Label</h3>
         </div>
         
         {steps.map((step, idx) => {
@@ -343,7 +352,7 @@ const ScannerPage = () => {
     const instant = api.translateMedicine(result, newLang);
     if (instant) setResult(instant);
 
-    // 2. Fetch full AI translation if possible
+    // 2. Fetch full remote verified translation
     const medName = result._originalEnglish?.medicineName || result.medicineName;
     if (!medName || newLang === 'en') return;
 
@@ -428,7 +437,7 @@ const ScannerPage = () => {
       progress += Math.floor(Math.random() * 15) + 5;
       if (progress > 95) progress = 95;
       setScanProgress(progress);
-    }, 800);
+    }, 700);
 
     try {
       const res = await api.scanMedicine(formData);
@@ -503,7 +512,7 @@ const ScannerPage = () => {
       if (res.success) {
         setNameResult(res.data);
 
-        // Store to local medicine searches cache so Medical History immediately displays it
+        // Store to local medicine searches cache
         try {
           const newEntry = {
             id: 'search_' + Date.now(),
@@ -574,9 +583,17 @@ const ScannerPage = () => {
         <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '6px' }}>{r.medicineName}</h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}><strong>{nT.generic || 'Generic'}:</strong> {r.genericName || 'N/A'}</p>
-              {r.manufacturer && <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}><strong>{nT.maker || 'Maker'}:</strong> {r.manufacturer}</p>}
+              <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '6px' }}>
+                {localizeDigits(r.medicineName, outputLanguage)}
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                <strong>{nT.generic}:</strong> {localizeDigits(r.genericName || 'N/A', outputLanguage)}
+              </p>
+              {r.manufacturer && (
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                  <strong>{nT.maker}:</strong> {r.manufacturer}
+                </p>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0 }}>
               {r.category && <span className="badge badge-primary" style={{ fontSize: '11px', padding: '4px 10px' }}>{r.category}</span>}
@@ -584,13 +601,14 @@ const ScannerPage = () => {
             </div>
           </div>
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <div className="tab-nav-scroll" style={{ margin: 0, paddingBottom: '0', borderBottom: '2px solid rgba(255,255,255,0.05)', display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
             {[
-              { id: 'overview', label: nT.overview || 'Overview' }, 
-              { id: 'dosage', label: nT.dosage || 'Dosage' }, 
-              { id: 'warnings', label: nT.warnings || 'Warnings' }, 
-              { id: 'sideeffects', label: nT.sideEffects || 'Side Effects' }
+              { id: 'overview', label: nT.overview },
+              { id: 'dosage', label: nT.dosage },
+              { id: 'warnings', label: nT.warnings },
+              { id: 'sideeffects', label: nT.sideEffects }
             ].map(tab => (
               <button 
                 key={tab.id} 
@@ -603,43 +621,135 @@ const ScannerPage = () => {
             ))}
           </div>
         </div>
+
         <div style={{ fontSize: '14px', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
           {nameTab === 'overview' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.overview?.primaryUse && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.primaryUse || 'Primary Use'}</h4><p>{r.overview.primaryUse}</p></div>}
-              {r.overview?.drugClass && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.drugClass || 'Drug Class'}</h4><p>{r.overview.drugClass}</p></div>}
-              {r.activeIngredient && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.activeIngredient || 'Active Ingredient'}</h4><p>{r.activeIngredient}</p></div>}
-              {r.ageSpecificInfo && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.ageSpecificInfo || 'Age-Specific Info'}</h4><p>{r.ageSpecificInfo}</p></div>}
-              {r.storage && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Building size={14} /> {nT.storage || 'Storage'}</h4><p>{r.storage}</p></div>}
+              {r.overview?.primaryUse && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.primaryUse}</h4>
+                  <p>{localizeDigits(r.overview.primaryUse, outputLanguage)}</p>
+                </div>
+              )}
+              {r.overview?.drugClass && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.drugClass}</h4>
+                  <p>{localizeDigits(r.overview.drugClass, outputLanguage)}</p>
+                </div>
+              )}
+              {r.activeIngredient && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.activeIngredient}</h4>
+                  <p>{localizeDigits(r.activeIngredient, outputLanguage)}</p>
+                </div>
+              )}
+              {r.ageSpecificInfo && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.ageSpecificInfo}</h4>
+                  <p>{localizeDigits(r.ageSpecificInfo, outputLanguage)}</p>
+                </div>
+              )}
+              {r.storage && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building size={14} /> {nT.storage}
+                  </h4>
+                  <p>{localizeDigits(r.storage, outputLanguage)}</p>
+                </div>
+              )}
               {r.interactions && r.interactions.length > 0 && (
-                <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.drugInteractions || 'Drug Interactions'}</h4>
-                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>{r.interactions.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.interactions}</h4>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {r.interactions.map((item, i) => <li key={i}>{localizeDigits(item, outputLanguage)}</li>)}
+                  </ul>
                 </div>
               )}
             </div>
           )}
+
           {nameTab === 'dosage' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.dosageAndUsage?.standardDose && (<div className="alert alert-primary" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={15} /> {nT.standardDose || 'Standard Dose'}</strong><p>{r.dosageAndUsage.standardDose}</p></div>)}
-              {r.dosageAndUsage?.frequency && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.frequency || 'Frequency'}</h4><p>{r.dosageAndUsage.frequency}</p></div>}
-              {r.dosageAndUsage?.duration && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.duration || 'Duration'}</h4><p>{r.dosageAndUsage.duration}</p></div>}
-              {r.dosageAndUsage?.howToTake && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.howToTake || 'How to Take'}</h4><p>{r.dosageAndUsage.howToTake}</p></div>}
+              <div className="alert alert-primary" style={{ padding: '16px' }}>
+                <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={15} /> {nT.standardDose}
+                </strong>
+                <p>{localizeDigits(r.dosageAndUsage?.standardDose || nT.referenceDosageNotice, outputLanguage)}</p>
+              </div>
+              {r.dosageAndUsage?.frequency && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.frequency}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.frequency, outputLanguage)}</p>
+                </div>
+              )}
+              {r.dosageAndUsage?.duration && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.duration}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.duration, outputLanguage)}</p>
+                </div>
+              )}
+              {r.dosageAndUsage?.howToTake && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.howToTake}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.howToTake, outputLanguage)}</p>
+                </div>
+              )}
             </div>
           )}
+
           {nameTab === 'warnings' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.warnings && r.warnings.length > 0 && (<div className="alert alert-danger" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldAlert size={15} /> {nT.warnings || 'Warnings'}</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul></div>)}
-              {r.precautions && r.precautions.length > 0 && (<div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.precautions || 'Precautions'}</h4><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>{r.precautions.map((p, i) => <li key={i}>{p}</li>)}</ul></div>)}
+              {r.warnings && r.warnings.length > 0 && (
+                <div className="alert alert-danger" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldAlert size={15} /> {nT.criticalWarnings}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {Array.isArray(r.warnings) 
+                      ? r.warnings.map((w, i) => <li key={i}>{localizeDigits(w, outputLanguage)}</li>)
+                      : <li>{localizeDigits(r.warnings, outputLanguage)}</li>}
+                  </ul>
+                </div>
+              )}
+              {r.precautions && r.precautions.length > 0 && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.generalPrecautions}</h4>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {Array.isArray(r.precautions) 
+                      ? r.precautions.map((p, i) => <li key={i}>{localizeDigits(p, outputLanguage)}</li>)
+                      : <li>{localizeDigits(r.precautions, outputLanguage)}</li>}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
+
           {nameTab === 'sideeffects' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.sideEffects?.common && r.sideEffects.common.length > 0 && (<div className="alert alert-warning" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertOctagon size={15} /> {nT.commonSideEffects || 'Common Side Effects'}</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.sideEffects.common.map((s, i) => <li key={i}>{s}</li>)}</ul></div>)}
-              {r.sideEffects?.serious && r.sideEffects.serious.length > 0 && (<div className="alert alert-danger" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={15} /> {nT.seriousSideEffects || 'Serious Side Effects'}</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.sideEffects.serious.map((s, i) => <li key={i}>{s}</li>)}</ul></div>)}
+              {r.sideEffects?.common && r.sideEffects.common.length > 0 && (
+                <div className="alert alert-warning" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertOctagon size={15} /> {nT.commonSideEffects}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {r.sideEffects.common.map((s, i) => <li key={i}>{localizeDigits(s, outputLanguage)}</li>)}
+                  </ul>
+                </div>
+              )}
+              {r.sideEffects?.serious && r.sideEffects.serious.length > 0 && (
+                <div className="alert alert-danger" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={15} /> {nT.seriousSideEffects}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {r.sideEffects.serious.map((s, i) => <li key={i}>{localizeDigits(s, outputLanguage)}</li>)}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
-        <div style={{ marginTop: '24px' }}><MedicalDisclaimer lang={outputLanguage} /></div>
+        <div style={{ marginTop: '24px' }}><MedicalDisclaimer /></div>
       </div>
     );
   };
@@ -648,20 +758,20 @@ const ScannerPage = () => {
     <div className="fade-in">
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <span className="badge badge-primary"><Sparkles size={12} style={{marginRight:'4px'}}/> {sT.clinicalOcrEngine || 'Clinical OCR Engine'}</span>
+          <span className="badge badge-primary"><Sparkles size={12} style={{marginRight:'4px'}}/> Clinical OCR Engine</span>
         </div>
         <h1 className="page-title">{t('scannerTitle') || 'Medicine Scanner'}</h1>
         <p className="body-text" style={{ marginTop: '8px', maxWidth: '800px', fontSize: '16px' }}>
-          Upload pill bottles, packaging, or prescription labels. Our system extracts textual data and generates structured clinical dosages, active ingredients, warnings, and safety information.
+          Upload pill bottles, packaging, or prescription labels. Our system extracts textual data and cross-references authoritative pharmaceutical databases to generate structured clinical dosages, active ingredients, warnings, and safety monographs.
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
         <button onClick={() => { setScanMode('image'); setNameResult(null); setNameError(''); }} className={`btn ${scanMode === 'image' ? 'btn-primary' : 'btn-secondary'}`}>
-          <Upload size={16} /> {sT.scanImage || 'Scan Image'}
+          <Upload size={16} /> Scan Image
         </button>
         <button onClick={() => { setScanMode('name'); setResult(null); setError(''); }} className={`btn ${scanMode === 'name' ? 'btn-primary' : 'btn-secondary'}`}>
-          <Search size={16} /> {sT.manualSearch || 'Manual Search'}
+          <Search size={16} /> Manual Search
         </button>
       </div>
 
@@ -676,11 +786,11 @@ const ScannerPage = () => {
                   <div style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--primary)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Camera size={18} />
                   </div>
-                  <h2 className="card-heading">{sT.imageSource || 'Image Source'}</h2>
+                  <h2 className="card-heading">Image Source</h2>
                 </div>
                 {imagePreview && (
                   <button onClick={resetScanner} className="btn btn-secondary" style={{ padding: '6px 12px', minHeight: '32px', fontSize: '12px', borderRadius: '8px' }}>
-                    {sT.reset || 'Reset'}
+                    Reset
                   </button>
                 )}
               </div>
@@ -691,7 +801,7 @@ const ScannerPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Globe size={16} style={{ color: 'var(--primary)' }} />
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>{sT.translateResultTo || 'Translate Result To:'}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Translate Result To:</span>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {LANGUAGES.map(lang => (
@@ -730,7 +840,7 @@ const ScannerPage = () => {
                       {!loading && !result && (
                         <div style={{ position: 'absolute', bottom: '24px', display: 'flex', gap: '12px', zIndex: 10 }}>
                           <button onClick={handleScan} className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '16px', borderRadius: '8px' }}>
-                            <Sparkles size={18} /> {sT.analyzeMedicine || 'Analyze Medicine'}
+                            <Sparkles size={18} /> Analyze Medicine
                           </button>
                         </div>
                       )}
@@ -740,29 +850,29 @@ const ScannerPage = () => {
                       <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                         <Upload size={32} style={{ color: 'var(--primary)' }} />
                       </div>
-                      <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '18px', marginBottom: '8px' }}>{sT.uploadMedicineLabel || 'Upload Medicine Label'}</h4>
+                      <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '18px', marginBottom: '8px' }}>Upload Medicine Label</h4>
                       <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '240px', lineHeight: 1.5 }}>
-                        Drag and drop an image, click to browse, or use your camera.
+                        Drag and drop packaging, blister packs, bottles, or prescription labels.
                       </p>
                     </div>
                   )}
-                  {loading && <LoadingChecklist progress={scanProgress} lang={scanLanguage} />}
+                  {loading && <LoadingChecklist progress={scanProgress} />}
                 </div>
 
                 {!imagePreview && (
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary" style={{ flex: 1, padding: '14px' }}>
-                      <Upload size={18} /> {sT.browseFiles || 'Browse Files'}
+                      <Upload size={18} /> Browse Files
                     </button>
                     <button onClick={startCamera} className="btn btn-primary" style={{ flex: 1, padding: '14px' }}>
-                      <Camera size={18} /> {sT.openCamera || 'Open Camera'}
+                      <Camera size={18} /> Open Camera
                     </button>
                   </div>
                 )}
                 
                 {!imagePreview && (
                   <div style={{ marginTop: '24px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
-                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>DEMO PRESETS</p>
+                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>VERIFICATION DEMO PRESETS</p>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {PRESET_MEDICINES.map(p => (
                         <button key={p.id} onClick={async () => { const { file, dataUrl } = await generatePresetImageFile(p); setSelectedFile(file); setImagePreview(dataUrl); }} className="badge badge-normal" style={{ border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: '13px' }}>
@@ -796,7 +906,28 @@ const ScannerPage = () => {
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {scanTranslating && <Loader2 size={16} className="spin" style={{ color: 'var(--primary)' }} />}
-                  {result && <span className="badge badge-success"><CheckCircle2 size={14} style={{marginRight:'6px'}}/> {sT.verified}</span>}
+                  {result && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {result.verificationStatus === 'Verified' ? (
+                        <span className="badge badge-success" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <CheckCircle2 size={14} style={{ marginRight: '6px' }} /> {sT.verified}
+                        </span>
+                      ) : result.verificationStatus === 'Partially Verified' ? (
+                        <span className="badge badge-warning" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <AlertTriangle size={14} style={{ marginRight: '6px' }} /> {sT.partiallyVerified}
+                        </span>
+                      ) : (
+                        <span className="badge badge-danger" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <AlertOctagon size={14} style={{ marginRight: '6px' }} /> {sT.notVerified}
+                        </span>
+                      )}
+                      {result.confidenceScore > 0 && (
+                        <span className="badge badge-normal" style={{ fontSize: '11px', padding: '3px 8px' }}>
+                          {localizeDigits(String(result.confidenceScore), scanLanguage)}%
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -812,21 +943,63 @@ const ScannerPage = () => {
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '24px', overflowY: 'auto' }}>
                   
                   {/* Verified Data Header */}
-                  <div style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1, paddingRight: '16px' }}>
-                        <h3 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '8px' }}>{result.medicineName}</h3>
-                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}><strong>{sT.generic}:</strong> {result.genericName || result.activeIngredients || 'N/A'}</p>
+                  <div style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ flex: 1, minWidth: '220px', paddingRight: '16px' }}>
+                        <h3 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '8px' }}>
+                          {localizeDigits(result.medicineName, scanLanguage)}
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                          <strong>{sT.generic}:</strong> {localizeDigits(result.genericName || result.activeIngredients || 'N/A', scanLanguage)}
+                        </p>
+                        {result.manufacturer && (
+                          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            <strong>{sT.manufacturer}:</strong> {result.manufacturer}
+                          </p>
+                        )}
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                        <span className="badge badge-primary" style={{ fontSize: '12px', padding: '6px 12px' }}>{result.category}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>{result.dosageForm}</span>
+                        {result.category && <span className="badge badge-primary" style={{ fontSize: '12px', padding: '6px 12px' }}>{result.category}</span>}
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {result.dosageForm && <span style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>{result.dosageForm}</span>}
+                          {result.route && <span style={{ fontSize: '12px', color: 'var(--primary)', background: 'rgba(139,92,246,0.1)', padding: '4px 10px', borderRadius: '8px' }}>{result.route}</span>}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* AI Summary Tabs */}
-                  <div style={{ marginBottom: '24px' }}>
+                  {/* Active Ingredients Breakdown Cards (especially for combinations like ACENEXT P & Montypen-LC) */}
+                  {result.activeIngredientsList && result.activeIngredientsList.length > 0 && (
+                    <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <BookmarkCheck size={14} style={{ color: 'var(--primary)' }} /> {sT.activeIngredientsBreakdown}
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {result.activeIngredientsList.map((ing, idx) => (
+                          <div key={idx} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                            <div>
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{ing.name}</strong>
+                              {ing.class && <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({ing.class})</span>}
+                              {ing.mechanism && <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{ing.mechanism}</p>}
+                            </div>
+                            <span className="badge badge-normal" style={{ fontSize: '12px', fontWeight: '700', padding: '4px 10px' }}>
+                              {localizeDigits(ing.strength, scanLanguage)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.combinationRationale && (
+                        <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '8px', border: '1px dashed rgba(139, 92, 246, 0.2)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                          <strong style={{ color: 'var(--primary)' }}>{sT.combinationRationale}: </strong>
+                          {localizeDigits(result.combinationRationale, scanLanguage)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Summary Tabs */}
+                  <div style={{ marginBottom: '20px' }}>
                      <div 
                        className="tab-nav-scroll" 
                        style={{ 
@@ -870,67 +1043,160 @@ const ScannerPage = () => {
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div>
                           <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.clinicalPurpose}</h4>
-                          <p>{result.purposeAndUses || result.usageInstructions}</p>
+                          <p>{localizeDigits(result.purposeAndUses || result.usageInstructions, scanLanguage)}</p>
                         </div>
+                        {result.clinicalUses && result.clinicalUses.length > 0 && (
+                          <div>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{sT.primaryUse}</h4>
+                            <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {result.clinicalUses.map((use, idx) => (
+                                <li key={idx}>{localizeDigits(use, scanLanguage)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                           <div>
-                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Building size={16} /> {sT.manufacturer}</h4>
-                            <p>{result.manufacturer || 'N/A'}</p>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Building size={16} /> {sT.manufacturer}
+                            </h4>
+                            <p>{result.manufacturer || 'Licensed Pharmaceutical Manufacturer'}</p>
                           </div>
                           {result.storage && (
                             <div>
                               <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.storage}</h4>
-                              <p>{result.storage}</p>
+                              <p>{localizeDigits(result.storage, scanLanguage)}</p>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
+
                     {activeTab === 'dosage' && (
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div className="alert alert-primary" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><Clock size={18} /> {sT.prescribedDosage}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.dosage) ? result.dosage.join(' ') : result.dosage}</p>
+                        <div className="alert alert-primary" style={{ padding: '18px' }}>
+                          <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Clock size={16} /> {sT.standardDose}
+                          </strong>
+                          <p style={{ fontSize: '14px', lineHeight: 1.6 }}>
+                            {localizeDigits(result.dosageReference || result.dosage || sT.referenceDosageNotice, scanLanguage)}
+                          </p>
                         </div>
-                        <div>
-                          <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.usageInstructions}</h4>
-                          <p>{Array.isArray(result.usageInstructions) ? result.usageInstructions.join(' ') : result.usageInstructions}</p>
+
+                        <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                            <Info size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: '-2px', color: 'var(--primary)' }} />
+                            {sT.referenceDosageNotice}
+                          </p>
                         </div>
+
+                        {result.usageInstructions && (
+                          <div>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.usageInstructions}</h4>
+                            <p>{localizeDigits(Array.isArray(result.usageInstructions) ? result.usageInstructions.join(' ') : result.usageInstructions, scanLanguage)}</p>
+                          </div>
+                        )}
+
                         {result.missedDose && (
                           <div>
                             <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.missedDose}</h4>
-                            <p>{Array.isArray(result.missedDose) ? result.missedDose.join(' ') : result.missedDose}</p>
+                            <p>{localizeDigits(Array.isArray(result.missedDose) ? result.missedDose.join(' ') : result.missedDose, scanLanguage)}</p>
                           </div>
                         )}
                       </div>
                     )}
+
                     {activeTab === 'warnings' && (
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div className="alert alert-danger" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><ShieldAlert size={18} /> {sT.criticalWarnings}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.warnings) ? result.warnings.join(' ') : result.warnings}</p>
-                        </div>
+                        {result.warnings && (
+                          <div className="alert alert-danger" style={{ padding: '18px' }}>
+                            <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <ShieldAlert size={16} /> {sT.criticalWarnings}
+                            </strong>
+                            <p style={{ fontSize: '14px', lineHeight: 1.6 }}>
+                              {localizeDigits(Array.isArray(result.warnings) ? result.warnings.join(' ') : result.warnings, scanLanguage)}
+                            </p>
+                          </div>
+                        )}
+
                         {result.precautions && (
                           <div>
                             <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.generalPrecautions}</h4>
-                            <p>{Array.isArray(result.precautions) ? result.precautions.join(' ') : result.precautions}</p>
+                            <p>{localizeDigits(Array.isArray(result.precautions) ? result.precautions.join(' ') : result.precautions, scanLanguage)}</p>
                           </div>
                         )}
                       </div>
                     )}
+
                     {activeTab === 'sideeffects' && (
-                      <div className="fade-in">
-                        <div className="alert alert-warning" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><AlertOctagon size={18} /> {sT.knownSideEffects}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.sideEffects) ? result.sideEffects.join(', ') : (typeof result.sideEffects === 'object' && result.sideEffects !== null ? (result.sideEffects.common ? (Array.isArray(result.sideEffects.common) ? result.sideEffects.common.join(', ') : result.sideEffects.common) : JSON.stringify(result.sideEffects)) : result.sideEffects)}</p>
-                        </div>
+                      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {result.sideEffects && (
+                          <>
+                            {result.sideEffects.common && result.sideEffects.common.length > 0 && (
+                              <div className="alert alert-warning" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertOctagon size={16} /> {sT.commonSideEffects}
+                                </strong>
+                                <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {result.sideEffects.common.map((s, idx) => (
+                                    <li key={idx}>{localizeDigits(s, scanLanguage)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {result.sideEffects.serious && result.sideEffects.serious.length > 0 && (
+                              <div className="alert alert-danger" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertTriangle size={16} /> {sT.seriousSideEffects}
+                                </strong>
+                                <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {result.sideEffects.serious.map((s, idx) => (
+                                    <li key={idx}>{localizeDigits(s, scanLanguage)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {typeof result.sideEffects === 'string' && (
+                              <div className="alert alert-warning" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertOctagon size={16} /> {sT.knownSideEffects}
+                                </strong>
+                                <p style={{ fontSize: '14px' }}>{localizeDigits(result.sideEffects, scanLanguage)}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
+
+                  {/* Medical References Citations Bar */}
+                  {result.sources && result.sources.length > 0 && (
+                    <div style={{ marginTop: '24px', padding: '14px 18px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        {sT.medicalReferences}
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {result.sources.map((src, i) => (
+                          <a
+                            key={i}
+                            href={src.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '12px', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                          >
+                            {src.name} {src.citationDate ? `(${localizeDigits(src.citationDate, scanLanguage)})` : ''} <ExternalLink size={11} />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
-                  <div style={{ marginTop: '32px' }}>
-                    <MedicalDisclaimer lang={scanLanguage} />
+                  <div style={{ marginTop: '28px' }}>
+                    <MedicalDisclaimer />
                   </div>
                 </div>
               )}
@@ -949,19 +1215,29 @@ const ScannerPage = () => {
                   <div style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--info)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Search size={18} />
                   </div>
-                  <h2 className="card-heading">{nT.medicineNameSearch || 'Medicine Name Search'}</h2>
+                  <h2 className="card-heading">{nT.searchTitle}</h2>
                 </div>
                 {nameResult && (
-                  <button onClick={resetNameSearch} className="btn btn-secondary" style={{ padding: '6px 12px', minHeight: '32px', fontSize: '12px', borderRadius: '8px' }}>{nT.reset || 'Reset'}</button>
+                  <button onClick={resetNameSearch} className="btn btn-secondary" style={{ padding: '6px 12px', minHeight: '32px', fontSize: '12px', borderRadius: '8px' }}>
+                    {nT.reset}
+                  </button>
                 )}
               </div>
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <p className="body-text" style={{ fontSize: '14px' }}>{nT.medicineNameSearchDesc || 'Type the name of any medicine or drug to get detailed clinical information — dosage, warnings, side effects, and interactions.'}</p>
+                <p className="body-text" style={{ fontSize: '14px' }}>{nT.searchPrompt}</p>
                 <form onSubmit={handleNameSearch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <div style={{ position: 'relative', flex: 1 }}>
                       <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                      <input type="text" value={nameQuery} onChange={(e) => setNameQuery(e.target.value)} placeholder="e.g. Paracetamol, Amoxicillin, Metformin..." className="input" style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} disabled={nameLoading} />
+                      <input 
+                        type="text" 
+                        value={nameQuery} 
+                        onChange={(e) => setNameQuery(e.target.value)} 
+                        placeholder={nT.searchPlaceholder} 
+                        className="input" 
+                        style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} 
+                        disabled={nameLoading} 
+                      />
                     </div>
                     <div style={{ position: 'relative', width: '135px', flexShrink: 0 }}>
                       <Globe size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -990,7 +1266,7 @@ const ScannerPage = () => {
                     </div>
                   </div>
                   <button type="submit" className="btn btn-primary" disabled={nameLoading || !nameQuery.trim()} style={{ padding: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '8px' }}>
-                    {nameLoading ? <><Loader2 size={18} className="spin" /> {nT.searching || 'Searching...'}</> : <><Sparkles size={18} /> {nT.searchMedicine || 'Search Medicine'}</>}
+                    {nameLoading ? <><Loader2 size={18} className="spin" /> {nT.searching}</> : <><Sparkles size={18} /> {nT.searchMedicine}</>}
                   </button>
                 </form>
                 {nameError && (
@@ -1001,9 +1277,9 @@ const ScannerPage = () => {
                 )}
                 {!nameResult && !nameLoading && (
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px' }}>
-                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>QUICK SUGGESTIONS</p>
+                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>{nT.quickSuggestions}</p>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {['Paracetamol', 'Amoxicillin', 'Metformin', 'Ibuprofen', 'Aspirin', 'Omeprazole'].map(name => (
+                      {['ACENEXT P', 'Montypen-LC', 'Paracetamol', 'Metformin', 'Augmentin', 'Ibuprofen'].map(name => (
                         <button key={name} type="button" onClick={() => setNameQuery(name)} className="badge badge-normal" style={{ border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: '12px', borderRadius: '8px' }}>{name}</button>
                       ))}
                     </div>
@@ -1013,8 +1289,8 @@ const ScannerPage = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', background: 'rgba(6, 182, 212, 0.03)', borderRadius: '16px', padding: '40px', border: '2px dashed rgba(6, 182, 212, 0.15)' }}>
                     <Loader2 size={44} className="spin" style={{ color: 'var(--info)' }} />
                     <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{nT.analyzingMedicineData || 'Analyzing Medicine Data'}</p>
-                      <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{nT.analyzingMedicineDataDesc || 'AI is retrieving clinical information...'}</p>
+                      <p style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{nT.analyzingData}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{nT.aiRetrieving}</p>
                     </div>
                   </div>
                 )}
@@ -1029,7 +1305,7 @@ const ScannerPage = () => {
                   <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FileCheck size={18} />
                   </div>
-                  <h2 className="card-heading">{nT.searchResults || 'Search Results'}</h2>
+                  <h2 className="card-heading">{nT.searchResults}</h2>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {/* Language Translator Selector in Results Header */}
@@ -1061,7 +1337,7 @@ const ScannerPage = () => {
                     </select>
                     <ChevronDown size={12} style={{ position: 'absolute', right: '8px', color: 'var(--primary)', pointerEvents: 'none' }} />
                   </div>
-                  {nameResult && <span className="badge badge-success"><CheckCircle2 size={14} style={{ marginRight: '6px' }} /> {nT.found || 'Found'}</span>}
+                  {nameResult && <span className="badge badge-success"><CheckCircle2 size={14} style={{ marginRight: '6px' }} /> {nT.found}</span>}
                 </div>
               </div>
               {!nameResult ? (
@@ -1069,8 +1345,8 @@ const ScannerPage = () => {
                   <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
                     <Pill size={40} className="empty-state-icon" style={{ margin: 0 }} />
                   </div>
-                  <h4 className="empty-state-title" style={{ fontSize: '18px' }}>{nT.awaitingSearch || 'Awaiting Search'}</h4>
-                  <p className="empty-state-text" style={{ fontSize: '15px', lineHeight: 1.6 }}>{nT.awaitingSearchDesc || 'Enter a medicine name on the left and click Search to view detailed clinical information here.'}</p>
+                  <h4 className="empty-state-title" style={{ fontSize: '18px' }}>{nT.awaitingSearch}</h4>
+                  <p className="empty-state-text" style={{ fontSize: '15px', lineHeight: 1.6 }}>{nT.awaitingSearchDesc}</p>
                 </div>
               ) : (
                 <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>{renderNameResult()}</div>
@@ -1083,7 +1359,7 @@ const ScannerPage = () => {
       {isCameraOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(8, 10, 22, 0.95)', backdropFilter: 'blur(16px)', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>
            <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.5)' }}>
-             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{sT.captureLabel || 'Capture Label'}</h3>
+             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>Capture Label</h3>
              <button onClick={stopCameraStream} className="btn btn-secondary" style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none' }}><X size={24} color="#fff" /></button>
            </div>
            
@@ -1104,10 +1380,10 @@ const ScannerPage = () => {
            </div>
 
            <div className="camera-overlay-actions">
-              <button onClick={stopCameraStream} className="btn" style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '15px', borderRadius: '50px' }}>{sT.cancel || 'Cancel'}</button>
+              <button onClick={stopCameraStream} className="btn" style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '15px', borderRadius: '50px' }}>Cancel</button>
               {!cameraError && (
                 <button onClick={captureCameraFrame} className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px', borderRadius: '50px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <Camera size={20} /> {sT.captureFrame || 'Capture Frame'}
+                  <Camera size={20} /> Capture Frame
                 </button>
               )}
            </div>

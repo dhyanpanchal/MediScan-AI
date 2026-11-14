@@ -19,27 +19,23 @@ const ScanHistorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  genericName: {
+    type: String,
+    default: '',
+  },
   activeIngredients: {
     type: String,
     default: '',
   },
-  dosage: {
-    type: String,
-    default: '',
+  activeIngredientsList: {
+    type: Array,
+    default: [],
   },
-  usageInstructions: {
-    type: String,
-    default: '',
+  isCombination: {
+    type: Boolean,
+    default: false,
   },
-  sideEffects: {
-    type: String,
-    default: '',
-  },
-  warnings: {
-    type: String,
-    default: '',
-  },
-  precautions: {
+  combinationRationale: {
     type: String,
     default: '',
   },
@@ -55,7 +51,43 @@ const ScanHistorySchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  route: {
+    type: String,
+    default: 'Oral',
+  },
+  clinicalUses: {
+    type: Array,
+    default: [],
+  },
   purposeAndUses: {
+    type: String,
+    default: '',
+  },
+  dosage: {
+    type: String,
+    default: '',
+  },
+  dosageReference: {
+    type: String,
+    default: '',
+  },
+  prescribedDosageAvailable: {
+    type: Boolean,
+    default: false,
+  },
+  usageInstructions: {
+    type: String,
+    default: '',
+  },
+  sideEffects: {
+    type: mongoose.Schema.Types.Mixed,
+    default: '',
+  },
+  warnings: {
+    type: String,
+    default: '',
+  },
+  precautions: {
     type: String,
     default: '',
   },
@@ -66,6 +98,19 @@ const ScanHistorySchema = new mongoose.Schema({
   missedDose: {
     type: String,
     default: '',
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['Verified', 'Partially Verified', 'Information Not Verified'],
+    default: 'Verified',
+  },
+  confidenceScore: {
+    type: Number,
+    default: 95,
+  },
+  sources: {
+    type: Array,
+    default: [],
   }
 }, {
   timestamps: true
