@@ -13,6 +13,8 @@ const translations = {
     adminPanel: 'Admin Panel',
     settings: 'Settings',
     logOut: 'Log Out',
+    clinicalApps: 'Clinical Apps',
+    management: 'Management',
     // Disease Search Page
     diseaseSearchTitle: 'Disease Search',
     diseaseSearchSubtitle: 'Search for diseases, symptoms, treatments and medicines',
@@ -162,6 +164,8 @@ const translations = {
     adminPanel: 'एडमिन पैनल',
     settings: 'सेटिंग्स',
     logOut: 'लॉग आउट',
+    clinicalApps: 'क्लिनिकल ऐप्स',
+    management: 'प्रबंधन',
     // Disease Search Page
     diseaseSearchTitle: 'रोग खोज',
     diseaseSearchSubtitle: 'बीमारियों, लक्षणों, उपचार और दवाओं की खोज करें',
@@ -322,6 +326,8 @@ const translations = {
     adminPanel: 'એડમિન પેનલ',
     settings: 'સેટિંગ્સ',
     logOut: 'લૉગ આઉટ',
+    clinicalApps: 'ક્લિનિકલ એપ્સ',
+    management: 'સંચાલન',
     // Disease Search Page
     diseaseSearchTitle: 'રોગ શોધ',
     diseaseSearchSubtitle: 'રોગો, લક્ષણો, સારવાર અને દવાઓ શોધો',
@@ -523,31 +529,46 @@ export const AppProvider = ({ children }) => {
 
   const applyTheme = (t) => {
     const root = document.documentElement;
+    root.setAttribute('data-theme', t);
     if (t === 'light') {
-      root.style.setProperty('--bg-main', '#f0f4ff');
-      root.style.setProperty('--bg-card', '#ffffff');
-      root.style.setProperty('--bg-card-hover', '#f8f9ff');
-      root.style.setProperty('--border-color', '#e2e8f0');
-      root.style.setProperty('--text-main', '#0f0f1a');
-      root.style.setProperty('--text-muted', '#4a5568');
-      root.style.setProperty('--text-dark', '#718096');
-      root.style.setProperty('--primary', '#7c3aed');
-      root.style.setProperty('--primary-glow', 'rgba(124, 58, 237, 0.3)');
-      root.style.setProperty('--primary-hover', '#6d28d9');
-      root.style.setProperty('--secondary', '#06b6d4');
+      root.style.setProperty('--bg-primary', '#F8FAFC');
+      root.style.setProperty('--bg-secondary', '#F1F5F9');
+      root.style.setProperty('--bg-card', '#FFFFFF');
+      root.style.setProperty('--bg-card-hover', '#F8FAFC');
+      root.style.setProperty('--bg-elevated', '#FFFFFF');
+      root.style.setProperty('--bg-input', '#F1F5F9');
+      root.style.setProperty('--border-color', '#E2E8F0');
+      root.style.setProperty('--text-primary', '#0F172A');
+      root.style.setProperty('--text-secondary', '#334155');
+      root.style.setProperty('--text-muted', '#64748B');
+      root.style.setProperty('--bg-main', '#F8FAFC');
+      root.style.setProperty('--text-main', '#0F172A');
+      root.style.setProperty('--text-dark', '#64748B');
+      root.style.setProperty('--primary', '#7C3AED');
+      root.style.setProperty('--primary-dark', '#6D28D9');
+      root.style.setProperty('--primary-glow', 'rgba(124, 58, 237, 0.25)');
+      root.style.setProperty('--primary-hover', '#6D28D9');
+      root.style.setProperty('--secondary', '#06B6D4');
       root.style.setProperty('--secondary-glow', 'rgba(6, 182, 212, 0.2)');
     } else {
-      root.style.setProperty('--bg-main', '#0d0d1a');
-      root.style.setProperty('--bg-card', '#13132a');
-      root.style.setProperty('--bg-card-hover', '#1a1a35');
-      root.style.setProperty('--border-color', '#2a2a4a');
-      root.style.setProperty('--text-main', '#f0f0ff');
-      root.style.setProperty('--text-muted', '#9090bb');
-      root.style.setProperty('--text-dark', '#6060aa');
-      root.style.setProperty('--primary', '#a855f7');
-      root.style.setProperty('--primary-glow', 'rgba(168, 85, 247, 0.35)');
-      root.style.setProperty('--primary-hover', '#9333ea');
-      root.style.setProperty('--secondary', '#06b6d4');
+      root.style.setProperty('--bg-primary', '#080A16');
+      root.style.setProperty('--bg-secondary', '#0B0D1C');
+      root.style.setProperty('--bg-card', '#11152A');
+      root.style.setProperty('--bg-card-hover', '#161B35');
+      root.style.setProperty('--bg-elevated', '#151A32');
+      root.style.setProperty('--bg-input', '#171B35');
+      root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.1)');
+      root.style.setProperty('--text-primary', '#F8FAFC');
+      root.style.setProperty('--text-secondary', '#A8AEC7');
+      root.style.setProperty('--text-muted', '#747B9C');
+      root.style.setProperty('--bg-main', '#080A16');
+      root.style.setProperty('--text-main', '#F8FAFC');
+      root.style.setProperty('--text-dark', '#747B9C');
+      root.style.setProperty('--primary', '#8B5CF6');
+      root.style.setProperty('--primary-dark', '#7C3AED');
+      root.style.setProperty('--primary-glow', 'rgba(139, 92, 246, 0.35)');
+      root.style.setProperty('--primary-hover', '#7C3AED');
+      root.style.setProperty('--secondary', '#06B6D4');
       root.style.setProperty('--secondary-glow', 'rgba(6, 182, 212, 0.25)');
     }
   };

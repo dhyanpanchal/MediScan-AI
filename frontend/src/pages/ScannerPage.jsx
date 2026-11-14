@@ -6,7 +6,7 @@ import {
   Upload, Camera, Pill, FileCheck,
   Sparkles, Loader2, AlertOctagon,
   ShieldAlert, Clock, Building, X, Search, CheckCircle2, AlertTriangle,
-  Globe, ChevronDown, Check
+  Globe, ChevronDown, Check, Info, ExternalLink, BookmarkCheck
 } from 'lucide-react';
 
 const LANGUAGES = [
@@ -18,86 +18,235 @@ const LANGUAGES = [
 const SCAN_LABELS = {
   en: {
     analysisResults: 'Analysis Results',
+    searchResults: 'Search Results',
     verified: 'Verified',
+    partiallyVerified: 'Partially Verified',
+    notVerified: 'Information Not Verified',
+    found: 'Found',
     awaitingScan: 'Awaiting Scan',
     awaitingScanDesc: 'Upload an image and analyze it to view the structured clinical breakdown here.',
-    generic: 'Generic',
+    awaitingSearch: 'Awaiting Search',
+    awaitingSearchDesc: 'Enter a medicine name on the left and click Search to view detailed clinical information here.',
+    generic: 'Generic Name',
+    maker: 'Maker / Brand',
+    manufacturer: 'Manufacturer',
     overview: 'Overview',
     dosage: 'Dosage',
     warnings: 'Warnings',
     sideEffects: 'Side Effects',
     clinicalPurpose: 'Clinical Purpose',
-    manufacturer: 'Manufacturer',
+    primaryUse: 'Primary Use',
+    drugClass: 'Drug Class',
+    activeIngredient: 'Active Ingredient',
+    activeIngredientsBreakdown: 'Active Pharmaceutical Ingredients (APIs)',
+    combinationRationale: 'Combination Synergy & Rationale',
+    ageSpecificInfo: 'Age-Specific Guidance',
     storage: 'Storage',
+    interactions: 'Drug Interactions',
+    standardDose: 'Standard Reference Dose',
+    frequency: 'Frequency',
+    duration: 'Treatment Duration',
+    howToTake: 'How to Take',
     prescribedDosage: 'Prescribed Dosage',
     usageInstructions: 'Usage Instructions',
-    missedDose: 'If you miss a dose',
-    criticalWarnings: 'Critical Warnings',
+    missedDose: 'If You Miss a Dose',
+    criticalWarnings: 'Critical Warnings & Alerts',
     generalPrecautions: 'General Precautions',
-    knownSideEffects: 'Known Side Effects',
+    knownSideEffects: 'Side Effects & Reactions',
+    commonSideEffects: 'Common Side Effects',
+    seriousSideEffects: 'Serious Adverse Reactions',
+    medicalReferences: 'Verified Medical References & Citations',
+    referenceDosageNotice: 'Clinical Notice: An individual prescribed dosage for this specific patient is not available from the packaging label. Follow the licensed physician\'s prescription strictly.',
+    confidence: 'Clinical Match Confidence',
+    searchTitle: 'Medicine Name Search',
+    searchPrompt: 'Type the name of any medicine or drug to get detailed clinical information — dosage, warnings, side effects, and interactions.',
+    searchPlaceholder: 'e.g. ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'Search Medicine',
+    searching: 'Searching Database...',
+    reset: 'Reset',
+    quickSuggestions: 'QUICK SUGGESTIONS',
+    analyzingData: 'Analyzing Medicine Data',
+    aiRetrieving: 'Retrieving verified clinical information...',
+    route: 'Route of Administration',
+    dosageForm: 'Dosage Form'
   },
   hi: {
-    analysisResults: 'विश्लेषण परिणाम',
-    verified: 'सत्यापित',
+    analysisResults: 'विश्लेषण परिणाम (Analysis Results)',
+    searchResults: 'खोज परिणाम (Search Results)',
+    verified: 'सत्यापित (Verified)',
+    partiallyVerified: 'आंशिक रूप से सत्यापित (Partially Verified)',
+    notVerified: 'जानकारी सत्यापित नहीं है (Not Verified)',
+    found: 'उपलब्ध (Found)',
     awaitingScan: 'स्कैन की प्रतीक्षा है',
     awaitingScanDesc: 'संरचित क्लिनिकल विवरण देखने के लिए एक छवि अपलोड करें और उसका विश्लेषण करें।',
+    awaitingSearch: 'खोज की प्रतीक्षा है',
+    awaitingSearchDesc: 'बाईं ओर दवा का नाम दर्ज करें और विस्तृत चिकित्सीय जानकारी देखने के लिए खोज बटन दबाएं।',
     generic: 'जेनेरिक नाम',
-    overview: 'अवलोकन',
-    dosage: 'खुराक',
-    warnings: 'चेतावनियां',
-    sideEffects: 'दुष्प्रभाव',
+    maker: 'निर्माता / ब्रांड',
+    manufacturer: 'निर्माता कंपनी',
+    overview: 'अवलोकन (Overview)',
+    dosage: 'खुराक (Dosage)',
+    warnings: 'चेतावनियां (Warnings)',
+    sideEffects: 'दुष्प्रभाव (Side Effects)',
     clinicalPurpose: 'चिकित्सीय उपयोग',
-    manufacturer: 'निर्माता',
-    storage: 'भंडारण',
-    prescribedDosage: 'निर्धारित खुराक',
+    primaryUse: 'प्रमुख चिकित्सीय उपयोग',
+    drugClass: 'दवा वर्ग (Drug Class)',
+    activeIngredient: 'सक्रिय घटक',
+    activeIngredientsBreakdown: 'सक्रिय औषधीय घटक (APIs)',
+    combinationRationale: 'संयोजन का चिकित्सीय उद्देश्य (Synergy)',
+    ageSpecificInfo: 'आयु-विशिष्ट सलाह',
+    storage: 'भंडारण निर्देश',
+    interactions: 'दवाओं का परस्पर प्रभाव (Interactions)',
+    standardDose: 'मानक अनुशंसित खुराक',
+    frequency: 'लेने की आवृत्ति (Frequency)',
+    duration: 'उपचार अवधि (Duration)',
+    howToTake: 'लेने का तरीका (How to Take)',
+    prescribedDosage: 'निर्धारित खुराक (Dosage)',
     usageInstructions: 'उपयोग निर्देश',
-    missedDose: 'यदि खुराक छूट जाए',
-    criticalWarnings: 'महत्वपूर्ण चेतावनियां',
+    missedDose: 'यदि खुराक छूट जाए (Missed Dose)',
+    criticalWarnings: 'महत्वपूर्ण चेतावनियां एवं अलर्ट',
     generalPrecautions: 'सामान्य सावधानियां',
-    knownSideEffects: 'ज्ञात दुष्प्रभाव',
+    knownSideEffects: 'ज्ञात दुष्प्रभाव एवं प्रतिक्रियाएं',
+    commonSideEffects: 'सामान्य दुष्प्रभाव',
+    seriousSideEffects: 'गंभीर प्रतिकूल प्रतिक्रियाएं',
+    medicalReferences: 'सत्यापित चिकित्सीय संदर्भ एवं स्रोत',
+    referenceDosageNotice: 'क्लिनिकल सूचना: मरीज के लिए व्यक्तिगत निर्धारित खुराक इस पैकेजिंग से निर्धारित नहीं होती। हमेशा डॉक्टर के पर्चे अनुसार ही दवा लें।',
+    confidence: 'सटीकता स्कोर',
+    searchTitle: 'दवा का नाम खोजें',
+    searchPrompt: 'विस्तृत चिकित्सीय जानकारी — खुराक, चेतावनियां, दुष्प्रभाव और परस्पर प्रभाव प्राप्त करने के लिए किसी भी दवा का नाम लिखें।',
+    searchPlaceholder: 'जैसे: ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'दवा खोजें',
+    searching: 'डेटाबेस खोजा जा रहा है...',
+    reset: 'रीसेट',
+    quickSuggestions: 'त्वरित सुझाव',
+    analyzingData: 'दवा डेटा का विश्लेषण जारी है',
+    aiRetrieving: 'सत्यापित चिकित्सीय जानकारी प्राप्त की जा रही है...',
+    route: 'प्रशासन मार्ग (Route)',
+    dosageForm: 'दवा का प्रकार (Form)'
   },
   gu: {
-    analysisResults: 'વિશ્લેષણ પરિણામો',
-    verified: 'ચકાસાયેલ',
+    analysisResults: 'વિશ્લેષણ પરિણામો (Analysis Results)',
+    searchResults: 'શોધ પરિણામો (Search Results)',
+    verified: 'ચકાસાયેલ (Verified)',
+    partiallyVerified: 'આંશિક ચકાસાયેલ (Partially Verified)',
+    notVerified: 'માહિતી ચકાસાયેલ નથી (Not Verified)',
+    found: 'મળેલ છે (Found)',
     awaitingScan: 'સ્કેન માટે પ્રતીક્ષારત',
     awaitingScanDesc: 'ક્લિનિકલ વિગતો જોવા માટે દવાના લેબલનો ફોટો અપલોડ કરો અને વિશ્લેષણ કરો.',
+    awaitingSearch: 'શોધ માટે પ્રતીક્ષારત',
+    awaitingSearchDesc: 'ડાબી બાજુ દવાનું નામ દાખલ કરો અને વિગતવાર ક્લિનિકલ માહિતી મેળવવા માટે સર્ચ પર ક્લિક કરો.',
     generic: 'જેનેરિક નામ',
-    overview: 'વિહંગાવલોકન',
-    dosage: 'માત્રા / ડોઝ',
-    warnings: 'ચેતવણીઓ',
-    sideEffects: 'આડઅસરો',
-    clinicalPurpose: 'તબીબી ઉપયોગ',
-    manufacturer: 'ઉત્પાદક',
-    storage: 'સંગ્રહ',
+    maker: 'બ્રાન્ડ / ઉત્પાદક',
+    manufacturer: 'ઉત્પાદક કંપની',
+    overview: 'વિહંગાવલોકન (Overview)',
+    dosage: 'માત્રા / ડોઝ (Dosage)',
+    warnings: 'ચેતવણીઓ (Warnings)',
+    sideEffects: 'આડઅસરો (Side Effects)',
+    clinicalPurpose: 'તબીબી ઉપયોગ (Clinical Purpose)',
+    primaryUse: 'મુખ્ય તબીબી ઉપયોગ',
+    drugClass: 'દવા વર્ગીકરણ (Drug Class)',
+    activeIngredient: 'સક્રિય ઘટક',
+    activeIngredientsBreakdown: 'સક્રિય ઔષધીય ઘટકો (APIs)',
+    combinationRationale: 'સંયોજનનો હેતુ (Synergy Rationale)',
+    ageSpecificInfo: 'ઉંમર મુજબ સલાહ (Age-Specific Info)',
+    storage: 'સંગ્રહ માર્ગદર્શિકા (Storage)',
+    interactions: 'દવાઓની ક્રિયાપ્રતિક્રિયા (Drug Interactions)',
+    standardDose: 'ભલામણ કરેલ સામાન્ય માત્રા',
+    frequency: 'લેવાનો સમય / આવર્તન',
+    duration: 'સારવારનો સમયગાળો',
+    howToTake: 'લેવાની સાચી રીત',
     prescribedDosage: 'ભલામણ કરેલ ડોઝ',
     usageInstructions: 'વપરાશ માર્ગદર્શિકા',
-    missedDose: 'જો ડોઝ ચૂકી જાઓ',
-    criticalWarnings: 'મહત્વપૂર્ણ ચેતવણીઓ',
-    generalPrecautions: 'સામાન્ય સાવચેતીઓ',
-    knownSideEffects: 'જાણીતી આડઅસરો',
+    missedDose: 'જો ડોઝ ચૂકી જાઓ તો (Missed Dose)',
+    criticalWarnings: 'મહત્વપૂર્ણ ચેતવણીઓ (Critical Warnings)',
+    generalPrecautions: 'સામાન્ય સાવચેતીઓ (Precautions)',
+    knownSideEffects: 'જાણીતી આડઅસરો (Known Side Effects)',
+    commonSideEffects: 'સામાન્ય આડઅસરો',
+    seriousSideEffects: 'ગંભીર આડઅસરો (Serious Side Effects)',
+    medicalReferences: 'તબીબી સંદર્ભ અને સ્ત્રોતો (Medical References)',
+    referenceDosageNotice: 'ક્લિનિકલ સૂચના: દર્દી માટેનો વ્યક્તિગત નિર્ધારિત ડોઝ પેકેજિંગમાંથી નક્કી થતો નથી. હંમેશા ડૉક્ટરના પ્રિસ્ક્રિપ્શન મુજબ જ દવા લો.',
+    confidence: 'ચોકસાઈ સ્કોર',
+    searchTitle: 'દવાનું નામ સર્ચ કરો',
+    searchPrompt: 'કોઈપણ દવા વિશે વિગતવાર ક્લિનિકલ માહિતી — માત્રા, ચેતવણીઓ, આડઅસરો અને ક્રિયાપ્રતિક્રિયા મેળવવા માટે નામ લખો.',
+    searchPlaceholder: 'ઉદાહરણ: ACENEXT P, Montypen-LC, Metformin, Paracetamol...',
+    searchMedicine: 'દવા શોધો',
+    searching: 'ડેટાબેઝ શોધાઈ રહ્યો છે...',
+    reset: 'રીસેટ',
+    quickSuggestions: 'ઝડપી સૂચનો',
+    analyzingData: 'દવાના ડેટાનું વિશ્લેષણ ચાલુ છે',
+    aiRetrieving: 'ચકાસાયેલ ક્લિનિકલ માહિતી લાવવામાં આવી રહી છે...',
+    route: 'લેવાનો માર્ગ (Route)',
+    dosageForm: 'દવાનું સ્વરૂપ (Form)'
   }
+};
+
+const localizeDigits = (text, lang) => {
+  if (typeof text !== 'string') {
+    if (typeof text === 'number') text = String(text);
+    else return text;
+  }
+  if (lang !== 'gu' && lang !== 'hi') return text;
+  const guMap = { '0': '૦', '1': '૧', '2': '૨', '3': '૩', '4': '૪', '5': '૫', '6': '૬', '7': '૭', '8': '૮', '9': '૯' };
+  const hiMap = { '0': '०', '1': '१', '2': '२', '3': '३', '4': '४', '5': '५', '6': '६', '7': '७', '8': '૮', '9': '९' };
+  const digitMap = lang === 'gu' ? guMap : hiMap;
+  return text.replace(/[0-9]/g, d => digitMap[d] || d);
 };
 
 const PRESET_MEDICINES = [
   {
-    id: 'amoxicillin', name: 'Amoxicillin 500mg', category: 'Antibiotic',
+    id: 'acenext_p',
+    name: 'ACENEXT P',
+    category: 'NSAID / Pain Relief',
+    labelText: 'ACENEXT P TABLETS - Each film coated tablet contains: Aceclofenac IP 100 mg, Paracetamol IP 325 mg. Mfg by Acrochem Laboratories.'
+  },
+  {
+    id: 'montypen_lc',
+    name: 'Montypen-LC',
+    category: 'Antiallergic',
+    labelText: 'Montypen-LC Tablets - Each film coated tablet contains: Montelukast Sodium IP 10 mg + Levocetirizine Dihydrochloride IP 5 mg. Mfg by Acrochem.'
+  },
+  {
+    id: 'amoxicillin',
+    name: 'Amoxicillin 500mg',
+    category: 'Antibiotic',
     labelText: 'AMOXICILLIN 500mg CAPSULES - GSK Pharma. Take 1 capsule every 8 hours.'
   },
   {
-    id: 'metformin', name: 'Metformin 850mg', category: 'Diabetes',
-    labelText: 'METFORMIN HYDROCHLORIDE 850mg. Take 1 tablet twice daily with meals.'
+    id: 'metformin',
+    name: 'Metformin 850mg',
+    category: 'Diabetes',
+    labelText: 'METFORMIN HYDROCHLORIDE 850mg (Biguanides). Take 1 tablet twice daily with meals.'
   }
 ];
 
 const generatePresetImageFile = (preset) => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
-    canvas.width = 600; canvas.height = 400;
+    canvas.width = 650; canvas.height = 420;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#0B0D1C'; ctx.fillRect(0, 0, 600, 400);
-    ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 4; ctx.strokeRect(20, 20, 560, 360);
-    ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 24px sans-serif'; ctx.fillText(preset.name, 40, 60);
-    ctx.fillStyle = '#A8AEC7'; ctx.font = '16px monospace'; ctx.fillText(preset.labelText, 40, 100);
+    ctx.fillStyle = '#0B0D1C'; ctx.fillRect(0, 0, 650, 420);
+    ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 4; ctx.strokeRect(20, 20, 610, 380);
+    ctx.fillStyle = '#8B5CF6'; ctx.font = 'bold 26px sans-serif'; ctx.fillText(preset.name, 40, 65);
+    ctx.fillStyle = '#10B981'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(`Category: ${preset.category}`, 40, 95);
+    ctx.fillStyle = '#CBD5E1'; ctx.font = '15px monospace';
+    
+    // Multi-line wrap
+    const words = preset.labelText.split(' ');
+    let line = '';
+    let y = 140;
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > 550 && i > 0) {
+        ctx.fillText(line, 40, y);
+        line = words[i] + ' ';
+        y += 26;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, 40, y);
+
     canvas.toBlob((blob) => {
       resolve({ file: new File([blob], `${preset.id}.jpg`, { type: 'image/jpeg' }), dataUrl: canvas.toDataURL('image/jpeg') });
     }, 'image/jpeg', 0.95);
@@ -107,21 +256,21 @@ const generatePresetImageFile = (preset) => {
 const LoadingChecklist = ({ progress }) => {
   const steps = [
     { label: 'Image uploaded securely', threshold: 15 },
-    { label: 'OCR text extracted', threshold: 40 },
-    { label: 'Medicine identified via AI', threshold: 65 },
-    { label: 'Cross-referencing clinical data', threshold: 85 },
-    { label: 'Preparing safety summary', threshold: 95 }
+    { label: 'OCR pharmaceutical text extracted', threshold: 40 },
+    { label: 'Active ingredients & strengths identified', threshold: 65 },
+    { label: 'Cross-referencing verified databases', threshold: 85 },
+    { label: 'Preparing clinical monograph & summary', threshold: 95 }
   ];
 
   return (
     <div style={{
-      position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.9)', backdropFilter: 'blur(8px)',
+      position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.92)', backdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20
     }}>
-      <div style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
           <Sparkles size={24} style={{ color: 'var(--primary)' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>Analyzing Medicine</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>Analyzing Medicine Label</h3>
         </div>
         
         {steps.map((step, idx) => {
@@ -181,6 +330,7 @@ const ScannerPage = () => {
   const [scanTranslating, setScanTranslating] = useState(false);
 
   const sT = SCAN_LABELS[scanLanguage] || SCAN_LABELS.en;
+  const nT = SCAN_LABELS[outputLanguage] || SCAN_LABELS.en;
 
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -202,7 +352,7 @@ const ScannerPage = () => {
     const instant = api.translateMedicine(result, newLang);
     if (instant) setResult(instant);
 
-    // 2. Fetch full AI translation if possible
+    // 2. Fetch full remote verified translation
     const medName = result._originalEnglish?.medicineName || result.medicineName;
     if (!medName || newLang === 'en') return;
 
@@ -287,7 +437,7 @@ const ScannerPage = () => {
       progress += Math.floor(Math.random() * 15) + 5;
       if (progress > 95) progress = 95;
       setScanProgress(progress);
-    }, 800);
+    }, 700);
 
     try {
       const res = await api.scanMedicine(formData);
@@ -362,7 +512,7 @@ const ScannerPage = () => {
       if (res.success) {
         setNameResult(res.data);
 
-        // Store to local medicine searches cache so Medical History immediately displays it
+        // Store to local medicine searches cache
         try {
           const newEntry = {
             id: 'search_' + Date.now(),
@@ -433,9 +583,17 @@ const ScannerPage = () => {
         <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '6px' }}>{r.medicineName}</h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}><strong>Generic:</strong> {r.genericName || 'N/A'}</p>
-              {r.manufacturer && <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}><strong>Maker:</strong> {r.manufacturer}</p>}
+              <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '6px' }}>
+                {localizeDigits(r.medicineName, outputLanguage)}
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                <strong>{nT.generic}:</strong> {localizeDigits(r.genericName || 'N/A', outputLanguage)}
+              </p>
+              {r.manufacturer && (
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                  <strong>{nT.maker}:</strong> {r.manufacturer}
+                </p>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0 }}>
               {r.category && <span className="badge badge-primary" style={{ fontSize: '11px', padding: '4px 10px' }}>{r.category}</span>}
@@ -443,9 +601,15 @@ const ScannerPage = () => {
             </div>
           </div>
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <div className="tab-nav-scroll" style={{ margin: 0, paddingBottom: '0', borderBottom: '2px solid rgba(255,255,255,0.05)', display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-            {[{ id: 'overview', label: 'Overview' }, { id: 'dosage', label: 'Dosage' }, { id: 'warnings', label: 'Warnings' }, { id: 'sideeffects', label: 'Side Effects' }].map(tab => (
+            {[
+              { id: 'overview', label: nT.overview },
+              { id: 'dosage', label: nT.dosage },
+              { id: 'warnings', label: nT.warnings },
+              { id: 'sideeffects', label: nT.sideEffects }
+            ].map(tab => (
               <button 
                 key={tab.id} 
                 onClick={() => setNameTab(tab.id)} 
@@ -457,39 +621,131 @@ const ScannerPage = () => {
             ))}
           </div>
         </div>
+
         <div style={{ fontSize: '14px', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
           {nameTab === 'overview' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.overview?.primaryUse && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Primary Use</h4><p>{r.overview.primaryUse}</p></div>}
-              {r.overview?.drugClass && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Drug Class</h4><p>{r.overview.drugClass}</p></div>}
-              {r.activeIngredient && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Active Ingredient</h4><p>{r.activeIngredient}</p></div>}
-              {r.ageSpecificInfo && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Age-Specific Info</h4><p>{r.ageSpecificInfo}</p></div>}
-              {r.storage && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Building size={14} /> Storage</h4><p>{r.storage}</p></div>}
+              {r.overview?.primaryUse && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.primaryUse}</h4>
+                  <p>{localizeDigits(r.overview.primaryUse, outputLanguage)}</p>
+                </div>
+              )}
+              {r.overview?.drugClass && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.drugClass}</h4>
+                  <p>{localizeDigits(r.overview.drugClass, outputLanguage)}</p>
+                </div>
+              )}
+              {r.activeIngredient && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.activeIngredient}</h4>
+                  <p>{localizeDigits(r.activeIngredient, outputLanguage)}</p>
+                </div>
+              )}
+              {r.ageSpecificInfo && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.ageSpecificInfo}</h4>
+                  <p>{localizeDigits(r.ageSpecificInfo, outputLanguage)}</p>
+                </div>
+              )}
+              {r.storage && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building size={14} /> {nT.storage}
+                  </h4>
+                  <p>{localizeDigits(r.storage, outputLanguage)}</p>
+                </div>
+              )}
               {r.interactions && r.interactions.length > 0 && (
-                <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>Drug Interactions</h4>
-                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>{r.interactions.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.interactions}</h4>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {r.interactions.map((item, i) => <li key={i}>{localizeDigits(item, outputLanguage)}</li>)}
+                  </ul>
                 </div>
               )}
             </div>
           )}
+
           {nameTab === 'dosage' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.dosageAndUsage?.standardDose && (<div className="alert alert-primary" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={15} /> Standard Dose</strong><p>{r.dosageAndUsage.standardDose}</p></div>)}
-              {r.dosageAndUsage?.frequency && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Frequency</h4><p>{r.dosageAndUsage.frequency}</p></div>}
-              {r.dosageAndUsage?.duration && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>Duration</h4><p>{r.dosageAndUsage.duration}</p></div>}
-              {r.dosageAndUsage?.howToTake && <div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>How to Take</h4><p>{r.dosageAndUsage.howToTake}</p></div>}
+              <div className="alert alert-primary" style={{ padding: '16px' }}>
+                <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={15} /> {nT.standardDose}
+                </strong>
+                <p>{localizeDigits(r.dosageAndUsage?.standardDose || nT.referenceDosageNotice, outputLanguage)}</p>
+              </div>
+              {r.dosageAndUsage?.frequency && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.frequency}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.frequency, outputLanguage)}</p>
+                </div>
+              )}
+              {r.dosageAndUsage?.duration && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.duration}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.duration, outputLanguage)}</p>
+                </div>
+              )}
+              {r.dosageAndUsage?.howToTake && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{nT.howToTake}</h4>
+                  <p>{localizeDigits(r.dosageAndUsage.howToTake, outputLanguage)}</p>
+                </div>
+              )}
             </div>
           )}
+
           {nameTab === 'warnings' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.warnings && r.warnings.length > 0 && (<div className="alert alert-danger" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldAlert size={15} /> Warnings</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul></div>)}
-              {r.precautions && r.precautions.length > 0 && (<div><h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>Precautions</h4><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>{r.precautions.map((p, i) => <li key={i}>{p}</li>)}</ul></div>)}
+              {r.warnings && r.warnings.length > 0 && (
+                <div className="alert alert-danger" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldAlert size={15} /> {nT.criticalWarnings}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {Array.isArray(r.warnings) 
+                      ? r.warnings.map((w, i) => <li key={i}>{localizeDigits(w, outputLanguage)}</li>)
+                      : <li>{localizeDigits(r.warnings, outputLanguage)}</li>}
+                  </ul>
+                </div>
+              )}
+              {r.precautions && r.precautions.length > 0 && (
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{nT.generalPrecautions}</h4>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {Array.isArray(r.precautions) 
+                      ? r.precautions.map((p, i) => <li key={i}>{localizeDigits(p, outputLanguage)}</li>)
+                      : <li>{localizeDigits(r.precautions, outputLanguage)}</li>}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
+
           {nameTab === 'sideeffects' && (
             <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {r.sideEffects?.common && r.sideEffects.common.length > 0 && (<div className="alert alert-warning" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertOctagon size={15} /> Common Side Effects</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.sideEffects.common.map((s, i) => <li key={i}>{s}</li>)}</ul></div>)}
-              {r.sideEffects?.serious && r.sideEffects.serious.length > 0 && (<div className="alert alert-danger" style={{ padding: '16px' }}><strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={15} /> Serious Side Effects</strong><ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>{r.sideEffects.serious.map((s, i) => <li key={i}>{s}</li>)}</ul></div>)}
+              {r.sideEffects?.common && r.sideEffects.common.length > 0 && (
+                <div className="alert alert-warning" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertOctagon size={15} /> {nT.commonSideEffects}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {r.sideEffects.common.map((s, i) => <li key={i}>{localizeDigits(s, outputLanguage)}</li>)}
+                  </ul>
+                </div>
+              )}
+              {r.sideEffects?.serious && r.sideEffects.serious.length > 0 && (
+                <div className="alert alert-danger" style={{ padding: '16px' }}>
+                  <strong className="alert-title" style={{ fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={15} /> {nT.seriousSideEffects}
+                  </strong>
+                  <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {r.sideEffects.serious.map((s, i) => <li key={i}>{localizeDigits(s, outputLanguage)}</li>)}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -506,7 +762,7 @@ const ScannerPage = () => {
         </div>
         <h1 className="page-title">{t('scannerTitle') || 'Medicine Scanner'}</h1>
         <p className="body-text" style={{ marginTop: '8px', maxWidth: '800px', fontSize: '16px' }}>
-          Upload pill bottles, packaging, or prescription labels. Our system extracts textual data and generates structured clinical dosages, active ingredients, warnings, and safety information.
+          Upload pill bottles, packaging, or prescription labels. Our system extracts textual data and cross-references authoritative pharmaceutical databases to generate structured clinical dosages, active ingredients, warnings, and safety monographs.
         </p>
       </div>
 
@@ -596,7 +852,7 @@ const ScannerPage = () => {
                       </div>
                       <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '18px', marginBottom: '8px' }}>Upload Medicine Label</h4>
                       <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '240px', lineHeight: 1.5 }}>
-                        Drag and drop an image, click to browse, or use your camera.
+                        Drag and drop packaging, blister packs, bottles, or prescription labels.
                       </p>
                     </div>
                   )}
@@ -616,7 +872,7 @@ const ScannerPage = () => {
                 
                 {!imagePreview && (
                   <div style={{ marginTop: '24px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
-                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>DEMO PRESETS</p>
+                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>VERIFICATION DEMO PRESETS</p>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {PRESET_MEDICINES.map(p => (
                         <button key={p.id} onClick={async () => { const { file, dataUrl } = await generatePresetImageFile(p); setSelectedFile(file); setImagePreview(dataUrl); }} className="badge badge-normal" style={{ border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: '13px' }}>
@@ -650,7 +906,28 @@ const ScannerPage = () => {
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {scanTranslating && <Loader2 size={16} className="spin" style={{ color: 'var(--primary)' }} />}
-                  {result && <span className="badge badge-success"><CheckCircle2 size={14} style={{marginRight:'6px'}}/> {sT.verified}</span>}
+                  {result && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {result.verificationStatus === 'Verified' ? (
+                        <span className="badge badge-success" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <CheckCircle2 size={14} style={{ marginRight: '6px' }} /> {sT.verified}
+                        </span>
+                      ) : result.verificationStatus === 'Partially Verified' ? (
+                        <span className="badge badge-warning" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <AlertTriangle size={14} style={{ marginRight: '6px' }} /> {sT.partiallyVerified}
+                        </span>
+                      ) : (
+                        <span className="badge badge-danger" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          <AlertOctagon size={14} style={{ marginRight: '6px' }} /> {sT.notVerified}
+                        </span>
+                      )}
+                      {result.confidenceScore > 0 && (
+                        <span className="badge badge-normal" style={{ fontSize: '11px', padding: '3px 8px' }}>
+                          {localizeDigits(String(result.confidenceScore), scanLanguage)}%
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -666,21 +943,63 @@ const ScannerPage = () => {
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '24px', overflowY: 'auto' }}>
                   
                   {/* Verified Data Header */}
-                  <div style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1, paddingRight: '16px' }}>
-                        <h3 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '8px' }}>{result.medicineName}</h3>
-                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}><strong>{sT.generic}:</strong> {result.genericName || result.activeIngredients || 'N/A'}</p>
+                  <div style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent)', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ flex: 1, minWidth: '220px', paddingRight: '16px' }}>
+                        <h3 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '8px' }}>
+                          {localizeDigits(result.medicineName, scanLanguage)}
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                          <strong>{sT.generic}:</strong> {localizeDigits(result.genericName || result.activeIngredients || 'N/A', scanLanguage)}
+                        </p>
+                        {result.manufacturer && (
+                          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            <strong>{sT.manufacturer}:</strong> {result.manufacturer}
+                          </p>
+                        )}
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                        <span className="badge badge-primary" style={{ fontSize: '12px', padding: '6px 12px' }}>{result.category}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>{result.dosageForm}</span>
+                        {result.category && <span className="badge badge-primary" style={{ fontSize: '12px', padding: '6px 12px' }}>{result.category}</span>}
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {result.dosageForm && <span style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>{result.dosageForm}</span>}
+                          {result.route && <span style={{ fontSize: '12px', color: 'var(--primary)', background: 'rgba(139,92,246,0.1)', padding: '4px 10px', borderRadius: '8px' }}>{result.route}</span>}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* AI Summary Tabs */}
-                  <div style={{ marginBottom: '24px' }}>
+                  {/* Active Ingredients Breakdown Cards (especially for combinations like ACENEXT P & Montypen-LC) */}
+                  {result.activeIngredientsList && result.activeIngredientsList.length > 0 && (
+                    <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <BookmarkCheck size={14} style={{ color: 'var(--primary)' }} /> {sT.activeIngredientsBreakdown}
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {result.activeIngredientsList.map((ing, idx) => (
+                          <div key={idx} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                            <div>
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{ing.name}</strong>
+                              {ing.class && <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({ing.class})</span>}
+                              {ing.mechanism && <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{ing.mechanism}</p>}
+                            </div>
+                            <span className="badge badge-normal" style={{ fontSize: '12px', fontWeight: '700', padding: '4px 10px' }}>
+                              {localizeDigits(ing.strength, scanLanguage)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.combinationRationale && (
+                        <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '8px', border: '1px dashed rgba(139, 92, 246, 0.2)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                          <strong style={{ color: 'var(--primary)' }}>{sT.combinationRationale}: </strong>
+                          {localizeDigits(result.combinationRationale, scanLanguage)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Summary Tabs */}
+                  <div style={{ marginBottom: '20px' }}>
                      <div 
                        className="tab-nav-scroll" 
                        style={{ 
@@ -724,66 +1043,159 @@ const ScannerPage = () => {
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div>
                           <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.clinicalPurpose}</h4>
-                          <p>{result.purposeAndUses || result.usageInstructions}</p>
+                          <p>{localizeDigits(result.purposeAndUses || result.usageInstructions, scanLanguage)}</p>
                         </div>
+                        {result.clinicalUses && result.clinicalUses.length > 0 && (
+                          <div>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '6px' }}>{sT.primaryUse}</h4>
+                            <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {result.clinicalUses.map((use, idx) => (
+                                <li key={idx}>{localizeDigits(use, scanLanguage)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                           <div>
-                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Building size={16} /> {sT.manufacturer}</h4>
-                            <p>{result.manufacturer || 'N/A'}</p>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Building size={16} /> {sT.manufacturer}
+                            </h4>
+                            <p>{result.manufacturer || 'Licensed Pharmaceutical Manufacturer'}</p>
                           </div>
                           {result.storage && (
                             <div>
                               <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.storage}</h4>
-                              <p>{result.storage}</p>
+                              <p>{localizeDigits(result.storage, scanLanguage)}</p>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
+
                     {activeTab === 'dosage' && (
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div className="alert alert-primary" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><Clock size={18} /> {sT.prescribedDosage}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.dosage) ? result.dosage.join(' ') : result.dosage}</p>
+                        <div className="alert alert-primary" style={{ padding: '18px' }}>
+                          <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Clock size={16} /> {sT.standardDose}
+                          </strong>
+                          <p style={{ fontSize: '14px', lineHeight: 1.6 }}>
+                            {localizeDigits(result.dosageReference || result.dosage || sT.referenceDosageNotice, scanLanguage)}
+                          </p>
                         </div>
-                        <div>
-                          <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.usageInstructions}</h4>
-                          <p>{Array.isArray(result.usageInstructions) ? result.usageInstructions.join(' ') : result.usageInstructions}</p>
+
+                        <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                            <Info size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: '-2px', color: 'var(--primary)' }} />
+                            {sT.referenceDosageNotice}
+                          </p>
                         </div>
+
+                        {result.usageInstructions && (
+                          <div>
+                            <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.usageInstructions}</h4>
+                            <p>{localizeDigits(Array.isArray(result.usageInstructions) ? result.usageInstructions.join(' ') : result.usageInstructions, scanLanguage)}</p>
+                          </div>
+                        )}
+
                         {result.missedDose && (
                           <div>
                             <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.missedDose}</h4>
-                            <p>{Array.isArray(result.missedDose) ? result.missedDose.join(' ') : result.missedDose}</p>
+                            <p>{localizeDigits(Array.isArray(result.missedDose) ? result.missedDose.join(' ') : result.missedDose, scanLanguage)}</p>
                           </div>
                         )}
                       </div>
                     )}
+
                     {activeTab === 'warnings' && (
                       <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div className="alert alert-danger" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><ShieldAlert size={18} /> {sT.criticalWarnings}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.warnings) ? result.warnings.join(' ') : result.warnings}</p>
-                        </div>
+                        {result.warnings && (
+                          <div className="alert alert-danger" style={{ padding: '18px' }}>
+                            <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <ShieldAlert size={16} /> {sT.criticalWarnings}
+                            </strong>
+                            <p style={{ fontSize: '14px', lineHeight: 1.6 }}>
+                              {localizeDigits(Array.isArray(result.warnings) ? result.warnings.join(' ') : result.warnings, scanLanguage)}
+                            </p>
+                          </div>
+                        )}
+
                         {result.precautions && (
                           <div>
                             <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', marginBottom: '4px' }}>{sT.generalPrecautions}</h4>
-                            <p>{Array.isArray(result.precautions) ? result.precautions.join(' ') : result.precautions}</p>
+                            <p>{localizeDigits(Array.isArray(result.precautions) ? result.precautions.join(' ') : result.precautions, scanLanguage)}</p>
                           </div>
                         )}
                       </div>
                     )}
+
                     {activeTab === 'sideeffects' && (
-                      <div className="fade-in">
-                        <div className="alert alert-warning" style={{ padding: '20px' }}>
-                          <strong className="alert-title" style={{ fontSize: '16px', marginBottom: '8px' }}><AlertOctagon size={18} /> {sT.knownSideEffects}</strong>
-                          <p style={{ fontSize: '15px' }}>{Array.isArray(result.sideEffects) ? result.sideEffects.join(', ') : (typeof result.sideEffects === 'object' && result.sideEffects !== null ? (result.sideEffects.common ? (Array.isArray(result.sideEffects.common) ? result.sideEffects.common.join(', ') : result.sideEffects.common) : JSON.stringify(result.sideEffects)) : result.sideEffects)}</p>
-                        </div>
+                      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {result.sideEffects && (
+                          <>
+                            {result.sideEffects.common && result.sideEffects.common.length > 0 && (
+                              <div className="alert alert-warning" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertOctagon size={16} /> {sT.commonSideEffects}
+                                </strong>
+                                <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {result.sideEffects.common.map((s, idx) => (
+                                    <li key={idx}>{localizeDigits(s, scanLanguage)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {result.sideEffects.serious && result.sideEffects.serious.length > 0 && (
+                              <div className="alert alert-danger" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertTriangle size={16} /> {sT.seriousSideEffects}
+                                </strong>
+                                <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {result.sideEffects.serious.map((s, idx) => (
+                                    <li key={idx}>{localizeDigits(s, scanLanguage)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {typeof result.sideEffects === 'string' && (
+                              <div className="alert alert-warning" style={{ padding: '18px' }}>
+                                <strong className="alert-title" style={{ fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <AlertOctagon size={16} /> {sT.knownSideEffects}
+                                </strong>
+                                <p style={{ fontSize: '14px' }}>{localizeDigits(result.sideEffects, scanLanguage)}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
+
+                  {/* Medical References Citations Bar */}
+                  {result.sources && result.sources.length > 0 && (
+                    <div style={{ marginTop: '24px', padding: '14px 18px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        {sT.medicalReferences}
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {result.sources.map((src, i) => (
+                          <a
+                            key={i}
+                            href={src.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '12px', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                          >
+                            {src.name} {src.citationDate ? `(${localizeDigits(src.citationDate, scanLanguage)})` : ''} <ExternalLink size={11} />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
-                  <div style={{ marginTop: '32px' }}>
+                  <div style={{ marginTop: '28px' }}>
                     <MedicalDisclaimer />
                   </div>
                 </div>
@@ -803,19 +1215,29 @@ const ScannerPage = () => {
                   <div style={{ background: 'rgba(6, 182, 212, 0.1)', color: 'var(--info)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Search size={18} />
                   </div>
-                  <h2 className="card-heading">Medicine Name Search</h2>
+                  <h2 className="card-heading">{nT.searchTitle}</h2>
                 </div>
                 {nameResult && (
-                  <button onClick={resetNameSearch} className="btn btn-secondary" style={{ padding: '6px 12px', minHeight: '32px', fontSize: '12px', borderRadius: '8px' }}>Reset</button>
+                  <button onClick={resetNameSearch} className="btn btn-secondary" style={{ padding: '6px 12px', minHeight: '32px', fontSize: '12px', borderRadius: '8px' }}>
+                    {nT.reset}
+                  </button>
                 )}
               </div>
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <p className="body-text" style={{ fontSize: '14px' }}>Type the name of any medicine or drug to get detailed clinical information — dosage, warnings, side effects, and interactions.</p>
+                <p className="body-text" style={{ fontSize: '14px' }}>{nT.searchPrompt}</p>
                 <form onSubmit={handleNameSearch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <div style={{ position: 'relative', flex: 1 }}>
                       <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                      <input type="text" value={nameQuery} onChange={(e) => setNameQuery(e.target.value)} placeholder="e.g. Paracetamol, Amoxicillin, Metformin..." className="input" style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} disabled={nameLoading} />
+                      <input 
+                        type="text" 
+                        value={nameQuery} 
+                        onChange={(e) => setNameQuery(e.target.value)} 
+                        placeholder={nT.searchPlaceholder} 
+                        className="input" 
+                        style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} 
+                        disabled={nameLoading} 
+                      />
                     </div>
                     <div style={{ position: 'relative', width: '135px', flexShrink: 0 }}>
                       <Globe size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -844,7 +1266,7 @@ const ScannerPage = () => {
                     </div>
                   </div>
                   <button type="submit" className="btn btn-primary" disabled={nameLoading || !nameQuery.trim()} style={{ padding: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '8px' }}>
-                    {nameLoading ? <><Loader2 size={18} className="spin" /> Searching...</> : <><Sparkles size={18} /> Search Medicine</>}
+                    {nameLoading ? <><Loader2 size={18} className="spin" /> {nT.searching}</> : <><Sparkles size={18} /> {nT.searchMedicine}</>}
                   </button>
                 </form>
                 {nameError && (
@@ -855,9 +1277,9 @@ const ScannerPage = () => {
                 )}
                 {!nameResult && !nameLoading && (
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px' }}>
-                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>QUICK SUGGESTIONS</p>
+                    <p className="caption" style={{ marginBottom: '12px', fontWeight: '600' }}>{nT.quickSuggestions}</p>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {['Paracetamol', 'Amoxicillin', 'Metformin', 'Ibuprofen', 'Aspirin', 'Omeprazole'].map(name => (
+                      {['ACENEXT P', 'Montypen-LC', 'Paracetamol', 'Metformin', 'Augmentin', 'Ibuprofen'].map(name => (
                         <button key={name} type="button" onClick={() => setNameQuery(name)} className="badge badge-normal" style={{ border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: '12px', borderRadius: '8px' }}>{name}</button>
                       ))}
                     </div>
@@ -867,8 +1289,8 @@ const ScannerPage = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', background: 'rgba(6, 182, 212, 0.03)', borderRadius: '16px', padding: '40px', border: '2px dashed rgba(6, 182, 212, 0.15)' }}>
                     <Loader2 size={44} className="spin" style={{ color: 'var(--info)' }} />
                     <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>Analyzing Medicine Data</p>
-                      <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>AI is retrieving clinical information...</p>
+                      <p style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{nT.analyzingData}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{nT.aiRetrieving}</p>
                     </div>
                   </div>
                 )}
@@ -883,7 +1305,7 @@ const ScannerPage = () => {
                   <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FileCheck size={18} />
                   </div>
-                  <h2 className="card-heading">Search Results</h2>
+                  <h2 className="card-heading">{nT.searchResults}</h2>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {/* Language Translator Selector in Results Header */}
@@ -915,7 +1337,7 @@ const ScannerPage = () => {
                     </select>
                     <ChevronDown size={12} style={{ position: 'absolute', right: '8px', color: 'var(--primary)', pointerEvents: 'none' }} />
                   </div>
-                  {nameResult && <span className="badge badge-success"><CheckCircle2 size={14} style={{ marginRight: '6px' }} /> Found</span>}
+                  {nameResult && <span className="badge badge-success"><CheckCircle2 size={14} style={{ marginRight: '6px' }} /> {nT.found}</span>}
                 </div>
               </div>
               {!nameResult ? (
@@ -923,8 +1345,8 @@ const ScannerPage = () => {
                   <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
                     <Pill size={40} className="empty-state-icon" style={{ margin: 0 }} />
                   </div>
-                  <h4 className="empty-state-title" style={{ fontSize: '18px' }}>Awaiting Search</h4>
-                  <p className="empty-state-text" style={{ fontSize: '15px', lineHeight: 1.6 }}>Enter a medicine name on the left and click Search to view detailed clinical information here.</p>
+                  <h4 className="empty-state-title" style={{ fontSize: '18px' }}>{nT.awaitingSearch}</h4>
+                  <p className="empty-state-text" style={{ fontSize: '15px', lineHeight: 1.6 }}>{nT.awaitingSearchDesc}</p>
                 </div>
               ) : (
                 <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>{renderNameResult()}</div>

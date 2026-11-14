@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 
@@ -17,7 +18,17 @@ app.use(cors());
 app.use(express.json());
 
 // Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Serve uploaded files statically with CORS & CORP headers
+const setUploadHeaders = (res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+};
+const primaryUploads = path.join(__dirname, '..', 'uploads');
+const altUploads = path.join(__dirname, '..', '..', 'uploads');
+app.use('/uploads', express.static(primaryUploads, { setHeaders: setUploadHeaders }));
+if (fs.existsSync(altUploads)) {
+  app.use('/uploads', express.static(altUploads, { setHeaders: setUploadHeaders }));
+}
 
 // Routes mapping
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -33,7 +44,6 @@ app.all('/api/*', (req, res) => {
 });
 
 // Serve frontend statically if built
-const fs = require('fs');
 const frontendDistPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
 const rootDistPath = path.join(__dirname, '..', '..', 'dist');
 

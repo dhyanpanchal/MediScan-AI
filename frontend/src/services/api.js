@@ -384,6 +384,99 @@ export const api = {
 
 const CLIENT_MEDICINE_FALLBACKS = [
   {
+    regex: /acenext[- ]?p|aceclofenac.*paracetamol|zerodol[- ]?p|hifenac[- ]?p/i,
+    data: {
+      medicineName: 'ACENEXT P (Aceclofenac + Paracetamol)',
+      genericName: 'Aceclofenac 100mg and Paracetamol 325mg Tablets IP',
+      manufacturer: 'Acrochem Laboratories / IPCA',
+      category: 'NSAID & Analgesic Combination',
+      dosageForm: 'Oral Film-coated Tablet',
+      activeIngredient: 'Aceclofenac 100mg + Paracetamol 325mg',
+      overview: {
+        primaryUse: 'Relief of pain and inflammation in osteoarthritis, rheumatoid arthritis, ankylosing spondylitis, acute musculoskeletal pain, and fever.',
+        drugClass: 'NSAID (COX-2 Preferential) & Non-Opioid Analgesic',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 tablet twice daily after meals (every 12 hours)',
+        frequency: 'Twice daily after food',
+        duration: 'Shortest duration necessary under physician guidance (typically 3-7 days)',
+        howToTake: 'Swallow whole with a full glass of water after food. Do not chew or crush.'
+      },
+      sideEffects: {
+        common: ['Dyspepsia', 'Nausea', 'Abdominal discomfort', 'Dizziness', 'Heartburn'],
+        serious: ['Gastrointestinal ulceration or bleeding', 'Elevated liver transaminases (hepatotoxicity)', 'Renal impairment']
+      },
+      warnings: ['Avoid alcohol consumption completely while taking this medicine. Do not take with other paracetamol products.'],
+      precautions: ['Contraindicated in active peptic ulcer, 3rd trimester pregnancy, and severe liver/kidney disease.'],
+      storage: 'Store below 25°C in a dry place. Protect from heat, light, and moisture.',
+      ageSpecificInfo: 'Formulated for adults. Not recommended for children without pediatric specialist evaluation.',
+      interactions: ['Alcohol, Warfarin, other NSAIDs, Methotrexate, ACE inhibitors.']
+    }
+  },
+  {
+    regex: /montypen[- ]?lc|montek[- ]?lc|montair[- ]?lc|montelukast.*levocetirizine/i,
+    data: {
+      medicineName: 'Montypen-LC (Montelukast + Levocetirizine)',
+      genericName: 'Montelukast Sodium 10mg and Levocetirizine Dihydrochloride 5mg Tablets IP',
+      manufacturer: 'Acrochem Laboratories / Sun Pharma / Cipla',
+      category: 'Leukotriene Receptor Antagonist & Antihistamine',
+      dosageForm: 'Oral Film-coated Tablet',
+      activeIngredient: 'Montelukast 10mg + Levocetirizine 5mg',
+      overview: {
+        primaryUse: 'Treatment and prevention of allergic rhinitis (sneezing, runny nose, itchy eyes) and comorbid mild allergic asthma.',
+        drugClass: 'CysLT1 Leukotriene Antagonist & H1-Antihistamine',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '1 tablet once daily in the evening / at bedtime',
+        frequency: 'Once daily at night',
+        duration: 'As prescribed by physician (often 7 to 14 days or seasonal)',
+        howToTake: 'Take once daily in the evening with or without food. Swallow whole with water.'
+      },
+      sideEffects: {
+        common: ['Drowsiness', 'Dry mouth', 'Fatigue', 'Headache', 'Mild stomach discomfort'],
+        serious: ['FDA Warning: Neuropsychiatric events (severe mood changes, depression, vivid dreams)', 'Severe allergic reactions']
+      },
+      warnings: ['FDA Warning (Montelukast): Report any mood alterations, depression, or suicidal ideation immediately. May cause drowsiness; avoid driving.'],
+      precautions: ['Adjust dose in patients with renal impairment. Use in pregnancy only if clearly prescribed.'],
+      storage: 'Store between 15°C and 30°C in original blister pack away from direct sunlight.',
+      ageSpecificInfo: 'Adults and adolescents aged 15 years and older. Pediatric syrup formulations used for children.',
+      interactions: ['Alcohol, Phenobarbital, Rifampicin, CNS depressants.']
+    }
+  },
+  {
+    regex: /biguanide|biguanides|metformin|glycomet|glucophage/i,
+    data: {
+      medicineName: 'Metformin HCl 500mg (Biguanides)',
+      genericName: 'Metformin Hydrochloride 500mg Extended Release',
+      manufacturer: 'USV Ltd. / Franco-Indian / Sun Pharma',
+      category: 'Biguanide Oral Antidiabetic',
+      dosageForm: 'Extended Release Tablet',
+      activeIngredient: 'Metformin HCl 500mg',
+      overview: {
+        primaryUse: 'First-line medication for blood glucose control in Type 2 Diabetes Mellitus and management of Insulin Resistance / PCOS.',
+        drugClass: 'Biguanide Antihyperglycemic Agent',
+        prescriptionRequired: true
+      },
+      dosageAndUsage: {
+        standardDose: '500 mg to 1000 mg once or twice daily with meals',
+        frequency: 'With meals (typically breakfast and dinner)',
+        duration: 'Long-term maintenance therapy under glycemic monitoring',
+        howToTake: 'Take with or immediately after meals to minimize gastrointestinal discomfort. Swallow whole.'
+      },
+      sideEffects: {
+        common: ['Metallic taste in mouth', 'Nausea', 'Diarrhea', 'Abdominal bloating / Flatulence'],
+        serious: ['Lactic acidosis (rare but critical medical emergency)', 'Vitamin B12 deficiency with chronic use']
+      },
+      warnings: ['Black Box Alert: Risk of Lactic Acidosis in severe renal or cardiac impairment. Discontinue before radiographic iodinated contrast scans.'],
+      precautions: ['Contraindicated in severe renal impairment (eGFR < 30 mL/min). Avoid excessive acute or chronic alcohol.'],
+      storage: 'Store between 20°C and 25°C protected from light and moisture.',
+      ageSpecificInfo: 'Approved for adults and children over 10 years for Type 2 Diabetes under medical supervision.',
+      interactions: ['Alcohol, Cimetidine, Furosemide, Iodinated contrast agents.']
+    }
+  },
+  {
     regex: /ibuprofen|combiflam|advil|motrin/i,
     data: {
       medicineName: 'Ibuprofen 400mg',
@@ -594,6 +687,11 @@ function translateClientMedicine(data, lang = 'en') {
   const isGu = lang === 'gu';
 
   const hiMedicineNames = {
+    'ACENEXT P (Aceclofenac + Paracetamol)': 'एसीनेक्स्ट पी (Aceclofenac + Paracetamol)',
+    'Montypen-LC (Montelukast + Levocetirizine)': 'मॉन्टीपेन-एलसी (Montelukast + Levocetirizine)',
+    'Metformin HCl 500mg (Biguanides)': 'मेटफॉर्मिन एचसीएल 500mg (बायगुआनाइड्स)',
+    'Augmentin 625mg (Amoxicillin + Clavulanate)': 'ऑगमेंटिन 625mg (एमोक्सिसिलिन + क्लैवुलैनेट)',
+    'Pan-D (Pantoprazole + Domperidone SR)': 'पैन-डी (पैंटोप्राजोल + डोमपेरिडोन एसआर)',
     'Ibuprofen 400mg': 'इबुप्रोफेन 400mg',
     'Ibuprofen IP 400mg': 'इबुप्रोफेन आईपी 400mg',
     'Dolo-650 (Paracetamol 650mg)': 'डोलो-650 (पैरासिटामोल 650mg)',
@@ -609,6 +707,11 @@ function translateClientMedicine(data, lang = 'en') {
   };
 
   const guMedicineNames = {
+    'ACENEXT P (Aceclofenac + Paracetamol)': 'એસીનેક્સ્ટ પી (Aceclofenac + Paracetamol)',
+    'Montypen-LC (Montelukast + Levocetirizine)': 'મોન્ટીપેન-એલસી (Montelukast + Levocetirizine)',
+    'Metformin HCl 500mg (Biguanides)': 'મેટફોર્મિન એચસીએલ 500mg (બાયગુઆનાઇડ્સ)',
+    'Augmentin 625mg (Amoxicillin + Clavulanate)': 'ઓગમેન્ટિન 625mg (એમોક્સિસિલિન + ક્લેવ્યુલેનેટ)',
+    'Pan-D (Pantoprazole + Domperidone SR)': 'પેન-ડી (પેન્ટોપ્રાઝોલ + ડોમપેરિડોન એસઆર)',
     'Ibuprofen 400mg': 'ઇબુપ્રૉફેન 400mg',
     'Ibuprofen IP 400mg': 'ઇબુપ્રૉફેન આઈપી 400mg',
     'Dolo-650 (Paracetamol 650mg)': 'ડોલો-650 (પેરાસિટામોલ 650mg)',
@@ -731,8 +834,26 @@ function translateClientMedicine(data, lang = 'en') {
     translated.interactions = ['એસ્પિરિન અથવા લોહી પાતળું કરતી દવાઓ સાથે ડૉક્ટરની સલાહ વિના ન લેવી.'];
   }
 
-  translated._originalEnglish = data._originalEnglish;
+  translated._originalEnglish = data._originalEnglish || data;
   translated._currentLang = lang;
+
+  if (lang === 'gu' || lang === 'hi') {
+    const guMap = { '0': '૦', '1': '૧', '2': '૨', '3': '૩', '4': '૪', '5': '૫', '6': '૬', '7': '૭', '8': '૮', '9': '૯' };
+    const hiMap = { '0': '०', '1': '१', '2': '२', '3': '३', '4': '४', '5': '५', '6': '६', '7': '७', '8': '૮', '9': '९' };
+    const digitMap = lang === 'gu' ? guMap : hiMap;
+    const replaceDigits = (str) => typeof str === 'string' ? str.replace(/[0-9]/g, d => digitMap[d] || d) : str;
+    const traverse = (val) => {
+      if (typeof val === 'string') return replaceDigits(val);
+      if (Array.isArray(val)) return val.map(traverse);
+      if (val !== null && typeof val === 'object') {
+        const res = {};
+        for (const k of Object.keys(val)) res[k] = traverse(val[k]);
+        return res;
+      }
+      return val;
+    };
+    return traverse(translated);
+  }
 
   return translated;
 }
