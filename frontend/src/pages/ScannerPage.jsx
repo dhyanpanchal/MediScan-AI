@@ -315,6 +315,7 @@ const ScannerPage = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDragging, setIsDragging] = useState(false);
 
   // ── Manual name-search state ─────────────────────────────────────────────
   const [nameQuery, setNameQuery] = useState('');
@@ -355,14 +356,60 @@ const ScannerPage = () => {
 
   useEffect(() => () => stopCameraStream(), []);
 
+  const processImageFile = (file) => {
+    if (!file) return;
+    const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(file.name);
+    if (!isImage) {
+      return setError('Please upload or drop a valid image file (JPEG, PNG, WEBP).');
+    }
+    setError('');
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const handleFileChange = (e) => {
     setError('');
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+      processImageFile(file);
+    }
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      e.dataTransfer.dropEffect = 'copy';
+    } catch (_) {}
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
+      return;
+    }
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (loading) return;
+
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processImageFile(file);
     }
   };
 
@@ -465,6 +512,8 @@ const ScannerPage = () => {
     setSelectedFile(null);
     setResult(null);
     setError('');
+    setIsDragging(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // ── Manual name-search handlers ──────────────────────────────────────────
@@ -799,12 +848,44 @@ const ScannerPage = () => {
                   </div>
                 </div>
 
-                <div className={`scanner-container ${loading ? 'active' : ''} ${imagePreview ? 'has-image' : ''}`} style={{
-                  flex: 1, minHeight: '360px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative', overflow: 'hidden', marginBottom: '24px',
-                  borderRadius: '16px', background: imagePreview ? '#000' : 'rgba(255,255,255,0.02)',
-                  border: imagePreview ? 'none' : '2px dashed rgba(255,255,255,0.1)'
-                }}>
+                <div
+                  className={`scanner-container ${loading ? 'active' : ''} ${imagePreview ? 'has-image' : ''} ${isDragging ? 'drag-over' : ''}`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  style={{
+                    flex: 1, minHeight: '360px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative', overflow: 'hidden', marginBottom: '24px',
+                    borderRadius: '16px',
+                    background: isDragging ? 'rgba(139, 92, 246, 0.12)' : (imagePreview ? '#000' : 'rgba(255,255,255,0.02)'),
+                    border: isDragging ? '2px dashed var(--primary)' : (imagePreview ? 'none' : '2px dashed rgba(255,255,255,0.15)'),
+                    transition: 'all 0.2s ease',
+                    boxShadow: isDragging ? '0 0 24px rgba(139, 92, 246, 0.35)' : 'none'
+                  }}
+                >
+                  {isDragging && (
+                    <div style={{
+                      position: 'absolute', inset: 0, zIndex: 15,
+                      background: 'rgba(11, 13, 28, 0.88)', backdropFilter: 'blur(6px)',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      pointerEvents: 'none', gap: '12px'
+                    }}>
+                      <div style={{
+                        width: '64px', height: '64px', borderRadius: '50%',
+                        background: 'rgba(139, 92, 246, 0.25)', border: '2px solid var(--primary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <Upload size={32} style={{ color: 'var(--primary)' }} />
+                      </div>
+                      <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '18px' }}>
+                        Drop Medicine Image Here
+                      </h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+                        Release to load medicine packaging or prescription
+                      </p>
+                    </div>
+                  )}
                   
                   {imagePreview ? (
                     <>

@@ -80,20 +80,70 @@ const ReportPage = () => {
   const [error, setError] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+
+  const processReportFile = (file) => {
+    if (!file) return;
+    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(file.name);
+    
+    if (!isPdf && !isImage) {
+      return setError('Please upload or drop a valid PDF or image file (PDF, JPEG, PNG, WEBP).');
+    }
+    
+    setError('');
+    setSelectedFile(file);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   const handleFileChange = (e) => {
     setError('');
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => setImagePreview(reader.result);
-        reader.readAsDataURL(file);
-      } else {
-        setImagePreview(null);
-      }
+      processReportFile(file);
+    }
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      e.dataTransfer.dropEffect = 'copy';
+    } catch (_) {}
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
+      return;
+    }
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (loading) return;
+
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processReportFile(file);
     }
   };
 
@@ -125,7 +175,8 @@ const ReportPage = () => {
   };
 
   const handleReset = () => {
-    setSelectedFile(null); setImagePreview(null); setResult(null); setError(''); setActiveTab('overview');
+    setSelectedFile(null); setImagePreview(null); setResult(null); setError(''); setActiveTab('overview'); setIsDragging(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const getStatusBadge = (status) => {
@@ -181,11 +232,43 @@ const ReportPage = () => {
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,image/*" style={{ display: 'none' }} />
 
             <div style={{ padding: '24px' }}>
-              <div className={`scanner-container ${loading ? 'active' : ''}`} style={{
-                minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
-                borderRadius: '16px', background: imagePreview ? '#000' : 'rgba(255,255,255,0.02)',
-                border: imagePreview ? 'none' : '2px dashed rgba(255,255,255,0.1)', marginBottom: '20px'
-              }}>
+              <div
+                className={`scanner-container ${loading ? 'active' : ''} ${isDragging ? 'drag-over' : ''}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                style={{
+                  minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
+                  borderRadius: '16px',
+                  background: isDragging ? 'rgba(139, 92, 246, 0.12)' : (imagePreview ? '#000' : 'rgba(255,255,255,0.02)'),
+                  border: isDragging ? '2px dashed var(--primary)' : (imagePreview ? 'none' : '2px dashed rgba(255,255,255,0.1)'),
+                  marginBottom: '20px', transition: 'all 0.2s ease',
+                  boxShadow: isDragging ? '0 0 24px rgba(139, 92, 246, 0.35)' : 'none'
+                }}
+              >
+                {isDragging && (
+                  <div style={{
+                    position: 'absolute', inset: 0, zIndex: 15,
+                    background: 'rgba(11, 13, 28, 0.88)', backdropFilter: 'blur(6px)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none', gap: '8px'
+                  }}>
+                    <div style={{
+                      width: '56px', height: '56px', borderRadius: '50%',
+                      background: 'rgba(139, 92, 246, 0.25)', border: '2px solid var(--primary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <Upload size={28} style={{ color: 'var(--primary)' }} />
+                    </div>
+                    <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '16px' }}>
+                      Drop Medical Report Here
+                    </h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+                      Release to load PDF or diagnostic report image
+                    </p>
+                  </div>
+                )}
                 {imagePreview ? (
                   <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: loading ? 0.3 : 1 }} />
                 ) : selectedFile ? (

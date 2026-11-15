@@ -568,6 +568,20 @@ html[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
   border-color: var(--primary);
   background: rgba(139,92,246,0.05);
 }
+.scanner-container.drag-over {
+  border-color: var(--primary) !important;
+  background: rgba(139, 92, 246, 0.15) !important;
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.4) !important;
+}
+[data-theme="light"] .scanner-container {
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.02);
+}
+[data-theme="light"] .scanner-container.drag-over {
+  border-color: var(--primary) !important;
+  background: rgba(124, 58, 237, 0.08) !important;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.25) !important;
+}
 .scanner-laser {
   position: absolute;
   top: 0;
