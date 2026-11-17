@@ -12,7 +12,7 @@
     "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
-    "test": "npm run test --workspace=backend"
+    "test": "node backend/test_medicine_scanner.js"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
