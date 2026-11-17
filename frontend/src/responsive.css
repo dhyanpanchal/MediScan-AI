@@ -288,6 +288,30 @@ table {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .landing-header-bar {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.pipeline-card {
+  background: linear-gradient(to bottom, rgba(20, 22, 40, 0.8), rgba(11, 13, 28, 1));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .pipeline-card {
+  background: linear-gradient(to bottom, #FFFFFF, #F1F5F9);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .pipeline-icons {
+  opacity: 0.85 !important;
 }
 
 .landing-header-inner {

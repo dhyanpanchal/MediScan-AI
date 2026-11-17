@@ -1,39 +1,39 @@
 const multer = require('multer');
+const fs = require('fs/promises');
 const path = require('path');
-const fs = require('fs');
-const os = require('os');
-
-// Ensure upload directory exists
-const isVercel = process.env.VERCEL || process.env.NOW_BUILDER;
-const uploadDir = process.env.UPLOADS_DIR || (isVercel ? path.join(os.tmpdir(), 'uploads') : path.join(__dirname, '..', '..', 'uploads'));
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+const crypto = require('crypto');
+const sharp = require('sharp');
+const { uploadDir } = require('../config/storage');
+const invalid = () => Object.assign(new Error('Upload a valid PNG, JPEG, WebP, GIF image or PDF report.'), { status: 415 });
+async function validateBuffer(file, allowPdf) {
+  const buffer = file.buffer;
+  if (allowPdf && file.mimetype === 'application/pdf') {
+    if (!buffer.subarray(0, 5).equals(Buffer.from('%PDF-')) || !buffer.includes(Buffer.from('%%EOF'))) throw invalid();
+    try { await require('pdf-parse')(buffer); } catch { throw invalid(); }
+    return { buffer, extension: '.pdf', mimetype: 'application/pdf' };
+  }
+  if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.mimetype)) throw invalid();
+  try {
+    // Decode and re-encode to reject malformed images and strip active/trailing content.
+    const output = await sharp(buffer, { limitInputPixels: 40000000, failOn: 'error' }).rotate().png().toBuffer();
+    return { buffer: output, extension: '.png', mimetype: 'image/png' };
+  } catch { throw invalid(); }
 }
-
-// Multer storage engine configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Make filename unique
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
-});
-
-// File filter check (allowing any file type and format)
-const fileFilter = (req, file, cb) => {
-  cb(null, true);
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB maximum size limit
-  }
-});
-
-module.exports = upload;
+const parser = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } });
+function single(field) {
+  return (req, res, next) => parser.single(field)(req, res, async error => {
+    if (error) return next(error);
+    if (!req.file) return next();
+    try {
+      const valid = await validateBuffer(req.file, field === 'file');
+      await fs.mkdir(uploadDir, { recursive: true });
+      const filename = field + '-' + crypto.randomUUID() + valid.extension;
+      const destination = path.join(uploadDir, filename);
+      await fs.writeFile(destination, valid.buffer, { flag: 'wx' });
+      req.file = { ...req.file, filename, destination: uploadDir, path: destination, mimetype: valid.mimetype, size: valid.buffer.length };
+      delete req.file.buffer;
+      next();
+    } catch (error) { next(error); }
+  });
+}
+module.exports = { single, validateBuffer };

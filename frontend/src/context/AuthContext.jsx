@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { api } from '../services/api';
+import { clearHistoryCache } from '../services/historyCache';
 
 const AuthContext = createContext(null);
 
@@ -23,7 +24,8 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.error('Failed to fetch user profile:', err.message);
-          localStorage.removeItem('mediscan_token');
+          if (err.status === 401) localStorage.removeItem('mediscan_token');
+          else setError('Unable to reconnect. Please try again.');
         }
       }
       setLoading(false);
@@ -119,6 +121,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    clearHistoryCache();
     localStorage.removeItem('mediscan_token');
     setUser(null);
     setError(null);

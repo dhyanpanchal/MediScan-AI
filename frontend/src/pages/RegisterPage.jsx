@@ -52,12 +52,14 @@ const RegisterPage = () => {
   const handleDemoGoogleLogin = async () => {
     setError('');
     setOauthSimulating(true);
-    setOauthStatus('Signing in with Google Account (panchaldhyan007@gmail.com)...');
+    const targetEmail = (email && email.includes('@')) ? email.trim() : 'demo.user@mediscan.local';
+    const targetName = name || targetEmail.split('@')[0];
+    setOauthStatus(`Signing in with Google Account (${targetEmail})...`);
     try {
       await loginWithGoogle(
         'google_demo_token_' + Date.now(),
-        'panchaldhyan007@gmail.com',
-        'Dhyan Panchal'
+        targetEmail,
+        targetName
       );
       setOauthSimulating(false);
       navigate('/dashboard');

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
+  isAdmin: { type: Boolean, default: false },
   name: {
     type: String,
     required: true,
@@ -81,6 +82,7 @@ UserSchema.set('toJSON', {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
+    for (const field of ['password', 'otp', 'otpExpires', 'otpPurpose', 'otpAttempts', 'otpLastSent', 'oauthId']) delete returnedObject[field];
   }
 });
 

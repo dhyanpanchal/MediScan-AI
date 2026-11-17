@@ -4,6 +4,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { sendOTPEmail, sendPasswordResetEmail, verifySmtpConnection, maskEmail } = require('../utils/mailer');
 const { connectDB } = require('../config/db');
+const { isAdminEmail } = require('../utils/adminList');
 
 // Cryptographically secure 6-digit OTP generator
 const generateSecureOTP = () => {
@@ -64,7 +65,8 @@ const registerUser = async (req, res) => {
       password,
       phone,
       dateOfBirth,
-      gender
+      gender,
+      isAdmin: isAdminEmail(email)
     });
 
     if (user) {
@@ -337,6 +339,9 @@ const verifyOTP = async (req, res) => {
     user.otpExpires = null;
     user.otpAttempts = 0;
     user.otpPurpose = null;
+    if (isAdminEmail(user.email)) {
+      user.isAdmin = true;
+    }
     await user.save();
 
     console.log(`[Auth Diagnostic] Stage: OTP Verification Success | Target: ${maskEmail(user.email)} | Code invalidated & JWT token generated`);
@@ -351,6 +356,7 @@ const verifyOTP = async (req, res) => {
         phone: user.phone,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
+        isAdmin: user.isAdmin === true || isAdminEmail(user.email),
         token: generateToken(user.id)
       }
     });
@@ -381,15 +387,25 @@ const googleOAuthLogin = async (req, res) => {
       user = await User.create({
         name: userName,
         email: userEmail,
+        isAdmin: isAdminEmail(userEmail),
         oauthProvider: 'google',
         oauthId: oauthId,
         password: null // OAuth users do not need a password
       });
-    } else if (!user.oauthProvider) {
-      // Link existing user if logging in via OAuth for the first time
-      user.oauthProvider = 'google';
-      user.oauthId = oauthId;
-      await user.save();
+    } else {
+      let needsSave = false;
+      if (isAdminEmail(userEmail) && !user.isAdmin) {
+        user.isAdmin = true;
+        needsSave = true;
+      }
+      if (!user.oauthProvider) {
+        user.oauthProvider = 'google';
+        user.oauthId = oauthId;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save();
+      }
     }
 
     res.json({
@@ -401,6 +417,7 @@ const googleOAuthLogin = async (req, res) => {
         phone: user.phone,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
+        isAdmin: user.isAdmin === true || isAdminEmail(user.email),
         token: generateToken(user.id)
       }
     });

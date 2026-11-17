@@ -53,7 +53,7 @@ const ScanHistorySchema = new mongoose.Schema({
   },
   route: {
     type: String,
-    default: 'Oral',
+    default: '',
   },
   clinicalUses: {
     type: Array,
@@ -102,12 +102,16 @@ const ScanHistorySchema = new mongoose.Schema({
   verificationStatus: {
     type: String,
     enum: ['Verified', 'Partially Verified', 'Information Not Verified'],
-    default: 'Verified',
+    default: 'Information Not Verified',
   },
   confidenceScore: {
     type: Number,
-    default: 95,
+    default: null,
   },
+  identificationStatus: { type: String, default: 'unverified' },
+  verificationReason: { type: String, default: '' },
+  packagingEvidence: { type: mongoose.Schema.Types.Mixed, default: null },
+  ocrConfidence: { type: Number, default: null },
   sources: {
     type: Array,
     default: [],

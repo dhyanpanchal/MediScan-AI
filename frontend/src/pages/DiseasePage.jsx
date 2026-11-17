@@ -65,6 +65,23 @@ const DiseasePage = () => {
     }
   };
 
+  const handleDiseaseLanguageChange = async (newLang) => {
+    setOutputLanguage(newLang);
+    if (result && query.trim()) {
+      try {
+        setLoading(true);
+        const res = await api.searchDisease(query.trim(), newLang, ageGroup, age || null);
+        if (res.success && res.data) {
+          setResult(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to translate disease result:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const selectedGroup = AGE_GROUPS.find(g => g.key === ageGroup);
 
   return (
@@ -84,23 +101,13 @@ const DiseasePage = () => {
       {/* Search Form */}
       <div className="card" style={{ padding: 'clamp(16px, 3vw, 24px)', marginBottom: '2rem' }}>
         <form onSubmit={handleSearch}>
-          <div className="disease-search-container">
-            <div className="search-input-wrap">
+          <div className="disease-search-container" style={{ display: 'flex', gap: '12px' }}>
+            <div className="search-input-wrap" style={{ flex: 1, position: 'relative' }}>
               <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input ref={inputRef} className="form-control" style={{ paddingLeft: '48px', fontSize: '16px', height: '56px', borderRadius: '12px' }} placeholder={translations[outputLanguage]?.searchPlaceholder || t('searchPlaceholder') || 'Enter disease or condition...'} value={query} onChange={e => setQuery(e.target.value)} />
-            </div>
-            
-            <div className="lang-select-wrap">
-              <Globe size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <select className="form-control" style={{ paddingLeft: '44px', height: '56px', appearance: 'none', background: 'var(--bg-input)', cursor: 'pointer', borderRadius: '12px', fontSize: '15px' }} value={outputLanguage} onChange={e => setOutputLanguage(e.target.value)}>
-                <option value="en">English</option>
-                <option value="hi">हिन्दी</option>
-                <option value="gu">ગુજરાતી</option>
-              </select>
-              <ChevronDown size={16} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+              <input ref={inputRef} className="form-control" style={{ paddingLeft: '48px', fontSize: '16px', height: '56px', borderRadius: '12px', width: '100%' }} placeholder={translations[outputLanguage]?.searchPlaceholder || t('searchPlaceholder') || 'Enter disease or condition...'} value={query} onChange={e => setQuery(e.target.value)} />
             </div>
 
-            <button type="submit" className="btn btn-primary search-btn" disabled={loading || !query.trim()} style={{ height: '56px', padding: '0 32px', borderRadius: '12px', fontSize: '16px' }}>
+            <button type="submit" className="btn btn-primary search-btn" disabled={loading || !query.trim()} style={{ height: '56px', padding: '0 32px', borderRadius: '12px', fontSize: '16px', flexShrink: 0 }}>
               {loading ? <Loader2 size={20} className="spin" /> : <><Search size={20} /> {t('searchBtn') || 'Search'}</>}
             </button>
           </div>
@@ -140,8 +147,39 @@ const DiseasePage = () => {
                 <h2 style={{ fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: '800', color: 'var(--text-primary)', marginTop: '8px', marginBottom: '16px', lineHeight: 1.2 }}>{result.diseaseName}</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', fontSize: '15px', maxWidth: '800px' }}>{result.description}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '50px', background: `${selectedGroup?.color}15`, border: `1px solid ${selectedGroup?.color}30`, color: selectedGroup?.color, fontWeight: '700', fontSize: '13px', flexShrink: 0 }}>
-                {selectedGroup?.icon} {localT(ageGroup) || selectedGroup.label} {localT('profileApplied') || 'Profile Applied'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {/* Result side translation dropdown */}
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <Globe size={14} style={{ position: 'absolute', left: '10px', color: 'var(--primary)', pointerEvents: 'none' }} />
+                  <select
+                    aria-label="Result Language"
+                    value={outputLanguage}
+                    onChange={e => handleDiseaseLanguageChange(e.target.value)}
+                    style={{
+                      paddingLeft: '30px',
+                      paddingRight: '26px',
+                      paddingTop: '8px',
+                      paddingBottom: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      borderRadius: '50px',
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      color: 'var(--primary)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="en" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>English</option>
+                    <option value="hi" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>हिन्दी</option>
+                    <option value="gu" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>ગુજરાતી</option>
+                  </select>
+                  <ChevronDown size={12} style={{ position: 'absolute', right: '10px', color: 'var(--primary)', pointerEvents: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '50px', background: `${selectedGroup?.color}15`, border: `1px solid ${selectedGroup?.color}30`, color: selectedGroup?.color, fontWeight: '700', fontSize: '13px', flexShrink: 0 }}>
+                  {selectedGroup?.icon} {localT(ageGroup) || selectedGroup.label} {localT('profileApplied') || 'Profile Applied'}
+                </div>
               </div>
             </div>
             {result.ageSpecificAdvice && (
@@ -223,19 +261,31 @@ const DiseasePage = () => {
                       <Pill size={16} /> {localT('clinicalMedicines') || 'Clinical Medicines'}
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {(result.recommendedMedicines || []).map((med, i) => (
-                        <div key={i} style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                            <h5 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{med.name}</h5>
-                            <span className="badge badge-info">{med.form}</span>
+                      {Array.isArray(result.recommendedMedicines) && result.recommendedMedicines.length > 0 ? (
+                        result.recommendedMedicines.map((med, i) => (
+                          <div key={i} style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                              <h5 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{med.name}</h5>
+                              <span className="badge badge-info">{med.form || (language === 'gu' ? 'ટેબ્લેટ' : language === 'hi' ? 'टैबलेट' : 'Tablet')}</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
+                              <p><strong style={{ color: 'var(--success)' }}>{localT('purpose') || 'Purpose'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.purpose}</span></p>
+                              <p><strong style={{ color: 'var(--warning)' }}>{localT('dosage') || 'Dosage'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.dosage}</span></p>
+                              <p><strong style={{ color: 'var(--danger)' }}>{localT('sideEffects') || 'Side Effects'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.sideEffects}</span></p>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
-                            <p><strong style={{ color: 'var(--success)' }}>{localT('purpose') || 'Purpose'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.purpose}</span></p>
-                            <p><strong style={{ color: 'var(--warning)' }}>{localT('dosage') || 'Dosage'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.dosage}</span></p>
-                            <p><strong style={{ color: 'var(--danger)' }}>{localT('sideEffects') || 'Side Effects'}:</strong> <span style={{ color: 'var(--text-secondary)' }}>{med.sideEffects}</span></p>
-                          </div>
+                        ))
+                      ) : (
+                        <div style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+                            {language === 'gu' 
+                              ? 'આ સ્થિતિ માટે યોગ્ય ક્લિનિકલ દવાઓ અને ચોક્કસ ડોઝ મેળવવા કૃપા કરીને લાયસન્સ ધરાવતા ડૉક્ટર અથવા ફાર્માસિસ્ટનો સંપર્ક કરો.'
+                              : language === 'hi'
+                              ? 'इस स्थिति के लिए उचित चिकित्सकीय दवा और सही खुराक प्राप्त करने के लिए कृपया योग्य चिकित्सक या फार्मासिस्ट से परामर्श लें।'
+                              : 'Please consult a registered physician or pharmacist to determine the appropriate clinical medications and precise dosage for your condition.'}
+                          </p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 </div>

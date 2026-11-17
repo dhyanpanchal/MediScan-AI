@@ -4,25 +4,56 @@ const path = require('path');
 const { extractMedicineDetailsFromOcr } = require('./medicineExtractor');
 const { verifyAndEnrichMedicine } = require('./drugVerification');
 
-// Initialize Gemini API if key is present
+// Dynamic Gemini API client loader with hot-reload from backend/.env
 let aiInstance = null;
-if (process.env.GEMINI_API_KEY) {
+let cachedKey = null;
+
+function getGeminiClient() {
+  let safeKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
+  let activeModel = process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.trim() : 'gemini-3.8-flash';
+
   try {
-    const safeKey = process.env.GEMINI_API_KEY.trim();
-    aiInstance = new GoogleGenAI({ apiKey: safeKey });
-    console.log('Gemini AI Client initialized successfully.');
-  } catch (err) {
-    console.error('Error initializing GoogleGenAI client:', err);
+    const envPath = path.join(__dirname, '../../.env');
+    if (fs.existsSync(envPath)) {
+      const dotenv = require('dotenv');
+      const envConfig = dotenv.parse(fs.readFileSync(envPath));
+      if (envConfig.GEMINI_API_KEY) {
+        safeKey = envConfig.GEMINI_API_KEY.trim();
+      }
+      if (envConfig.GEMINI_MODEL) {
+        activeModel = envConfig.GEMINI_MODEL.trim();
+      }
+    }
+  } catch (e) {
+    // ignore
   }
+
+  if (safeKey && (safeKey !== cachedKey || !aiInstance)) {
+    try {
+      aiInstance = new GoogleGenAI({ apiKey: safeKey });
+      cachedKey = safeKey;
+      console.log('Gemini AI Client initialized successfully with active key.');
+    } catch (err) {
+      console.error('Error initializing GoogleGenAI client:', err);
+    }
+  }
+
+  return { client: aiInstance, model: activeModel };
 }
+
+// Initial attempt at module load
+getGeminiClient();
 
 /**
  * Helper to call Gemini API with fallback model options and retry logic for high demand spikes (503).
  */
 async function callGemini(contents, responseMimeType = 'application/json') {
-  if (!aiInstance) return null;
+  const { client, model: configuredModel } = getGeminiClient();
+  if (!client) return null;
+
   const candidateModels = Array.from(new Set([
-    process.env.GEMINI_MODEL,
+    configuredModel,
+    'gemini-3.8-flash',
     'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash'
@@ -35,7 +66,7 @@ async function callGemini(contents, responseMimeType = 'application/json') {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         console.log(`Calling Gemini API using model: ${model} (attempt ${attempt}/${MAX_RETRIES})...`);
-        const response = await aiInstance.models.generateContent({
+        const response = await client.models.generateContent({
           model,
           contents,
           config: { responseMimeType }
@@ -47,8 +78,16 @@ async function callGemini(contents, responseMimeType = 'application/json') {
       } catch (err) {
         lastError = err;
         const errMsg = err.message || '';
-        console.error(`Gemini ${model} failed (attempt ${attempt}/${MAX_RETRIES}):`, errMsg.substring(0, 120));
         
+        // If API key is leaked or permission denied, no retries or other models will succeed.
+        // Alert the developer cleanly and exit immediately to allow seamless offline fallback.
+        if (errMsg.includes('leaked') || errMsg.includes('PERMISSION_DENIED') || errMsg.includes('API_KEY_INVALID')) {
+          console.warn('[Gemini Auth Notice] Current GEMINI_API_KEY in backend/.env has been reported as leaked/revoked by Google. Update backend/.env with a new key from Google AI Studio. Seamlessly using offline Authoritative Clinical Verification Engine.');
+          throw lastError;
+        }
+
+        console.error(`Gemini ${model} failed (attempt ${attempt}/${MAX_RETRIES}):`, errMsg.substring(0, 120));
+
         // If model not found or forbidden, switch to next candidate model immediately
         if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('400')) {
           break;
@@ -63,6 +102,11 @@ async function callGemini(contents, responseMimeType = 'application/json') {
         }
         break;
       }
+    }
+
+    // Stop iterating through candidate models if the error is auth/revocation
+    if (lastError && (lastError.message?.includes('leaked') || lastError.message?.includes('PERMISSION_DENIED') || lastError.message?.includes('API_KEY_INVALID'))) {
+      break;
     }
   }
   throw lastError || new Error('Gemini API is currently unavailable. Please try again.');
@@ -415,7 +459,8 @@ const analyzeMedicineLabel = async (rawOcrText, imagePath = null) => {
   const extractedEntities = extractMedicineDetailsFromOcr(rawOcrText);
   console.log(`Extracted medicine entities from OCR: Brand: ${extractedEntities.brandName}, Ingredients: ${extractedEntities.ingredientSummary}, Form: ${extractedEntities.dosageForm}`);
 
-  if (aiInstance) {
+  const { client } = getGeminiClient();
+  if (client) {
     try {
       console.log('Sending medicine label to Gemini Multimodal API...');
       
@@ -458,13 +503,15 @@ const analyzeMedicineLabel = async (rawOcrText, imagePath = null) => {
         - Manufacturer: ${extractedEntities.manufacturer}
 
         STRICT CLINICAL RULES:
-        1. IDENTIFY THE EXACT MEDICINE: Check brand name, active ingredients (APIs), strengths (mg, mcg, ml, etc.), and dosage form. For example:
+        1. IDENTIFY THE EXACT MEDICINE: Carefully inspect the packaging image. Read the brand name, active ingredients (APIs), strengths (mg, mcg, ml, etc.), manufacturer, and dosage form. For example:
+           - Cipla Cetirizine -> Cetcip (Cetirizine Hydrochloride 10mg Tablets).
+           - "PARACIP-500" -> Paracetamol Tablets IP 500mg (Cipla).
            - "ACENEXT P" -> Aceclofenac 100 mg + Paracetamol 325 mg.
            - "Montypen-LC" -> Montelukast 10 mg + Levocetirizine 5 mg.
         2. NO GENERIC PLACEHOLDERS: Never output "Active pharmaceutical ingredients identified from packaging label" or generic filler text.
         3. COMBINATION MEDICINES: For combination medicines, list all active ingredients and strengths separately, and explain the therapeutic rationale of combining them.
         4. DOSAGE DISCLAIMER: Explicitly state that the patient's individual prescribed dosage is NOT determined from packaging labels. Never invent a patient's dosage.
-        5. UNVERIFIABLE LABELS: If no medicine can be recognized, return "medicineName": "Unverified Medicine Formulation" and state in warnings that the packaging is unverified.
+        5. ACCURATE DETAILS: Return comprehensive clinical uses, dosage guidelines, side effects (common and serious), warnings, precautions, and storage instructions.
 
         Return ONLY a valid JSON object matching this schema:
         {

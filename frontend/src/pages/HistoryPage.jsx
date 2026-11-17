@@ -14,59 +14,13 @@ const UI_STRINGS = {
   Gujarati: { fileName: "ફાઇલનું નામ", executiveSummary: "મુખ્ય સારાંશ", keyFindings: "મુખ્ય તારણો", testColumn: "બાયોમાર્કર", valueColumn: "મૂલ્ય", refRangeColumn: "સંદર્ભ સીમા", statusColumn: "સ્થિતિ", clinicalAlerts: "ક્લિનિકલ ચેતવણીઓ", recommendations: "ભલામણો" }
 };
 
-// Client-side sanitization to ensure real medicine names are always shown
-const JUNK_LABELS = new Set([
-  'YOURINFO', 'YOUR INFO', 'YOUR', 'INFO', 'INFORMATION',
-  'TABLETS', 'TABLET', 'CAPSULES', 'CAPSULE',
-  'MEDISCAN GENERIC', 'GENERICMEDICINE', 'GENERIC MEDICINE',
-  'IDENTIFIED MEDICINE', 'PRESCRIPTION', 'PRESCRIPTION MEDICATION',
-  'UNKNOWN', 'PHARMA', 'DRUG'
-]);
-
-const sanitizeMedicineRecord = (item) => {
-  if (!item) return item;
-  let name = (item.medicineName || '').trim();
-  let subtitle = (item.activeIngredients || '').trim();
-  const raw = ((item.rawOcrText || '') + ' ' + (item.imageUrl || '')).toLowerCase();
-
-  const isJunk = !name || JUNK_LABELS.has(name.toUpperCase()) || /^(TABLETS?|CAPSULES?)\b/i.test(name);
-
-  if (isJunk) {
-    if (raw.includes('cetcip') || raw.includes('cetirizine')) {
-      name = 'Cetcip 10mg (Cetirizine HCl)';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Cetirizine Hydrochloride IP 10 mg';
-    } else if (raw.includes('dolo') || raw.includes('paracetamol')) {
-      name = 'Dolo-650 (Paracetamol 650mg)';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Paracetamol IP 650 mg';
-    } else if (raw.includes('amicold') || raw.includes('phenylephrine')) {
-      name = 'Amicold Plus Suspension';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Paracetamol 125mg, Phenylephrine HCl 5mg, Cetirizine HCl 2mg';
-    } else if (raw.includes('zithromax') || raw.includes('azithromycin')) {
-      name = 'Zithromax 500mg (Azithromycin)';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Azithromycin IP 500 mg';
-    } else if (raw.includes('pantoprazole') || raw.includes('pan-40') || raw.includes('pantocid')) {
-      name = 'Pantoprazole 40mg';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Pantoprazole Sodium IP 40 mg';
-    } else if (raw.includes('amoxicillin')) {
-      name = 'Amoxicillin 500mg';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Amoxicillin Trihydrate 500mg';
-    } else if (raw.includes('metformin')) {
-      name = 'Metformin HCl 850mg';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Metformin Hydrochloride 850mg';
-    } else if (raw.includes('ibuprofen')) {
-      name = 'Ibuprofen 400mg';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Ibuprofen 400mg';
-    } else {
-      name = 'Prescription Formulation';
-      if (!subtitle || subtitle.includes('approx. 250mg')) subtitle = 'Active clinical substance identified from packaging';
-    }
-  }
-
-  if (subtitle.includes('approx. 250mg') || subtitle.includes('Active substance identified')) {
-    subtitle = 'Active ingredients identified from label';
-  }
-
-  return { ...item, medicineName: name, activeIngredients: subtitle };
+// Preserve stored evidence; never infer a brand or strength from history text.
+const sanitizeMedicineRecord = item => item;
+const clinicalText = value => {
+  if (value == null || value === '') return 'Not available from a verified source';
+  if (Array.isArray(value)) return value.map(clinicalText).join('; ');
+  if (typeof value === 'object') return Object.values(value).map(clinicalText).join('; ');
+  return String(value);
 };
 
 const HistoryPage = () => {
@@ -168,6 +122,8 @@ const HistoryPage = () => {
 
   const getStatusBadge = (status) => {
     const s = (status || '').toLowerCase();
+    if (s.includes('critical')) return 'badge-danger';
+    if (s.includes('abnormal')) return 'badge-warning';
     if (s.includes('high')) return 'badge-warning';
     if (s.includes('low')) return 'badge-info';
     if (s.includes('critical')) return 'badge-danger';
@@ -258,7 +214,7 @@ const HistoryPage = () => {
           <p className="empty-state-text">Try adjusting your search or filters to find what you're looking for.</p>
         </div>
       ) : (
-        <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+        <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '24px' }}>
           {currentItems.map(item => {
             const isScan = activeSubTab === 'scans';
             const isSearch = activeSubTab === 'searches';
@@ -284,9 +240,9 @@ const HistoryPage = () => {
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{subtitle}</p>
                 </div>
                 <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                  <button className="btn" style={{ padding: 0, background: 'none', color: themeColor, fontSize: '13px', fontWeight: '600' }}>View Details <ChevronRight size={14} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id || item._id, itemType); }} className="btn" style={{ padding: '6px', background: 'none', color: 'var(--text-muted)' }} onMouseEnter={e=>e.currentTarget.style.color='var(--danger)'} onMouseLeave={e=>e.currentTarget.style.color='var(--text-muted)'}>
-                    <Trash2 size={16} />
+                  <button className="btn" aria-label={`View details for ${title}`} style={{ padding: 0, background: 'none', color: themeColor, fontSize: '13px', fontWeight: '600' }}>View Details <ChevronRight size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id || item._id, itemType); }} aria-label="Delete history item" className="btn" style={{ padding: '6px', background: 'none', color: 'var(--text-muted)' }} onMouseEnter={e=>e.currentTarget.style.color='var(--danger)'} onMouseLeave={e=>e.currentTarget.style.color='var(--text-muted)'}>
+                    <Trash2 aria-hidden="true" size={16} />
                   </button>
                 </div>
               </div>
@@ -321,7 +277,7 @@ const HistoryPage = () => {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Recorded on {selectedItem && formatDate(selectedItem.createdAt)}</span>
             </div>
           </div>
-          <button onClick={closeDetails} className="btn" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}><X size={20} /></button>
+          <button onClick={closeDetails} aria-label="Close details drawer" className="btn" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}><X aria-hidden="true" size={20} /></button>
         </div>
 
         {/* Drawer Body */}
@@ -330,7 +286,7 @@ const HistoryPage = () => {
             <>
               {selectedItemType === 'report' && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-8px' }}>
-                  <select className="form-control" value={modalLanguage} disabled={modalLoading} onChange={(e) => handleModalLanguageChange(e.target.value)} style={{ width: 'auto', padding: '6px 12px', height: 'auto', borderRadius: '8px', fontSize: '13px' }}>
+                  <select aria-label="Select report display language" className="form-control" value={modalLanguage} disabled={modalLoading} onChange={(e) => handleModalLanguageChange(e.target.value)} style={{ width: 'auto', padding: '6px 12px', height: 'auto', borderRadius: '8px', fontSize: '13px' }}>
                     <option value="English">English</option>
                     <option value="Hindi">हिन्दी (Hindi)</option>
                     <option value="Gujarati">ગુજરાતી (Gujarati)</option>
@@ -346,11 +302,11 @@ const HistoryPage = () => {
                     <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Active Ingredients: {selectedItem.activeIngredients}</p>
                     {selectedItem.category && <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Category: {selectedItem.category}</p>}
                   </div>
-                  <div><h4 className="card-heading" style={{marginBottom:'8px'}}>Dosage</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', lineHeight:1.6}}>{selectedItem.dosage}</p></div>
-                  <div><h4 className="card-heading" style={{marginBottom:'8px'}}>Usage</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', lineHeight:1.6}}>{selectedItem.usageInstructions}</p></div>
-                  <div className="alert alert-danger"><h4 className="alert-title">Side Effects</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{selectedItem.sideEffects}</p></div>
-                  <div className="alert alert-warning"><h4 className="alert-title">Warnings</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{selectedItem.warnings}</p></div>
-                  <div className="alert alert-info"><h4 className="alert-title">Precautions</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{selectedItem.precautions}</p></div>
+                  <div><h4 className="card-heading" style={{marginBottom:'8px'}}>Dosage</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', lineHeight:1.6}}>{clinicalText(selectedItem.dosage)}</p></div>
+                  <div><h4 className="card-heading" style={{marginBottom:'8px'}}>Usage</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', lineHeight:1.6}}>{clinicalText(selectedItem.usageInstructions)}</p></div>
+                  <div className="alert alert-danger"><h4 className="alert-title">Side Effects</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{clinicalText(selectedItem.sideEffects)}</p></div>
+                  <div className="alert alert-warning"><h4 className="alert-title">Warnings</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{clinicalText(selectedItem.warnings)}</p></div>
+                  <div className="alert alert-info"><h4 className="alert-title">Precautions</h4><p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{clinicalText(selectedItem.precautions)}</p></div>
                 </div>
               )}
 
@@ -358,8 +314,8 @@ const HistoryPage = () => {
                 <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ padding: '20px', background: 'var(--bg-elevated)', borderRadius: '12px', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
                     <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--info)', marginBottom: '4px' }}>{selectedItem.medicineName || selectedItem.searchQuery}</h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Active / Generic: {selectedItem.genericName || 'Prescription Compound'}</p>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Category: {selectedItem.category || 'Therapeutic Medication'} · Form: {selectedItem.dosageForm || 'Oral'}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Active / Generic: {selectedItem.genericName || 'Not identified'}</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Category: {selectedItem.category || 'Not identified'} · Form: {selectedItem.dosageForm || 'Not identified'}</p>
                   </div>
                   <div>
                     <h4 className="card-heading" style={{marginBottom:'8px'}}>Original Search Query</h4>

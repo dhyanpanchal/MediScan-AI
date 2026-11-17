@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { checkIsAdmin } from '../utils/admin';
 import {
   Users, Pill, FileText, ShieldAlert, Search, Calendar, X,
   ExternalLink, Loader2, TrendingUp, Fingerprint, Activity,
@@ -20,63 +21,34 @@ import {
 const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
   const [viewMode, setViewMode] = useState('doc'); // 'doc' | 'ocr'
   const [docStatus, setDocStatus] = useState('loading'); // 'loading' | 'loaded' | 'error'
-  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const [activeSrc, setActiveSrc] = useState(null);
+  const [reload, setReload] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [copied, setCopied] = useState(false);
 
-  // Generate candidate URLs in order of preference
-  const candidateUrls = useMemo(() => {
-    if (!fileUrl) return [];
-    if (
-      fileUrl.startsWith('http://') ||
-      fileUrl.startsWith('https://') ||
-      fileUrl.startsWith('data:') ||
-      fileUrl.startsWith('blob:')
-    ) {
-      return [fileUrl];
-    }
-
-    const clean = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`;
-    const list = [];
-
-    // 1. If VITE_API_URL is configured, use its base
-    if (import.meta.env?.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith('http')) {
-      const base = import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '');
-      list.push(`${base}${clean}`);
-    }
-
-    // 2. Relative path (proxied by Vite dev server or served directly by Express)
-    list.push(clean);
-
-    // 3. Fallback direct connection to backend port 5001
-    list.push(`http://localhost:5001${clean}`);
-    list.push(`http://127.0.0.1:5001${clean}`);
-
-    return Array.from(new Set(list));
-  }, [fileUrl]);
-
-  const activeSrc = candidateUrls[currentUrlIndex] || fileUrl;
-
-  const handleMediaError = () => {
-    if (currentUrlIndex + 1 < candidateUrls.length) {
-      setCurrentUrlIndex((prev) => prev + 1);
-    } else {
-      setDocStatus('error');
-    }
-  };
+  const handleMediaError = () => setDocStatus('error');
 
   const isPdf =
     fileType?.toLowerCase() === 'pdf' ||
     fileUrl?.toLowerCase().endsWith('.pdf') ||
     fileName?.toLowerCase().endsWith('.pdf');
 
-  // Reset states when the file URL changes
   useEffect(() => {
+    let cancelled = false;
+    let objectUrl;
     setDocStatus('loading');
-    setCurrentUrlIndex(0);
+    setActiveSrc(null);
     setZoomLevel(1);
     setViewMode('doc');
-  }, [fileUrl]);
+    if (fileUrl) {
+      api.fetchFileBlob(fileUrl).then(blob => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setActiveSrc(objectUrl);
+      }).catch(() => { if (!cancelled) setDocStatus('error'); });
+    } else setDocStatus('error');
+    return () => { cancelled = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [fileUrl, reload]);
 
   const handleCopyText = () => {
     if (!rawText) return;
@@ -93,7 +65,7 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
         height: '100%',
         width: '100%',
         overflow: 'hidden',
-        background: 'rgba(10, 14, 28, 0.95)',
+        background: 'var(--bg-card)',
       }}
     >
       {/* Top Sub-Header Toolbar */}
@@ -236,7 +208,7 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
-              background: 'rgba(0, 0, 0, 0.5)',
+              background: 'var(--bg-elevated)',
               borderRadius: '10px',
               border: '1px solid rgba(255,255,255,0.08)',
               overflow: 'hidden',
@@ -284,10 +256,10 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
         ) : (
           /* DOCUMENT FILE VIEW */
           <>
-            {isPdf ? (
+            {isPdf && activeSrc ? (
               <div style={{ width: '100%', height: '100%', minHeight: '440px', display: 'flex', flexDirection: 'column' }}>
                 <iframe
-                  src={activeSrc}
+                  src={activeSrc || undefined}
                   title={fileName || 'Original PDF Document'}
                   onLoad={() => setDocStatus('loaded')}
                   onError={handleMediaError}
@@ -336,7 +308,7 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
                       Document Image Unavailable
                     </h4>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '18px' }}>
-                      The file <strong>"{fileName || 'document'}"</strong> is not present on the server storage.
+                      The file <strong>"{fileName || 'document'}"</strong> could not be retrieved. Check your access and connection, or retry.
                       All extracted biomarkers and clinical AI summaries remain intact.
                     </p>
 
@@ -356,7 +328,7 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
                         type="button"
                         onClick={() => {
                           setDocStatus('loading');
-                          setCurrentUrlIndex(0);
+                          setReload(value => value + 1);
                         }}
                         className="btn btn-secondary"
                         style={{ padding: '8px 16px', fontSize: '12px', display: 'inline-flex', gap: '6px', justifyContent: 'center' }}
@@ -368,7 +340,7 @@ const AdminDocumentViewer = ({ fileUrl, fileName, fileType, rawText }) => {
                   </div>
                 ) : (
                   <img
-                    src={activeSrc}
+                    src={activeSrc || undefined}
                     alt={fileName || 'Original Document'}
                     onLoad={() => setDocStatus('loaded')}
                     onError={handleMediaError}
@@ -400,11 +372,7 @@ const AdminPage = () => {
   const { language, t } = useApp();
   const navigate = useNavigate();
 
-  const hasAccess =
-    user &&
-    user.email &&
-    (user.email.trim().toLowerCase().includes('premkardani2006') ||
-      user.email.trim().toLowerCase().includes('panchaldhyan007'));
+  const hasAccess = checkIsAdmin(user);
 
   const [activeTab, setActiveTab] = useState('overview'); // overview, users, scans, reports, diseases
   const [loading, setLoading] = useState(true);

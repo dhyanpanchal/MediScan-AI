@@ -153,6 +153,13 @@ const translations = {
     searchedDate: 'Searched Date',
     noDiseaseSearchLogs: 'No disease search logs found.',
     patientRecordsPortfolio: 'Patient Records Portfolio',
+    totalMedicineSearches: 'Text Searches',
+    savePreferences: 'Save Preferences',
+    preferencesSaved: 'Saved Successfully',
+    localizationEngine: 'Localization Engine',
+    localizationDesc: 'All clinical diagnoses, OCR results, and AI summaries will be natively translated into your selected language globally across the platform.',
+    personalInformation: 'Personal Information',
+    processing: 'Processing...',
   },
   hi: {
     // Navigation
@@ -304,6 +311,13 @@ const translations = {
     searchedDate: 'खोज की तिथि',
     noDiseaseSearchLogs: 'कोई रोग खोज लॉग नहीं मिला।',
     patientRecordsPortfolio: 'रोगी रिकॉर्ड पोर्टफोलियो',
+    totalMedicineSearches: 'दवा खोजें (टेक्स्ट)',
+    savePreferences: 'प्राथमिकताएं सहेजें',
+    preferencesSaved: 'सफलतापूर्वक सहेजा गया',
+    localizationEngine: 'स्थानीयकरण इंजन',
+    localizationDesc: 'सभी नैदानिक निदान, ओसीआर परिणाम और एआई सारांश पूरे प्लेटफॉर्म पर आपकी चुनी गई भाषा में मूल रूप से अनुवादित किए जाएंगे।',
+    personalInformation: 'व्यक्तिगत जानकारी',
+    processing: 'प्रसंस्करण जारी...',
     // Dynamic Sentences
     "Always check the expiry date of medicines before consumption.": "सेवन से पहले हमेशा दवाओं की समाप्ति तिथि जांचें।",
     "Antibiotics should always be completed as prescribed, even if you feel better.": "एंटीबायोटिक्स हमेशा निर्धारित अनुसार पूरे किए जाने चाहिए, भले ही आप बेहतर महसूस करें।",
@@ -477,6 +491,13 @@ const translations = {
     "Most of your report is stable. However, your Oxygen-carrying blood protein (Hemoglobin) is low and Blood cholesterol/fat is high. Following a balanced diet and consulting a doctor can help.": "તમારો રિપોર્ટ મોટાભાગે સ્થિર છે. જો કે, તમારું ઓક્સિજન-વહન કરતું બ્લડ પ્રોટીન (હિમોગ્લોબિન) ઓછું છે અને બ્લડ કોલેસ્ટ્રોલ/ચરબી વધારે છે. સંતુલિત આહાર લેવો અને ડૉક્ટરની સલાહ લેવી મદદરૂપ થઈ શકે છે.",
     "Your dental report shows moderate plaque buildup and minor irritation. Overall health is fair.": "તમારો ડેન્ટલ રિપોર્ટ મધ્યમ પ્લેક બિલ્ડઅપ અને સામાન્ય બળતરા દર્શાવે છે. એકંદરે આરોગ્ય સારું છે.",
     "Summary not generated": "સારાંશ ઉત્પન્ન થયો નથી",
+    totalMedicineSearches: 'દવાની શોધ (ટેક્સ્ટ)',
+    savePreferences: 'પસંદગીઓ સાચવો',
+    preferencesSaved: 'સફળતાપૂર્વક સાચવવામાં આવ્યું',
+    localizationEngine: 'સ્થાનિકીકરણ એન્જિન',
+    localizationDesc: 'બધા ક્લિનિકલ નિદાન, OCR પરિણામો અને AI સારાંશ સમગ્ર પ્લેટફોર્મ પર તમારી પસંદ કરેલી ભાષામાં મૂળ રીતે અનુવાદિત થશે.',
+    personalInformation: 'વ્યક્તિગત માહિતી',
+    processing: 'પ્રક્રિયા ચાલુ...',
   }
 };
 
@@ -491,7 +512,7 @@ const normalizeLang = (l) => {
 export const AppProvider = ({ children }) => {
   const [language, setLanguageState] = useState(() => normalizeLang(localStorage.getItem('mediscan_lang')));
   const setLanguage = (l) => setLanguageState(normalizeLang(l));
-  const [theme, setTheme] = useState(() => localStorage.getItem('mediscan_theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('mediscan_theme') === 'light' ? 'light' : 'dark');
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('mediscan_fontsize') || 'standard');
 
   const t = (key, params) => {
@@ -506,7 +527,10 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    localStorage.setItem('mediscan_lang', normalizeLang(language));
+    const norm = normalizeLang(language);
+    localStorage.setItem('mediscan_lang', norm);
+    document.documentElement.lang = norm;
+    document.documentElement.dir = 'ltr';
   }, [language]);
 
   useEffect(() => {
@@ -520,58 +544,10 @@ export const AppProvider = ({ children }) => {
     applyFontSize(fontSize);
   }, [fontSize]);
 
-  // Apply theme on initial mount
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    applyTheme(theme);
-    applyFontSize(fontSize);
-  }, []);
-
-  const applyTheme = (t) => {
+  const applyTheme = (themeName) => {
     const root = document.documentElement;
-    root.setAttribute('data-theme', t);
-    root.style.colorScheme = t;
-    if (t === 'light') {
-      root.style.setProperty('--bg-primary', '#F8FAFC');
-      root.style.setProperty('--bg-secondary', '#F1F5F9');
-      root.style.setProperty('--bg-card', '#FFFFFF');
-      root.style.setProperty('--bg-card-hover', '#F8FAFC');
-      root.style.setProperty('--bg-elevated', '#FFFFFF');
-      root.style.setProperty('--bg-input', '#F1F5F9');
-      root.style.setProperty('--border-color', '#E2E8F0');
-      root.style.setProperty('--text-primary', '#0F172A');
-      root.style.setProperty('--text-secondary', '#334155');
-      root.style.setProperty('--text-muted', '#64748B');
-      root.style.setProperty('--bg-main', '#F8FAFC');
-      root.style.setProperty('--text-main', '#0F172A');
-      root.style.setProperty('--text-dark', '#64748B');
-      root.style.setProperty('--primary', '#7C3AED');
-      root.style.setProperty('--primary-dark', '#6D28D9');
-      root.style.setProperty('--primary-glow', 'rgba(124, 58, 237, 0.25)');
-      root.style.setProperty('--primary-hover', '#6D28D9');
-      root.style.setProperty('--secondary', '#06B6D4');
-      root.style.setProperty('--secondary-glow', 'rgba(6, 182, 212, 0.2)');
-    } else {
-      root.style.setProperty('--bg-primary', '#080A16');
-      root.style.setProperty('--bg-secondary', '#0B0D1C');
-      root.style.setProperty('--bg-card', '#11152A');
-      root.style.setProperty('--bg-card-hover', '#161B35');
-      root.style.setProperty('--bg-elevated', '#151A32');
-      root.style.setProperty('--bg-input', '#171B35');
-      root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.1)');
-      root.style.setProperty('--text-primary', '#F8FAFC');
-      root.style.setProperty('--text-secondary', '#A8AEC7');
-      root.style.setProperty('--text-muted', '#747B9C');
-      root.style.setProperty('--bg-main', '#080A16');
-      root.style.setProperty('--text-main', '#F8FAFC');
-      root.style.setProperty('--text-dark', '#747B9C');
-      root.style.setProperty('--primary', '#8B5CF6');
-      root.style.setProperty('--primary-dark', '#7C3AED');
-      root.style.setProperty('--primary-glow', 'rgba(139, 92, 246, 0.35)');
-      root.style.setProperty('--primary-hover', '#7C3AED');
-      root.style.setProperty('--secondary', '#06B6D4');
-      root.style.setProperty('--secondary-glow', 'rgba(6, 182, 212, 0.25)');
-    }
+    root.setAttribute('data-theme', themeName === 'light' ? 'light' : 'dark');
+    root.style.colorScheme = themeName === 'light' ? 'light' : 'dark';
   };
 
   const applyFontSize = (size) => {

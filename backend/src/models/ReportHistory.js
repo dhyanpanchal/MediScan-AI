@@ -4,14 +4,14 @@ const KeyFindingSchema = new mongoose.Schema({
   test: { type: String, required: true },
   value: { type: String, required: true },
   referenceRange: { type: String, default: '' },
-  status: { type: String, default: 'Normal' }
+  status: { type: String, default: 'Unknown' }
 }, { _id: false });
 
 const LabResultSchema = new mongoose.Schema({
   test: { type: String, required: true },
   value: { type: String, required: true },
   referenceRange: { type: String, default: '' },
-  status: { type: String, default: 'Normal' },
+  status: { type: String, default: 'Unknown' },
   unit: { type: String, default: '' }
 }, { _id: false });
 
@@ -119,19 +119,19 @@ const ReportHistorySchema = new mongoose.Schema({
   },
   reportConfidence: {
     type: Number,
-    default: 95,
+    default: null,
   },
   ocrConfidence: {
     type: Number,
-    default: 95,
+    default: null,
   },
   classificationConfidence: {
     type: Number,
-    default: 95,
+    default: null,
   },
   analysisConfidence: {
     type: Number,
-    default: 95,
+    default: null,
   },
   warnings: {
     type: String,

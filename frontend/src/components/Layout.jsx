@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { checkIsAdmin } from '../utils/admin';
 import { 
   LayoutDashboard, Pill, FileText, History, LogOut, Menu, X, 
   User as UserIcon, ShieldCheck, Stethoscope, Settings, 
@@ -10,7 +11,7 @@ import {
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
-  const { t } = useApp();
+  const { t, theme } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,10 +35,8 @@ const Layout = ({ children }) => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const isAdmin = user && user.email && (
-    user.email.trim().toLowerCase().includes('premkardani2006') ||
-    user.email.trim().toLowerCase().includes('panchaldhyan007')
-  );
+  const isAdmin = checkIsAdmin(user);
+
 
   const clinicalApps = [
     { name: t('dashboard'), path: '/dashboard', icon: LayoutDashboard },
@@ -60,6 +59,8 @@ const Layout = ({ children }) => {
   const NavItem = ({ item, onClick, collapsed }) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.path;
+    const isLight = theme === 'light';
+    const activeColor = isLight ? '#6D28D9' : '#C4B5FD';
     
     return (
       <NavLink
@@ -67,11 +68,22 @@ const Layout = ({ children }) => {
         onClick={onClick}
         className={`nav-item ${isActive ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}
         title={collapsed ? item.name : ''}
+        style={isActive ? { color: activeColor } : undefined}
       >
-        <div className="nav-icon-container">
+        <div 
+          className="nav-icon-container"
+          style={isActive ? { color: isLight ? '#7C3AED' : '#A78BFA' } : undefined}
+        >
           <Icon size={20} className="nav-icon" />
         </div>
-        {!collapsed && <span className="nav-label">{item.name}</span>}
+        {!collapsed && (
+          <span 
+            className="nav-label"
+            style={isActive ? { color: activeColor, fontWeight: 700 } : undefined}
+          >
+            {item.name}
+          </span>
+        )}
       </NavLink>
     );
   };
@@ -234,7 +246,12 @@ const Layout = ({ children }) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
           return (
-            <NavLink key={item.path} to={item.path} className={`bottom-nav-item ${isActive ? 'active' : ''}`}>
+            <NavLink 
+              key={item.path} 
+              to={item.path} 
+              className={`bottom-nav-item ${isActive ? 'active' : ''}`}
+              style={isActive ? { color: theme === 'light' ? '#6D28D9' : '#C4B5FD' } : undefined}
+            >
               <Icon size={22} className="bottom-nav-icon" />
               <span className="bottom-nav-label">{item.name}</span>
             </NavLink>
@@ -459,17 +476,25 @@ const Layout = ({ children }) => {
           background: rgba(0,0,0,0.04);
         }
         .nav-item.active {
-          color: var(--text-primary);
-          font-weight: 600;
-          background: linear-gradient(90deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.02) 100%);
+          color: #C4B5FD;
+          font-weight: 700;
+          background: linear-gradient(90deg, rgba(139, 92, 246, 0.22) 0%, rgba(139, 92, 246, 0.04) 100%);
         }
-        [data-theme="light"] .nav-item.active,
+        .nav-item.active .nav-label {
+          color: #C4B5FD;
+          font-weight: 700;
+          background: none !important;
+        }
+        [data-theme="light"] .nav-item.active {
+          color: #6D28D9 !important;
+          background: linear-gradient(90deg, rgba(124, 58, 237, 0.14) 0%, rgba(124, 58, 237, 0.02) 100%) !important;
+        }
         [data-theme="light"] .nav-item.active .nav-label,
         [data-theme="light"] .nav-item.active span {
-          color: #7C3AED !important;
-          -webkit-text-fill-color: #7C3AED !important;
+          color: #6D28D9 !important;
+          -webkit-text-fill-color: #6D28D9 !important;
           font-weight: 700 !important;
-          background: linear-gradient(90deg, rgba(124, 58, 237, 0.14) 0%, rgba(124, 58, 237, 0.02) 100%);
+          background: none !important;
         }
         .nav-item.active::before {
           width: 4px;
@@ -499,8 +524,10 @@ const Layout = ({ children }) => {
           animation: fadeIn 0.3s ease forwards;
         }
         [data-theme="light"] .nav-item.active .nav-label {
-          color: var(--primary, #7C3AED);
-          font-weight: 700;
+          color: #6D28D9 !important;
+          -webkit-text-fill-color: #6D28D9 !important;
+          font-weight: 700 !important;
+          background: none !important;
         }
         .desktop-sidebar.collapsed .nav-item {
           justify-content: center;

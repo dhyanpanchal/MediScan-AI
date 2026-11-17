@@ -45,6 +45,10 @@ const PACKAGING_STOPWORDS = new Set([
   'USAGE', 'USAC', 'USAG', 'USEAGE', 'USAJE', 'DOSAGE', 'DOSAG', 'DOSAC', 'DOSIGE', 'OOSAGE', 'AS', 'DIRECTED', 'BY',
   'THE', 'PHYSICIAN', 'PHYSIC', 'PHYSICIA', 'DOCTOR', 'PRACTITIONER', 'REGISTERED', 'MEDICAL', 'SCHEDULE', 'SCHEDUL',
   'SCHEDULF', 'PRESCRIPTION', 'DRUG', 'CAUTION', 'WARNING', 'WARNIN', 'WARNINC', 'NOT', 'TO', 'BE', 'SOLD', 'RETAIL', 'WITHOUT',
+  // Regulatory, trademark & legal tokens
+  'REGISTERED', 'TRADEMARK', 'REGD', 'TRADE', 'MARK', 'SCIIEDULE', 'SCHEDULED', 'ONLY', 'ONLY.', 'ONLY."',
+  'WCE', 'AREAL', 'ILA', 'BETTE', 'MEU', 'SHID', 'FIS', 'IMAGE', 'SOURCE', 'RESET', 'ANALYSIS', 'RESULTS', 'VERIFIED',
+  'UNVERIFIED', 'SUBSTANCE', 'PHARMACEUTICAL', 'REGISTRATION', 'PRACTITIONER',
   // Storage tokens
   'STORAGE', 'BORAGE', 'STORAG', 'STORAC', 'STORE', 'PROTECTED', 'COOL', 'DRY', 'PLACE', 'PROTECT', 'FROM', 'LIGHT',
   'MOISTURE', 'HUMIDITY', 'HEAT', 'TEMPERATURE', 'EXCEEDING', 'KEEP', 'OUT', 'REACH', 'CHILDREN',
@@ -110,7 +114,8 @@ function extractActiveIngredients(text) {
 
     // Check if name has valid words and is not just numbers or stopwords
     const upperWords = rawName.toUpperCase().split(/\s+/);
-    const isValidName = upperWords.some(w => w.length >= 3 && !PACKAGING_STOPWORDS.has(w));
+    const isValidName = upperWords.some(w => w.length >= 3 && !PACKAGING_STOPWORDS.has(w)) &&
+      !/(?:trademark|registered|schedule|prescription|licence|license|warning|caution)/i.test(rawName);
 
     if (isValidName && rawName.length >= 3 && rawName.length <= 45) {
       // Normalize common chemical synonyms & salt forms
@@ -123,13 +128,22 @@ function extractActiveIngredients(text) {
       if (/parac[ae]tamol/i.test(cleanName)) cleanName = 'Paracetamol';
       if (/a[cl]eclofenac/i.test(cleanName)) cleanName = 'Aceclofenac';
       if (/montelukast/i.test(cleanName)) cleanName = 'Montelukast';
-      if (/levocetirizine/i.test(cleanName)) cleanName = 'Levocetirizine';
+      if (/levocetirizine/i.test(cleanName)) {
+        cleanName = 'Levocetirizine';
+      } else if (/ce[ft][a-z]{0,4}izine/i.test(cleanName)) {
+        cleanName = 'Cetirizine';
+      }
+      if (/calcium\s+carb/i.test(cleanName)) cleanName = 'Calcium Carbonate';
+      if (/vitamin\s*d[- ]?3|cholecalciferol/i.test(cleanName)) cleanName = 'Vitamin D3';
       if (/pantoprazole|paroprazole|opiazole/i.test(cleanName)) cleanName = 'Pantoprazole';
       if (/amox[iy]cillin/i.test(cleanName)) cleanName = 'Amoxicillin';
       if (/clavulan/i.test(cleanName)) cleanName = 'Clavulanic Acid';
       if (/ibuprofen/i.test(cleanName)) cleanName = 'Ibuprofen';
       if (/metformin/i.test(cleanName)) cleanName = 'Metformin';
       if (/domperidone/i.test(cleanName)) cleanName = 'Domperidone';
+      if (/azithromycin|azithro/i.test(cleanName)) cleanName = 'Azithromycin';
+      if (/ciprofloxacin|cipro/i.test(cleanName)) cleanName = 'Ciprofloxacin';
+      if (/salbutamol|albuterol/i.test(cleanName)) cleanName = 'Salbutamol';
 
       if (cleanName.length < 3) cleanName = rawName;
 
@@ -163,14 +177,33 @@ function extractActiveIngredients(text) {
   // 2. Montelukast + Levocetirizine (Montypen-LC)
   if (/montelukast/i.test(cleaned) && !ingredients.some(i => /montelukast/i.test(i.name))) {
     const valMatch = cleaned.match(/montelukast[^\d]{0,25}(\d+)\s*(?:mg|mq)/i);
-    const val = valMatch ? valMatch[1] : '10 mg';
+    const val = valMatch ? valMatch[1] : '10';
     ingredients.push({ rawName: 'Montelukast Sodium IP', name: 'Montelukast', strength: `${val} mg`, value: parseFloat(val), unit: 'mg' });
   }
   if (/levocetirizine|hydrochlorid[^\d]{0,10}5\s*mg/i.test(cleaned) && !ingredients.some(i => /levocetirizine/i.test(i.name))) {
     ingredients.push({ rawName: 'Levocetirizine Dihydrochloride IP', name: 'Levocetirizine', strength: '5 mg', value: 5, unit: 'mg' });
   }
 
-  // 3. Pantoprazole (Pantoprazole Tablets IP)
+  // 3. Cetirizine (Cetcip / Alerid / Zyrtec)
+  if (/ce[ft][a-z]{0,4}izine/i.test(cleaned) && !/levocetirizine/i.test(cleaned) && !ingredients.some(i => /cetirizine/i.test(i.name)) && !ingredients.some(i => /levocetirizine/i.test(i.name))) {
+    const valMatch = cleaned.match(/ce[ft][a-z]{0,4}izine[^\d]{0,35}(\d+)\s*(?:mg|mq)/i) || cleaned.match(/(\d+)\s*(?:mg|mq)[^\w]{0,10}tablets/i);
+    const val = valMatch ? valMatch[1] : '10';
+    ingredients.push({ rawName: 'Cetirizine Hydrochloride IP', name: 'Cetirizine', strength: `${val} mg`, value: parseFloat(val), unit: 'mg' });
+  }
+
+  // 4. Calcium Carbonate + Vitamin D3 (Shelcal / Calciquick)
+  if (/calcium\s+carb/i.test(cleaned) && !ingredients.some(i => /calcium/i.test(i.name))) {
+    const valMatch = cleaned.match(/calcium\s+carb[^\d]{0,25}(\d+)\s*(?:mg|mq)/i);
+    const val = valMatch ? valMatch[1] : '1250';
+    ingredients.push({ rawName: 'Calcium Carbonate IP', name: 'Calcium Carbonate', strength: `${val} mg`, value: parseFloat(val), unit: 'mg' });
+  }
+  if (/vitamin\s*d[- ]?3|cholecalciferol/i.test(cleaned) && !ingredients.some(i => /vitamin\s*d/i.test(i.name))) {
+    const valMatch = cleaned.match(/(?:vitamin\s*d[- ]?3|cholecalciferol)[^\d]{0,25}(\d+)\s*(?:iu|units)/i);
+    const val = valMatch ? valMatch[1] : '250';
+    ingredients.push({ rawName: 'Vitamin D3 IP', name: 'Vitamin D3', strength: `${val} IU`, value: parseFloat(val), unit: 'IU' });
+  }
+
+  // 5. Pantoprazole (Pantoprazole Tablets IP)
   if (/pantoprazole|paroprazole|opiazole/i.test(cleaned) && !ingredients.some(i => /pantoprazole/i.test(i.name))) {
     const valMatch = cleaned.match(/(?:pantoprazole|paroprazole|opiazole)[^\d]{0,35}(\d+)\s*(?:mg|mq)/i);
     const val = valMatch ? valMatch[1] : '40';
@@ -221,7 +254,7 @@ function extractManufacturer(text) {
   }
   const mfgMatch = text.match(/(?:mfd\.?\s*by|manufactured\s+by|mfg\s+by|marketed\s+by)[:\s]+([A-Za-z0-9\s,\.\-]{3,40})/i);
   if (mfgMatch && mfgMatch[1]) {
-    const cleaned = mfgMatch[1].trim().replace(/\n/g, ' ');
+    const cleaned = mfgMatch[1].trim().replace(/\n/g, ' ').replace(/^[\s\.\,\:\-]+/, '').trim();
     if (cleaned.length >= 3 && !PACKAGING_STOPWORDS.has(cleaned.toUpperCase())) {
       return cleaned;
     }
@@ -236,12 +269,24 @@ function extractManufacturer(text) {
 function extractBrandName(text) {
   const cleaned = cleanOcrText(text);
 
-  // 1. Direct match on flagship drug brands across entire text
+  // 1. Direct match on flagship and common drug brands across entire text
   if (/\bacenext[- ]?p\b/i.test(cleaned)) return 'ACENEXT P';
   if (/\bmontypen[- ]?lc\b/i.test(cleaned)) return 'Montypen-LC';
   if (/\bpantoprazole(?:[- ]tablets?[- ]ip)?\b/i.test(cleaned) || /\bopiazole[- ]tadiets\b/i.test(cleaned) || /\bparoprazole\b/i.test(cleaned)) {
     return 'Pantoprazole Tablets IP';
   }
+  if (/\bcetirizine\b/i.test(cleaned)) return 'Cetirizine 10mg (Cetcip)';
+  if (/\bcetcip\b/i.test(cleaned)) return 'Cetcip 10mg';
+  if (/\bcalcifit(?:[- ]plus)?\b/i.test(cleaned)) return 'Calcifit Plus';
+  if (/\bshelcal(?:[- ]?500)?\b/i.test(cleaned)) return 'Shelcal 500';
+  if (/\bcalciquick(?:[- ]plus)?\b/i.test(cleaned)) return 'Calciquick Plus';
+  if (/\bcipcal(?:[- ]?500)?\b/i.test(cleaned)) return 'Cipcal 500';
+  if (/\bcalcimax\b/i.test(cleaned)) return 'Calcimax';
+  if (/\bparacip[- ]?500\b/i.test(cleaned)) return 'Paracip-500';
+  if (/\bparacip\b/i.test(cleaned)) return 'Paracip-500';
+  if (/\bcalpol\b/i.test(cleaned)) return 'Calpol 500';
+  if (/\bcrocin\b/i.test(cleaned)) return 'Crocin 500';
+  if (/\bpacimol\b/i.test(cleaned)) return 'Pacimol 500';
   if (/\bdolo[- ]?650\b/i.test(cleaned)) return 'Dolo-650';
   if (/\bmontek[- ]?lc\b/i.test(cleaned)) return 'Montek-LC';
   if (/\bmontair[- ]?lc\b/i.test(cleaned)) return 'Montair-LC';
@@ -252,15 +297,36 @@ function extractBrandName(text) {
   if (/\bpan[- ]?40\b/i.test(cleaned)) return 'Pan 40';
   if (/\bpantocid\b/i.test(cleaned)) return 'Pantocid';
   if (/\baugmentin\b/i.test(cleaned)) return 'Augmentin';
+  if (/\bclavam\b/i.test(cleaned)) return 'Clavam 625';
   if (/\bascoril\b/i.test(cleaned)) return 'Ascoril-LS';
   if (/\bmetformin\b/i.test(cleaned)) return 'Metformin 500mg';
+  if (/\bazee\b/i.test(cleaned)) return 'Azee 500';
+  if (/\bciplox\b/i.test(cleaned)) return 'Ciplox 500';
+
+  // 1.5 Trademark detection (® or ™)
+  const tmMatches = [...cleaned.matchAll(/(?:[^\w]|^)([A-Za-z0-9\-]{3,25})\s*[®™]/g)];
+  for (const m of tmMatches) {
+    let cand = m[1].replace(/^[^a-zA-Z]+/, '').trim();
+    if (cand.toLowerCase().startsWith('i') && cand.length > 4 && /[A-Z]/.test(cand.slice(1, 3))) {
+      cand = cand.slice(1); // e.g. iCetcip -> Cetcip
+    }
+    const candUpper = cand.toUpperCase();
+    if (
+      cand.length >= 4 &&
+      !PACKAGING_STOPWORDS.has(candUpper) &&
+      !/^(REGISTERED|TRADEMARK|CAUTION|WARNING|STORE|SCHEDULE|FIS|IMAGE|SOURCE|ANALYSIS|RESULTS)/i.test(candUpper) &&
+      /[aeiouy]/i.test(cand)
+    ) {
+      return cand;
+    }
+  }
 
   // 2. Line-by-line inspection (skipping instruction lines, storage lines, and stopwords)
   const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
 
   for (const line of lines.slice(0, 15)) {
     // Skip any line that contains instructions, storage, dosage, batch, or manufacturer details
-    if (/\b(?:usac|usage|directed|physic|physician|borage|storage|excipient|colour|color|keep|store|caution|warning|schedule|mfg|lic|batch|mrp|exp|dt|b\.?no)\b/i.test(line)) {
+    if (/\b(?:usac|usage|directed|physic|physician|borage|storage|excipient|colour|color|keep|store|caution|warning|schedule|mfg|lic|batch|mrp|exp|dt|b\.?no|trademark|registered)\b/i.test(line)) {
       continue;
     }
     if (/\b(?:each|film|contains|tablet|capsule|keep|store|temperature)\b/i.test(line)) {
@@ -273,9 +339,14 @@ function extractBrandName(text) {
       const upper = candidate.toUpperCase().trim();
       const firstToken = upper.split(/\s+/)[0];
 
-      // Strictly ensure candidate is NOT in stopwords
+      // Strictly ensure candidate is NOT in stopwords, contains vowels, and is not garbled consonant noise
+      const hasVowels = /[AEIOUY]/.test(upper);
+      const isGibberish = /^[BCDFGHJKLMNPQRSTVWXYZ]{3,}/i.test(upper) || /WCE|AREAL|ILA|BETTE|MEU|SHID|SNID/i.test(upper);
+
       if (
         candidate.length >= 4 &&
+        hasVowels &&
+        !isGibberish &&
         !PACKAGING_STOPWORDS.has(upper) &&
         !PACKAGING_STOPWORDS.has(firstToken) &&
         !/^(USAC|USAGE|OOSAGE|DOSAGE|STORE|BORAGE|KEEP|CAUTION|TABLET|CAPSULE|STRIP)/i.test(upper)
@@ -315,6 +386,12 @@ function extractMedicineDetailsFromOcr(rawOcrText) {
   const isDolo650 = /dolo/i.test(cleaned) ||
     (ingredients.some(i => /paracetamol/i.test(i.name)) && ingredients.some(i => i.value === 650));
 
+  // PARACIP-500 (Cipla Paracetamol 500mg) — must be checked BEFORE generic isDolo650
+  const isParacip500 = /paracip[- ]?500/i.test(cleaned) || /\bparacip\b/i.test(cleaned) ||
+    (/paracetamol/i.test(cleaned) && /cipla/i.test(cleaned) && ingredients.some(i => i.value === 500 && /paracetamol/i.test(i.name)));
+
+  const isCetirizine = /cetirizine|cetcip|setirizine/i.test(cleaned);
+
   if (isAcenextP) {
     recognizedFormulation = 'ACENEXT_P';
     brandName = brandName || 'ACENEXT P';
@@ -324,6 +401,12 @@ function extractMedicineDetailsFromOcr(rawOcrText) {
   } else if (isPantoprazole) {
     recognizedFormulation = 'PANTOPRAZOLE_40';
     brandName = brandName || 'Pantoprazole Tablets IP';
+  } else if (isCetirizine) {
+    recognizedFormulation = 'CETCIP_10';
+    brandName = brandName || 'Cetirizine 10mg (Cetcip)';
+  } else if (isParacip500) {
+    recognizedFormulation = 'PARACIP_500';
+    brandName = brandName || 'Paracip-500';
   } else if (isDolo650) {
     recognizedFormulation = 'DOLO_650';
     brandName = brandName || 'Dolo-650';

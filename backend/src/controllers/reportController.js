@@ -4,6 +4,8 @@ const { extractTextFromPDF } = require('../utils/pdfExtractor');
 const { analyzeMedicalReport, translateReport } = require('../utils/llm');
 const path = require('path');
 const fs = require('fs');
+const { confidence } = require('../utils/confidence');
+const { removeOwnedUpload } = require('../utils/uploadCleanup');
 
 /**
  * @desc    Upload report (image/PDF), extract text, analyze using LLM, save to history
@@ -11,6 +13,7 @@ const fs = require('fs');
  * @access  Private
  */
 const analyzeReportFile = async (req, res) => {
+  let saved = false;
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'Please upload a medical report file (Image or PDF)' });
@@ -43,22 +46,14 @@ const analyzeReportFile = async (req, res) => {
       });
     }
 
-    console.log('--- STAGE 1: RAW OCR TEXT EXTRACTED ---');
-    console.log(rawText);
-    console.log('---------------------------------------');
-
     // 2. Perform AI Analysis on the extracted text
     let analysisResult;
     try {
       analysisResult = await analyzeMedicalReport(rawText);
     } catch (llmError) {
       console.error('Report LLM analysis error:', llmError);
-      return res.status(500).json({ success: false, error: 'Failed to analyze report using AI' });
+      return res.status(llmError.status || 503).json({ success: false, error: llmError.message || 'Failed to analyze report using AI' });
     }
-
-    console.log('--- STAGE 3: VALIDATED AND MAPPED JSON OBJECT ---');
-    console.log(JSON.stringify(analysisResult, null, 2));
-    console.log('-------------------------------------------------');
 
     // 3. Save to database history
     const newReportRecord = await ReportHistory.create({
@@ -87,21 +82,24 @@ const analyzeReportFile = async (req, res) => {
       hasLabValues: analysisResult.hasLabValues || false,
       hasCriticalFindings: analysisResult.hasCriticalFindings || false,
       patientExplanation: analysisResult.patientExplanation || {},
-      reportConfidence: analysisResult.reportConfidence || 95,
-      ocrConfidence: analysisResult.ocrConfidence || 95,
-      classificationConfidence: analysisResult.classificationConfidence || 95,
-      analysisConfidence: analysisResult.analysisConfidence || 95,
+      reportConfidence: confidence(analysisResult.reportConfidence),
+      ocrConfidence: confidence(analysisResult.ocrConfidence),
+      classificationConfidence: confidence(analysisResult.classificationConfidence),
+      analysisConfidence: confidence(analysisResult.analysisConfidence),
       warnings: analysisResult.warnings || 'For educational use only',
       cardAnalysis: analysisResult.cardAnalysis || null
     });
 
+    saved = true;
     res.status(201).json({
       success: true,
       data: newReportRecord
     });
   } catch (error) {
     console.error('Report controller error:', error);
-    res.status(500).json({ success: false, error: 'Server error during report analysis' });
+    res.status(error.status || 500).json({ success: false, error: 'Server error during report analysis' });
+  } finally {
+    if (!saved && req.file) await removeOwnedUpload('/uploads/' + req.file.filename).catch(error => console.error('Upload cleanup failed:', error.message));
   }
 };
 

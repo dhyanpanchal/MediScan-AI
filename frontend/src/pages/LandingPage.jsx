@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Pill, FileText, LayoutDashboard, ArrowRight, ShieldCheck, Stethoscope, ChevronRight, Activity, Cpu } from 'lucide-react';
+import { Pill, FileText, LayoutDashboard, ArrowRight, ShieldCheck, Stethoscope, ChevronRight, Activity, Cpu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 
 const LandingPage = () => {
   const { user } = useAuth();
+  const { theme, setTheme } = useApp();
 
   return (
     <div style={{
@@ -43,13 +45,34 @@ const LandingPage = () => {
 
           {/* Nav Actions */}
           <nav className="landing-nav-actions" aria-label="Site navigation">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="btn btn-secondary landing-nav-btn"
+              style={{
+                width: '38px',
+                minWidth: '38px',
+                padding: 0,
+                borderRadius: '8px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer'
+              }}
+              title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
             {user ? (
               <Link to="/dashboard" className="btn btn-primary landing-nav-btn">
                 Dashboard <ChevronRight size={15} aria-hidden="true" style={{ marginLeft: '4px' }} />
               </Link>
             ) : (
               <>
-                <Link to="/login" className="btn btn-secondary landing-nav-btn" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <Link to="/login" className="btn btn-secondary landing-nav-btn" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
                   Log In
                 </Link>
                 <Link to="/register" className="btn btn-primary landing-nav-btn">
@@ -138,7 +161,9 @@ const LandingPage = () => {
             padding: 'clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2.5rem)',
             fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
             borderRadius: '8px',
-            background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)'
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            color: 'var(--text-primary)'
           }}>
             Try Scanner Demo
           </Link>
@@ -155,9 +180,6 @@ const LandingPage = () => {
       {/* Product Showcase Visual */}
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 clamp(1rem, 4vw, 1.5rem) 4rem' }} aria-label="Pipeline overview">
         <div className="card pipeline-card" style={{
-          background: 'linear-gradient(to bottom, rgba(20,22,40,0.8), rgba(11,13,28,1))',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
           position: 'relative', overflow: 'hidden',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
         }}>
@@ -203,7 +225,7 @@ const LandingPage = () => {
               desc: "Maintain a personal timeline of medication guides and physiological analyses. Search, filter, and review previous records securely on your dashboard."
             }
           ].map((feature, idx) => (
-            <article key={idx} className="card" style={{ padding: 'clamp(1.25rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <article key={idx} className="card" style={{ padding: 'clamp(1.25rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid var(--border-color)' }}>
               <div style={{
                 background: `color-mix(in srgb, ${feature.color} 15%, transparent)`,
                 color: feature.color,
@@ -224,10 +246,11 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid var(--border-color)',
         textAlign: 'center', padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 1.5rem)',
         color: 'var(--text-muted)', fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
-        background: 'rgba(0,0,0,0.2)'
+        background: 'var(--bg-secondary)',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease'
       }} role="contentinfo">
         <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(1rem, 3vw, 2rem)', marginBottom: '1.25rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
           <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: '4px 8px', minHeight: '44px' }}>Privacy Policy</button>

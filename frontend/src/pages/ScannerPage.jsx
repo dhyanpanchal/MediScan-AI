@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../services/api';
+import { getHistoryCacheKey } from '../services/historyCache';
 import { useApp } from '../context/AppContext';
 import MedicalDisclaimer from '../components/MedicalDisclaimer';
 import { 
@@ -84,10 +85,10 @@ const SCAN_LABELS = {
     generic: 'जेनेरिक नाम',
     maker: 'निर्माता / ब्रांड',
     manufacturer: 'निर्माता कंपनी',
-    overview: 'अवलोकन (Overview)',
-    dosage: 'खुराक (Dosage)',
-    warnings: 'चेतावनियां (Warnings)',
-    sideEffects: 'दुष्प्रभाव (Side Effects)',
+    overview: 'अवलोकन',
+    dosage: 'खुराक',
+    warnings: 'चेतावनियां',
+    sideEffects: 'दुष्प्रभाव',
     clinicalPurpose: 'चिकित्सीय उपयोग',
     primaryUse: 'प्रमुख चिकित्सीय उपयोग',
     drugClass: 'दवा वर्ग (Drug Class)',
@@ -138,10 +139,10 @@ const SCAN_LABELS = {
     generic: 'જેનેરિક નામ',
     maker: 'બ્રાન્ડ / ઉત્પાદક',
     manufacturer: 'ઉત્પાદક કંપની',
-    overview: 'વિહંગાવલોકન (Overview)',
-    dosage: 'માત્રા / ડોઝ (Dosage)',
-    warnings: 'ચેતવણીઓ (Warnings)',
-    sideEffects: 'આડઅસરો (Side Effects)',
+    overview: 'વિહંગાવલોકન',
+    dosage: 'માત્રા / ડોઝ',
+    warnings: 'ચેતવણીઓ',
+    sideEffects: 'આડઅસરો',
     clinicalPurpose: 'તબીબી ઉપયોગ (Clinical Purpose)',
     primaryUse: 'મુખ્ય તબીબી ઉપયોગ',
     drugClass: 'દવા વર્ગીકરણ (Drug Class)',
@@ -264,7 +265,7 @@ const LoadingChecklist = ({ progress }) => {
 
   return (
     <div style={{
-      position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.92)', backdropFilter: 'blur(8px)',
+      position: 'absolute', inset: 0, background: 'var(--bg-card)', backdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20
     }}>
       <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -293,7 +294,7 @@ const LoadingChecklist = ({ progress }) => {
           );
         })}
 
-        <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '6px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, var(--primary), var(--primary-blue))', transition: 'width 0.4s ease' }} />
         </div>
       </div>
@@ -337,6 +338,9 @@ const ScannerPage = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const completionTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (language) {
@@ -354,14 +358,29 @@ const ScannerPage = () => {
     if (instant) setResult(instant);
   };
 
-  useEffect(() => () => stopCameraStream(), []);
+  useEffect(() => {
+    return () => {
+      stopCameraStream();
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
 
   const processImageFile = (file) => {
     if (!file) return;
     const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(file.name);
     if (!isImage) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return setError('Please upload or drop a valid image file (JPEG, PNG, WEBP).');
     }
+
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > MAX_SIZE_BYTES) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return setError('File size exceeds the 10 MB limit. Please select a smaller image.');
+    }
+
     setError('');
     setSelectedFile(file);
     const reader = new FileReader();
@@ -444,24 +463,50 @@ const ScannerPage = () => {
     }
   };
 
+  const cancelScan = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (completionTimeoutRef.current) {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+    }
+    setLoading(false);
+    setScanProgress(0);
+  };
+
   const handleScan = async () => {
     if (!selectedFile) return setError('Please select an image first.');
-    setError(''); setLoading(true); setScanProgress(15);
+    cancelScan();
+    setError('');
+    setLoading(true);
+    setScanProgress(15);
+
     const formData = new FormData();
     formData.append('image', selectedFile);
     if (scanLanguage) formData.append('language', scanLanguage);
 
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     let progress = 15;
-    const progressInterval = setInterval(() => {
+    progressIntervalRef.current = setInterval(() => {
       progress += Math.floor(Math.random() * 15) + 5;
       if (progress > 95) progress = 95;
       setScanProgress(progress);
     }, 700);
 
     try {
-      const res = await api.scanMedicine(formData);
-      clearInterval(progressInterval); setScanProgress(100);
-      setTimeout(async () => {
+      const res = await api.scanMedicine(formData, { signal: abortController.signal });
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setScanProgress(100);
+
+      completionTimeoutRef.current = setTimeout(async () => {
         if (res.success) {
           let medData = res.data;
           // Automatically translate entire scan result if target language is not English
@@ -472,7 +517,7 @@ const ScannerPage = () => {
             const medName = medData._originalEnglish?.medicineName || medData.medicineName;
             if (medName) {
               try {
-                const aiRes = await api.searchMedicineByName(medName, scanLanguage, 'adult', null);
+                const aiRes = await api.searchMedicineByName(medName, scanLanguage, 'adult', null, { signal: abortController.signal });
                 if (aiRes && aiRes.success && aiRes.data) {
                   medData = {
                     ...medData,
@@ -500,14 +545,23 @@ const ScannerPage = () => {
         }
         setLoading(false);
         setScanProgress(0);
+        abortControllerRef.current = null;
       }, 500);
     } catch (err) {
-      clearInterval(progressInterval); setLoading(false); setScanProgress(0);
-      setError('Unable to load this information. Please check your connection and try again.');
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setLoading(false);
+      setScanProgress(0);
+      abortControllerRef.current = null;
+      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
+        setError('Scan cancelled.');
+      } else {
+        setError(err.message || 'Unable to load this information. Please check your connection and try again.');
+      }
     }
   };
 
   const resetScanner = () => {
+    cancelScan();
     setImagePreview(null);
     setSelectedFile(null);
     setResult(null);
@@ -549,9 +603,10 @@ const ScannerPage = () => {
             precautions: res.data.precautions,
             createdAt: new Date().toISOString()
           };
-          const existing = JSON.parse(localStorage.getItem('mediscan_text_searches') || '[]');
+          const cacheKey = getHistoryCacheKey();
+          const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
           const filtered = existing.filter(i => (i.searchQuery || '').toLowerCase() !== trimmed.toLowerCase());
-          localStorage.setItem('mediscan_text_searches', JSON.stringify([newEntry, ...filtered].slice(0, 50)));
+          localStorage.setItem(cacheKey, JSON.stringify([newEntry, ...filtered].slice(0, 50)));
         } catch (cacheErr) {
           console.warn('[ScannerPage] Could not cache search locally:', cacheErr);
         }
@@ -635,7 +690,15 @@ const ScannerPage = () => {
                 key={tab.id} 
                 onClick={() => setNameTab(tab.id)} 
                 className={nameTab === tab.id ? 'active' : ''} 
-                style={{ padding: '8px 12px', fontSize: '13px', fontWeight: '600', flex: '1 1 0', textAlign: 'center', whiteSpace: 'nowrap', minWidth: 'fit-content' }}
+                style={{ 
+                  padding: '8px 10px', 
+                  fontSize: '13px', 
+                  fontWeight: '600', 
+                  flex: '1 1 0', 
+                  textAlign: 'center', 
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer'
+                }}
               >
                 {tab.label}
               </button>
@@ -819,34 +882,6 @@ const ScannerPage = () => {
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
 
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Globe size={16} style={{ color: 'var(--primary)' }} />
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Translate Result To:</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {LANGUAGES.map(lang => (
-                      <button
-                        key={lang.code}
-                        type="button"
-                        onClick={() => handleScanLanguageChange(lang.code)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: scanLanguage === lang.code ? '700' : '500',
-                          background: scanLanguage === lang.code ? 'linear-gradient(135deg, var(--primary), var(--primary-blue))' : 'rgba(255,255,255,0.04)',
-                          color: scanLanguage === lang.code ? '#fff' : 'var(--text-muted)',
-                          border: scanLanguage === lang.code ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {lang.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 <div
                   className={`scanner-container ${loading ? 'active' : ''} ${imagePreview ? 'has-image' : ''} ${isDragging ? 'drag-over' : ''}`}
@@ -959,6 +994,35 @@ const ScannerPage = () => {
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {scanTranslating && <Loader2 size={16} className="spin" style={{ color: 'var(--primary)' }} />}
+                  {/* Language Translator Selector in Results Header */}
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Globe size={14} style={{ position: 'absolute', left: '10px', color: 'var(--primary)', pointerEvents: 'none' }} />
+                    <select
+                      aria-label="Result Language"
+                      value={scanLanguage}
+                      onChange={e => handleScanLanguageChange(e.target.value)}
+                      style={{
+                        paddingLeft: '30px',
+                        paddingRight: '26px',
+                        paddingTop: '6px',
+                        paddingBottom: '6px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        borderRadius: '8px',
+                        background: 'rgba(139, 92, 246, 0.1)',
+                        color: 'var(--primary)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                        cursor: 'pointer',
+                        appearance: 'none',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="en" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>English</option>
+                      <option value="hi" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>हिन्दी</option>
+                      <option value="gu" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>ગુજરાતી</option>
+                    </select>
+                    <ChevronDown size={12} style={{ position: 'absolute', right: '8px', color: 'var(--primary)', pointerEvents: 'none' }} />
+                  </div>
                   {result && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {result.verificationStatus === 'Verified' ? (
@@ -1076,13 +1140,13 @@ const ScannerPage = () => {
                             onClick={() => setActiveTab(tab.id)} 
                             className={activeTab === tab.id ? 'active' : ''}
                             style={{ 
-                              padding: '10px 12px', 
+                              padding: '10px 10px', 
                               fontSize: '14px',
                               fontWeight: '600',
                               flex: '1 1 0',
                               textAlign: 'center',
                               whiteSpace: 'nowrap',
-                              minWidth: 'fit-content'
+                              cursor: 'pointer'
                             }}
                           >
                             {tab.label}
@@ -1279,44 +1343,17 @@ const ScannerPage = () => {
               <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <p className="body-text" style={{ fontSize: '14px' }}>{nT.searchPrompt}</p>
                 <form onSubmit={handleNameSearch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ position: 'relative', flex: 1 }}>
-                      <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                      <input 
-                        type="text" 
-                        value={nameQuery} 
-                        onChange={(e) => setNameQuery(e.target.value)} 
-                        placeholder={nT.searchPlaceholder} 
-                        className="input" 
-                        style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} 
-                        disabled={nameLoading} 
-                      />
-                    </div>
-                    <div style={{ position: 'relative', width: '135px', flexShrink: 0 }}>
-                      <Globe size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                      <select
-                        aria-label="Search Language"
-                        value={outputLanguage}
-                        onChange={e => handleLanguageChange(e.target.value)}
-                        className="input"
-                        style={{
-                          paddingLeft: '34px',
-                          paddingRight: '26px',
-                          height: '48px',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                          cursor: 'pointer',
-                          appearance: 'none',
-                          width: '100%',
-                          background: 'var(--bg-input)'
-                        }}
-                      >
-                        <option value="en">English</option>
-                        <option value="hi">हिन्दी</option>
-                        <option value="gu">ગુજરાતી</option>
-                      </select>
-                      <ChevronDown size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                    </div>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                    <input 
+                      type="text" 
+                      value={nameQuery} 
+                      onChange={(e) => setNameQuery(e.target.value)} 
+                      placeholder={nT.searchPlaceholder} 
+                      className="input" 
+                      style={{ paddingLeft: '44px', fontSize: '15px', width: '100%', height: '48px', borderRadius: '8px' }} 
+                      disabled={nameLoading} 
+                    />
                   </div>
                   <button type="submit" className="btn btn-primary" disabled={nameLoading || !nameQuery.trim()} style={{ padding: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '8px' }}>
                     {nameLoading ? <><Loader2 size={18} className="spin" /> {nT.searching}</> : <><Sparkles size={18} /> {nT.searchMedicine}</>}
@@ -1413,7 +1450,7 @@ const ScannerPage = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(8, 10, 22, 0.95)', backdropFilter: 'blur(16px)', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>
            <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.5)' }}>
              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>Capture Label</h3>
-             <button onClick={stopCameraStream} className="btn btn-secondary" style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none' }}><X size={24} color="#fff" /></button>
+             <button onClick={stopCameraStream} aria-label="Close camera capture" className="btn btn-secondary" style={{ padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none' }}><X aria-hidden="true" size={24} color="#fff" /></button>
            </div>
            
            <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>

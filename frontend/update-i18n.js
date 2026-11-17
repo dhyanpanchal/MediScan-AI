@@ -1,6 +1,7 @@
-const fs = require('fs');
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const path = 'd:\\Medisacn-Ai\\frontend\\src\\context\\AppContext.jsx';
+const path = fileURLToPath(new URL('./src/context/AppContext.jsx', import.meta.url));
 let content = fs.readFileSync(path, 'utf8');
 
 const enTranslations = `
@@ -245,15 +246,11 @@ content = content.replace(/(\s*other:\s*'अन्य',)/, "$1" + hiTranslations
 content = content.replace(/(\s*other:\s*'અન્ય',)/, "$1" + guTranslations);
 
 // Also we need to make t function support replacement of variables like {name}
-const updatedTFunction = \`  const t = (key, params) => {
+const updatedTFunction = `  const t = (key, params) => {
     let text = translations[language]?.[key] || translations['en']?.[key] || key;
-    if (params && typeof text === 'string') {
-      Object.keys(params).forEach(p => {
-        text = text.replace(\\\`{\\$\\{p\\}}\\\`, params[p]);
-      });
-    }
+    for (const [name, value] of Object.entries(params || {})) text = text.replace('{' + name + '}', value);
     return text;
-  };\`;
+  };`;
 
 content = content.replace(/const t = \(key\) => translations\[language\]\?\.\[key\] \|\| translations\['en'\]\?\.\[key\] \|\| key;/, updatedTFunction);
 

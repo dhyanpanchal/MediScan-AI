@@ -191,8 +191,8 @@ const SettingsPage = () => {
                   })}
                 </div>
                 <div className="alert alert-info" style={{ marginTop: '32px' }}>
-                  <h4 className="alert-title">Localization Engine</h4>
-                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>All clinical diagnoses, OCR results, and AI summaries will be natively translated into your selected language globally across the platform.</p>
+                  <h4 className="alert-title">{t('localizationEngine')}</h4>
+                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{t('localizationDesc')}</p>
                 </div>
               </div>
             )}
@@ -212,7 +212,7 @@ const SettingsPage = () => {
                 </div>
 
                 <div>
-                  <h4 className="card-heading" style={{ marginBottom: '16px' }}>Personal Information</h4>
+                  <h4 className="card-heading" style={{ marginBottom: '16px' }}>{t('personalInformation')}</h4>
                   <div className="form-row-2col">
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label style={{ fontSize: '13px' }}>{t('name') || 'Full Name'}</label>
@@ -248,7 +248,7 @@ const SettingsPage = () => {
                 color: '#fff', padding: '12px 24px', fontSize: '15px', borderRadius: '10px', minWidth: '160px',
                 transition: 'all 0.3s'
               }}>
-                {saving ? <><Loader2 size={16} className="spin" /> Processing...</> : saved ? <><Check size={16} /> Saved Successfully</> : 'Save Preferences'}
+                {saving ? <><Loader2 size={16} className="spin" /> {t('processing')}</> : saved ? <><Check size={16} /> {t('preferencesSaved')}</> : t('savePreferences')}
               </button>
             </div>
 

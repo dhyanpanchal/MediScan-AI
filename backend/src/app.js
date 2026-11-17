@@ -6,10 +6,10 @@ const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 
 // Load env variables
-dotenv.config({ path: path.join(__dirname, '..', '.env'), override: true });
+dotenv.config({ path: path.join(__dirname, '..', '.env'), override: false });
 
-// Connect to SQLite Database
-connectDB();
+// Connect without leaving a rejected startup promise unhandled.
+connectDB().catch(() => {});
 
 const app = express();
 
@@ -17,18 +17,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files statically
-// Serve uploaded files statically with CORS & CORP headers
-const setUploadHeaders = (res) => {
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-};
-const primaryUploads = path.join(__dirname, '..', 'uploads');
-const altUploads = path.join(__dirname, '..', '..', 'uploads');
-app.use('/uploads', express.static(primaryUploads, { setHeaders: setUploadHeaders }));
-if (fs.existsSync(altUploads)) {
-  app.use('/uploads', express.static(altUploads, { setHeaders: setUploadHeaders }));
-}
+// Files remain private and use the same configured storage as uploads.
+const { protect } = require('./middleware/authMiddleware');
+const { downloadFile } = require('./controllers/fileController');
+app.get('/uploads/:filename', protect, downloadFile);
 
 // Routes mapping
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -67,8 +59,15 @@ if (activeDistPath) {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      success: false,
+      error: 'File size exceeds maximum allowed limit (10MB)'
+    });
+  }
+  const status = err.status || (err.name === 'MulterError' ? 400 : 500);
   console.error('Unhandled Server Error:', err.message);
-  res.status(err.status || 500).json({
+  res.status(status).json({
     success: false,
     error: err.message || 'An internal server error occurred.'
   });

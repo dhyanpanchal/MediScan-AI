@@ -210,7 +210,7 @@ a {
 .btn-secondary {
   background-color: var(--bg-elevated);
   color: var(--text-primary);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--border-color);
 }
 .btn-secondary:hover {
   background-color: var(--bg-input);
@@ -251,6 +251,7 @@ textarea::placeholder,
 select::placeholder,
 .form-control::placeholder {
   color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
   opacity: 0.8 !important;
 }
 
@@ -260,6 +261,7 @@ select::placeholder,
 [data-theme="light"] select::placeholder,
 [data-theme="light"] .form-control::placeholder {
   color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
   opacity: 0.85 !important;
 }
 
@@ -388,54 +390,67 @@ select::placeholder,
   right: 12px !important;
 }
 
-/* Chrome/Edge/Safari Autofill - Dark Theme (Default) */
+/* Chrome/Edge/Safari Autofill & Autocomplete - Dark Theme (Default) */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
-.input-icon-group input:-webkit-autofill {
+input:-internal-autofill-selected,
+.input-icon-group input:-webkit-autofill,
+.input-icon-group input:-internal-autofill-selected {
   -webkit-text-fill-color: var(--text-primary, #F8FAFC) !important;
   color: var(--text-primary, #F8FAFC) !important;
   -webkit-box-shadow: 0 0 0px 1000px var(--bg-input, #171B35) inset !important;
   box-shadow: 0 0 0px 1000px var(--bg-input, #171B35) inset !important;
-  caret-color: var(--text-primary, #F8FAFC);
-  transition: background-color 5000s ease-in-out 0s;
+  caret-color: var(--text-primary, #F8FAFC) !important;
+    transition: background-color 500000s ease-in-out 0s;
 }
 
-/* Chrome/Edge/Safari Autofill - Light Theme (Ultra High Specificity Override) */
+[data-theme="dark"] .input-icon-group:focus-within input:-webkit-autofill,
+[data-theme="dark"] .input-icon-group:focus-within input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-elevated, #151A32) inset !important;
+  box-shadow: 0 0 0px 1000px var(--bg-elevated, #151A32) inset !important;
+}
+
+/* Chrome/Edge/Safari Autofill & Autocomplete - Light Theme (Ultra High Specificity Override) */
 html[data-theme="light"] input:-webkit-autofill,
 html[data-theme="light"] input:-webkit-autofill:hover, 
 html[data-theme="light"] input:-webkit-autofill:focus,
 html[data-theme="light"] input:-webkit-autofill:active,
+html[data-theme="light"] input:-internal-autofill-selected,
 [data-theme="light"] input:-webkit-autofill,
 [data-theme="light"] input:-webkit-autofill:hover, 
 [data-theme="light"] input:-webkit-autofill:focus,
 [data-theme="light"] input:-webkit-autofill:active,
+[data-theme="light"] input:-internal-autofill-selected,
 [data-theme="light"] .input-icon-group input:-webkit-autofill,
 [data-theme="light"] .input-icon-group input:-webkit-autofill:hover,
 [data-theme="light"] .input-icon-group input:-webkit-autofill:focus,
 [data-theme="light"] .input-icon-group input:-webkit-autofill:active,
-[data-theme="light"] .form-control:-webkit-autofill {
+[data-theme="light"] .input-icon-group input:-internal-autofill-selected,
+[data-theme="light"] .form-control:-webkit-autofill,
+[data-theme="light"] .form-control:-internal-autofill-selected {
   -webkit-text-fill-color: #0F172A !important;
   color: #0F172A !important;
   -webkit-box-shadow: 0 0 0px 1000px #F1F5F9 inset !important;
   box-shadow: 0 0 0px 1000px #F1F5F9 inset !important;
   caret-color: #0F172A !important;
-  transition: background-color 5000s ease-in-out 0s;
+  transition: background-color 500000s ease-in-out 0s;
 }
 
-/* Autofill inside focused inputs */
-.input-icon-group:focus-within input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px var(--bg-elevated, #151A32) inset !important;
-  box-shadow: 0 0 0px 1000px var(--bg-elevated, #151A32) inset !important;
-}
-
+/* Autofill inside focused inputs in light theme */
 html[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
+html[data-theme="light"] .input-icon-group:focus-within input:-internal-autofill-selected,
 [data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
+[data-theme="light"] .input-icon-group:focus-within input:-internal-autofill-selected,
 [data-theme="light"] .form-control:focus:-webkit-autofill,
-[data-theme="light"] input:-webkit-autofill:focus {
+[data-theme="light"] .form-control:focus:-internal-autofill-selected,
+[data-theme="light"] input:-webkit-autofill:focus,
+[data-theme="light"] input:-internal-autofill-selected:focus {
   -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
   box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #0F172A !important;
+    color: #0F172A !important;
 }
 
 /* Badges */
@@ -611,6 +626,36 @@ html[data-theme="light"] .input-icon-group:focus-within input:-webkit-autofill,
   border-color: rgba(255,255,255,0.1);
 }
 
+/* Sidebar & Navigation Active High Contrast */
+[data-theme="light"] .nav-item.active,
+html[data-theme="light"] .nav-item.active,
+body[data-theme="light"] .nav-item.active,
+:root[data-theme="light"] .nav-item.active {
+  color: #6D28D9 !important;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.14) 0%, rgba(124, 58, 237, 0.02) 100%) !important;
+}
+
+[data-theme="light"] .nav-item.active .nav-label,
+[data-theme="light"] .nav-item.active span,
+html[data-theme="light"] .nav-item.active .nav-label,
+html[data-theme="light"] .nav-item.active span,
+body[data-theme="light"] .nav-item.active .nav-label,
+body[data-theme="light"] .nav-item.active span,
+:root[data-theme="light"] .nav-item.active .nav-label,
+:root[data-theme="light"] .nav-item.active span {
+  color: #6D28D9 !important;
+  -webkit-text-fill-color: #6D28D9 !important;
+  font-weight: 700 !important;
+  background: none !important;
+}
+
+[data-theme="light"] .nav-item.active .nav-icon-container,
+html[data-theme="light"] .nav-item.active .nav-icon-container,
+body[data-theme="light"] .nav-item.active .nav-icon-container,
+:root[data-theme="light"] .nav-item.active .nav-icon-container {
+  color: #7C3AED !important;
+  filter: none !important;
+}
 /* Alerts */
 .alert {
   padding: 16px;

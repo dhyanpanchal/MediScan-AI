@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { getHistoryCacheKey } from '../services/historyCache';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import {
@@ -128,8 +129,9 @@ const DashboardPage = () => {
         let medSearches = res.data.recentMedicineSearches || [];
         if (medSearches.length === 0) {
           try {
-            const local = JSON.parse(localStorage.getItem('mediscan_text_searches') || '[]');
-            if (local.length > 0) medSearches = local.slice(0, 5);
+            const cacheKey = getHistoryCacheKey();
+            const local = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+            if (local.length > 0) medSearches = local.filter(loc => !loc.id || !String(loc.id).startsWith('search_init_')).slice(0, 5);
           } catch (_) {}
         }
         let statsData = res.data.stats || {};

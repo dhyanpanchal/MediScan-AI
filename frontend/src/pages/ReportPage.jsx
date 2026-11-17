@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../services/api';
+import { useApp } from '../context/AppContext';
 import MedicalDisclaimer from '../components/MedicalDisclaimer';
 import { 
   FileText, Upload, RefreshCw, ShieldAlert,
@@ -47,7 +48,7 @@ const LoadingChecklist = ({ progress }) => {
   ];
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11, 13, 28, 0.9)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
+    <div style={{ position: 'absolute', inset: 0, background: 'var(--bg-card)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
       <div style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
           <Sparkles size={24} style={{ color: 'var(--primary)' }} />
@@ -63,7 +64,7 @@ const LoadingChecklist = ({ progress }) => {
             </div>
           );
         })}
-        <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '6px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, var(--primary), var(--info))', transition: 'width 0.4s ease' }} />
         </div>
       </div>
@@ -72,16 +73,66 @@ const LoadingChecklist = ({ progress }) => {
 };
 
 const ReportPage = () => {
+  const { language, setLanguage, t } = useApp();
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    if (language === 'hi') return 'Hindi';
+    if (language === 'gu') return 'Gujarati';
+    return 'English';
+  });
   const [activeTab, setActiveTab] = useState('overview');
   const [isDragging, setIsDragging] = useState(false);
+  const [translatingReport, setTranslatingReport] = useState(false);
   const fileInputRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const completionTimeoutRef = useRef(null);
+  const rawReportRef = useRef(null);
+
+  useEffect(() => {
+    if (language === 'hi') setSelectedLanguage('Hindi');
+    else if (language === 'gu') setSelectedLanguage('Gujarati');
+    else setSelectedLanguage('English');
+  }, [language]);
+
+  const handleReportLanguageChange = async (targetLang) => {
+    setSelectedLanguage(targetLang);
+    const langCode = targetLang === 'Hindi' ? 'hi' : targetLang === 'Gujarati' ? 'gu' : 'en';
+    setLanguage(langCode);
+
+    if (!result) return;
+    const base = rawReportRef.current || result;
+    if (targetLang === 'English') {
+      if (rawReportRef.current) setResult(rawReportRef.current);
+      return;
+    }
+
+    setTranslatingReport(true);
+    try {
+      const res = await api.translateReport(base, targetLang);
+      if (res && res.success && res.data) {
+        setResult(res.data);
+      }
+    } catch (err) {
+      console.warn('[ReportPage] Translation error:', err.message);
+    } finally {
+      setTranslatingReport(false);
+    }
+  };
+
+  // Clean up timers and in-flight requests on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
 
   const processReportFile = (file) => {
     if (!file) return;
@@ -89,7 +140,14 @@ const ReportPage = () => {
     const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(file.name);
     
     if (!isPdf && !isImage) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return setError('Please upload or drop a valid PDF or image file (PDF, JPEG, PNG, WEBP).');
+    }
+
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > MAX_SIZE_BYTES) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return setError('File size exceeds the 10 MB limit. Please select a smaller document.');
     }
     
     setError('');
@@ -147,35 +205,95 @@ const ReportPage = () => {
     }
   };
 
+  const cancelAnalysis = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (completionTimeoutRef.current) {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+    }
+    setLoading(false);
+    setAnalyzeProgress(0);
+  };
+
   const handleAnalyze = async () => {
     if (!selectedFile) return setError('Please upload a PDF or image medical report first.');
-    setError(''); setLoading(true); setAnalyzeProgress(15);
+    
+    // Cancel any existing run cleanly before starting
+    cancelAnalysis();
+    setError('');
+    setLoading(true);
+    setAnalyzeProgress(15);
 
-    const formData = new FormData(); formData.append('file', selectedFile);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     let progress = 15;
-    const progressInterval = setInterval(() => {
+    progressIntervalRef.current = setInterval(() => {
       progress += Math.floor(Math.random() * 15) + 5;
       if (progress > 95) progress = 95;
       setAnalyzeProgress(progress);
     }, 800);
 
     try {
-      const res = await api.analyzeReport(formData);
-      clearInterval(progressInterval); setAnalyzeProgress(100);
-      setTimeout(() => {
-        if (res.success) { setResult(res.data); setActiveTab('overview'); }
-        else setError(res.error || 'Failed to analyze report file.');
-        setLoading(false); setAnalyzeProgress(0);
+      const res = await api.analyzeReport(formData, { signal: abortController.signal });
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setAnalyzeProgress(100);
+
+      completionTimeoutRef.current = setTimeout(async () => {
+        if (res.success) {
+          rawReportRef.current = res.data;
+          let reportData = res.data;
+          if (selectedLanguage && selectedLanguage !== 'English') {
+            try {
+              const transRes = await api.translateReport(res.data, selectedLanguage);
+              if (transRes && transRes.success && transRes.data) {
+                reportData = transRes.data;
+              }
+            } catch (tErr) {
+              console.warn('[ReportPage] Auto-translate on analyze error:', tErr.message);
+            }
+          }
+          setResult(reportData);
+          setActiveTab('overview');
+        } else {
+          setError(res.error || 'Failed to analyze report file.');
+        }
+        setLoading(false);
+        setAnalyzeProgress(0);
+        abortControllerRef.current = null;
       }, 500);
     } catch (err) {
-      clearInterval(progressInterval); setLoading(false); setAnalyzeProgress(0);
-      setError(err.message || 'Failed to analyze report file.');
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setLoading(false);
+      setAnalyzeProgress(0);
+      abortControllerRef.current = null;
+      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
+        setError('Analysis cancelled.');
+      } else {
+        setError(err.message || 'Failed to analyze report file.');
+      }
     }
   };
 
   const handleReset = () => {
-    setSelectedFile(null); setImagePreview(null); setResult(null); setError(''); setActiveTab('overview'); setIsDragging(false);
+    cancelAnalysis();
+    rawReportRef.current = null;
+    setSelectedFile(null);
+    setImagePreview(null);
+    setResult(null);
+    setError('');
+    setActiveTab('overview');
+    setIsDragging(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -204,12 +322,13 @@ const ReportPage = () => {
         
         {result && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '8px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Language</span>
-            <select className="form-control" style={{ padding: '6px 12px', height: 'auto', background: 'var(--bg-input)', border: 'none', borderRadius: '8px' }} value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)}>
+            <label htmlFor="report-language-select" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>{t('language') || 'Language'}</label>
+            <select id="report-language-select" aria-label="Select report display language" className="form-control" style={{ padding: '6px 12px', height: 'auto', background: 'var(--bg-input)', border: 'none', borderRadius: '8px' }} value={selectedLanguage} onChange={(e) => handleReportLanguageChange(e.target.value)}>
               <option value="English">English</option>
               <option value="Hindi">हिन्दी (Hindi)</option>
               <option value="Gujarati">ગુજરાતી (Gujarati)</option>
             </select>
+            {translatingReport && <Loader2 size={14} className="spin" style={{ color: 'var(--primary)' }} />}
           </div>
         )}
       </div>

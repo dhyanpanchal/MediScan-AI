@@ -148,6 +148,29 @@ async function runTests() {
   assert(pantoVerified.category.includes('Proton Pump Inhibitor'), 'PPI classification verified');
   assert(!pantoVerified.medicineName.includes('USAC'), 'Zero USAC misidentification in output');
 
+  console.log('\n--- TEST 5.6: Paracip-500 (Paracetamol Tablets IP 500mg, Cipla) ---');
+  const paracipOcr = `
+    Paracetamol Tablets IP 500 mg
+    PARACIP-500
+    Each uncoated tablet contains:
+    Paracetamol IP ......... 500 mg
+    Marketed by: CIPLA LTD.
+    Cipla House, Peninsula Business Park, Mumbai
+    B.No.CP10964 MFD.AUG.21 EXP.JUL.24 M.R.P.
+  `;
+  const paracipExtracted = extractMedicineDetailsFromOcr(paracipOcr);
+  assert(paracipExtracted.brandName === 'Paracip-500', 'Extracted brand name: Paracip-500');
+  assert(paracipExtracted.ingredients.some(i => /paracetamol/i.test(i.name) && i.value === 500), 'Extracted Paracetamol 500 mg');
+  assert(paracipExtracted.dosageForm === 'Tablet', 'Extracted dosage form: Tablet');
+
+  const paracipVerified = await verifyAndEnrichMedicine({ rawOcrText: paracipOcr, extractedData: paracipExtracted });
+  assert(paracipVerified.verificationStatus === 'Verified', 'Paracip-500 verificationStatus is Verified');
+  assert(paracipVerified.confidenceScore >= 90, 'Confidence score >= 90%');
+  assert(paracipVerified.genericName.includes('Paracetamol Tablets IP 500 mg'), 'Generic name is Paracetamol Tablets IP 500 mg');
+  assert(paracipVerified.manufacturer.includes('Cipla'), 'Manufacturer identified as Cipla');
+  assert(paracipVerified.activeIngredientsList[0].name.includes('Paracetamol'), 'API list includes Paracetamol');
+  assert(paracipVerified.activeIngredientsList[0].strength === '500 mg', 'API strength is exactly 500 mg');
+
   console.log('\n--- TEST 6: Unverified / Unrecognized Substance ---');
   const garbageOcr = `
     XYZ-NOT-A-REAL-DRUG-998877

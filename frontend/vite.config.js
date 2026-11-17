@@ -11,8 +11,8 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:5001',
         changeOrigin: true,
-        timeout: 30000,
-        proxyTimeout: 30000,
+        timeout: 90000,
+        proxyTimeout: 90000,
         configure: (proxy, _options) => {
           proxy.on('error', (err, req, res) => {
             console.error('[Vite Proxy Error]:', err.message);

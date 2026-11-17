@@ -17,7 +17,7 @@ if (process.env.GEMINI_API_KEY) {
 async function callGemini(contents) {
   // Dynamically load the latest API key and model from .env so the server doesn't need restarting
   let currentAiInstance = aiInstance;
-  let activeModel = 'gemini-2.0-flash';
+  let activeModel = 'gemini-3.8-flash';
 
   try {
     const path = require('path');
@@ -40,9 +40,11 @@ async function callGemini(contents) {
 
   const candidateModels = [
     activeModel,
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash'
-  ].filter((v, i, a) => v && a.indexOf(v) === i && !v.includes('2.5'));
+  ].filter((v, i, a) => v && a.indexOf(v) === i);
 
   for (const model of candidateModels) {
     try {
@@ -53,7 +55,7 @@ async function callGemini(contents) {
         config: { responseMimeType: 'application/json' }
       });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI generation timed out')), 15000)
+        setTimeout(() => reject(new Error('AI generation timed out')), 25000)
       );
 
       const response = await Promise.race([apiPromise, timeoutPromise]);
@@ -123,7 +125,7 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
 
     let result = null;
     try {
-      const raw = await callGemini([{ role: 'user', parts: [{ text: prompt }] }]);
+      const raw = await callGemini([prompt]);
       if (raw) {
         let cleaned = raw;
         const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -141,11 +143,30 @@ IMPORTANT: Return ONLY the JSON, no markdown. ALL text, including the disease na
     if (!result || !result.diseaseName) {
       result = generateFallbackDiseaseData(query, language, ageGroup);
     } else {
-      // Validate recommended medicines are present and clinically relevant
+      // Validate and normalize recommended medicines
       if (!Array.isArray(result.recommendedMedicines) || result.recommendedMedicines.length === 0) {
         const fb = generateFallbackDiseaseData(query, language, ageGroup);
         result.recommendedMedicines = fb.recommendedMedicines;
       } else {
+        result.recommendedMedicines = result.recommendedMedicines.map((m, idx) => {
+          if (typeof m === 'string') {
+            return {
+              name: m,
+              form: language === 'gu' ? 'ટેબ્લેટ' : language === 'hi' ? 'टैबलेट' : 'Tablet',
+              purpose: language === 'gu' ? 'લક્ષણોમાં રાહત' : language === 'hi' ? 'लक्षणों से राहत' : 'Symptom relief',
+              dosage: language === 'gu' ? 'ડૉક્ટરની સલાહ મુજબ' : language === 'hi' ? 'डॉक्टर की सलाह अनुसार' : 'As directed by physician',
+              sideEffects: language === 'gu' ? 'હળવી ઉબકા કે સુસ્તી' : language === 'hi' ? 'हल्की मतली या सुस्ती' : 'Mild drowsiness or nausea'
+            };
+          }
+          return {
+            name: m.name || m.medicineName || `Medication ${idx + 1}`,
+            form: m.form || m.dosageForm || (language === 'gu' ? 'ટેબ્લેટ' : language === 'hi' ? 'टैबलेट' : 'Tablet'),
+            purpose: m.purpose || m.indication || (language === 'gu' ? 'લક્ષણોમાં રાહત' : language === 'hi' ? 'लक्षणों से राहत' : 'Symptom relief'),
+            dosage: m.dosage || (language === 'gu' ? 'ડૉક્ટરની સલાહ મુજબ' : language === 'hi' ? 'डॉक्टर की सलाह अनुसार' : 'As directed by physician'),
+            sideEffects: m.sideEffects || (language === 'gu' ? 'હળવી ઉબકા કે સુસ્તી' : language === 'hi' ? 'हल्की मतली या सुस्ती' : 'Mild drowsiness or nausea')
+          };
+        });
+
         const isAllergy = /allergy|allergic|dust|rhinitis|hay fever|urticaria|hives|sneeze|એલર્જી|ધૂળ|एलर्जी|धूल/i.test(query) ||
                           /allergy|allergic|dust|rhinitis|hay fever|urticaria|hives|sneeze|એલર્જી|ધૂળ|एलर्जी|धूल/i.test(result.diseaseName || '');
         const hasParacetamol = result.recommendedMedicines.some(m => /paracetamol|acetaminophen|dolo|પેરાસિટામોલ|पैरासिटामोल/i.test(m.name || ''));
@@ -1663,7 +1684,7 @@ IMPORTANT: ALL text, including medicine and chemical names, and ANY NUMBERS (tra
 
     let result = null;
     try {
-      const raw = await callGemini([{ role: 'user', parts: [{ text: prompt }] }]);
+      const raw = await callGemini([prompt]);
       if (raw) {
         let cleaned = raw;
         const jsonMatch = raw.match(/\{[\s\S]*\}/);
